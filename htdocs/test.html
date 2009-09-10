@@ -2,6 +2,7 @@
 	<head>
 		<jsondata />
 		<script type="text/javascript" src="/js/table.js"></script>
+		<script type="text/javascript" src="/js/mapping.js"></script>
 		<script type="text/javascript">
 			var table = new TypedTable();
 			for (var key in data[0]) {
@@ -15,7 +16,7 @@
 					if (data[i].hasOwnProperty(key)) {
 						table.addCell(rowid, key, data[i][key]);
 					}
-				});
+				}));
 			}
 			document.body.appendChild(table.table);
 		</script>
