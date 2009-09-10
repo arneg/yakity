@@ -16,10 +16,10 @@
 						if (lastsort != name) {
 							node = table.getHead(lastsort).firstChild;
 							// 2195 is updownarrow
-							node.replaceChild(document.createTextNode(String.fromCharCode(2195)), node.childNodes[1]);
+							node.replaceChild(document.createTextNode(String.fromCharCode(8597)), node.childNodes[1]);
 						}
 						node = table.getHead(name).firstChild;
-						node.replaceChild(document.createTextNode(String.fromCharCode(2192+sort)), node.childNodes[1]);
+						node.replaceChild(document.createTextNode(String.fromCharCode(8594+sort)), node.childNodes[1]);
 
 						table.sortByColumn(name, (function(a,b) {
 							return sort * strcmp(a._tdata,b._tdata);
@@ -30,7 +30,7 @@
 				for (var i = 0; i < columns.length; i++) {
 					var cname = columns[i];
 					var text = document.createTextNode(cname);
-					var arrow = document.createTextNode(String.fromCharCode(2195));
+					var arrow = document.createTextNode(String.fromCharCode(8597));
 					var div = document.createElement("div");
 					div.appendChild(text);
 					div.appendChild(arrow);
