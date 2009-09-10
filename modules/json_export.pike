@@ -22,6 +22,6 @@ string simpletag_jsondata(string tagname, mapping args, string content, RequestI
 // JSON EXPORT STUFF
 mixed find_file(string file, RequestID id) {
 	NOCACHE();
-	array(mapping) res = get_my_sql()->query("SELECT id,postal_street,name,surname,firstname,status,postal_city,phone_main from companies;");
+	array(mapping) res = get_my_sql()->query("SELECT website,email,id,postal_street,name,surname,firstname,status,postal_city,phone_main from companies;");
 	return Roxen.http_string_answer(sprintf("var data = %s;", Public.Parser.JSON2.render(res)), "text/javascript");	
 }
