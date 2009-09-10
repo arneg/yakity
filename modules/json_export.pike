@@ -12,7 +12,7 @@ void create() {
 }
 
 string simpletag_jsondata(string tagname, mapping args, string content, RequestID id) {
-	return sprintf("<script type=\"text/javascript\" src=\"%s/%s\"/>", query("location"), "test.js");
+	return sprintf("<script type=\"text/javascript\" src=\"%s/%s\"></script>", query("location"), "test.js");
 }
 
 // JSON EXPORT STUFF
