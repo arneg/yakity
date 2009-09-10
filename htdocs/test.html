@@ -30,7 +30,7 @@
 					table.addRow(rowid);
 					table.columns.forEach((function(key, value) {
 						if (data[i].hasOwnProperty(key)) {
-							table.addCell(rowid, key, data[i][key]);
+							table.addCell(rowid, key, data[i][key])._tdata = data[i][key];
 						}
 					}));
 				}
