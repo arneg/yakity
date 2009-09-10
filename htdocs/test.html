@@ -8,7 +8,17 @@
 				var table = new TypedTable();
 				var columns = ["website","email","id","postal_street","name","lastname","firstname","status","postal_city","phone_main"];
 				for (var i = 0; i < columns.length; i++) {
-					table.addColumn(columns[i], columns[i]);
+					var cname = columns[i];
+					table.addColumn(cname, cname);
+					var node = table.getHead(cname);
+					var sort = 1;
+					var cmp = function(a,b) {
+						return sort * strcmp(a,b);
+					};
+					node.onclick = function(event) {
+						table.sortByColumn(cname, cmp);
+						sort *= -1;
+					};
 				}
 
 				for (var i = 0; i < data.length; i++) {
