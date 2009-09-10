@@ -16,11 +16,11 @@
 						if (lastsort && lastsort != name) {
 							node = table.getHead(lastsort).firstChild;
 							// 2195 is updownarrow
-							node.replaceChild(document.createTextNode(String.fromCharCode(8597)), node.childNodes[1]);
+							node.replaceChild(document.createTextNode(String.fromCharCode(8597)), node.lastChild);
 						}
 						lastsort = name;
 						node = table.getHead(name).firstChild;
-						node.replaceChild(document.createTextNode(String.fromCharCode(8594+sort)), node.childNodes[1]);
+						node.replaceChild(document.createTextNode(String.fromCharCode(8594-sort)), node.lastChild);
 
 						table.sortByColumn(name, (function(a,b) {
 							return sort * strcmp(a._tdata,b._tdata);
