@@ -18,10 +18,10 @@
 				}
 				for (var i = 0; i < columns.length; i++) {
 					var cname = columns[i];
-					var node = table.getHead(cname);
-					var sort = 1;
 
 					table.addColumn(cname, cname);
+					var node = table.getHead(cname);
+					var sort = 1;
 					node.onclick = sorter(cname);
 				}
 
