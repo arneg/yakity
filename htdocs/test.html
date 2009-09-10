@@ -7,9 +7,20 @@
 			function init() {
 				var table = new TypedTable();
 				var columns = ["website","email","id","postal_street","name","lastname","firstname","status","postal_city","phone_main"];
+				var lastsort = null;
 				function sorter(name) {
 					var sort = 1;
 					return function(event) {
+						var node;
+
+						if (lastsort != name) {
+							node = table.getHead(lastsort).firstChild;
+							// 2195 is updownarrow
+							node.replaceChild(document.createTextNode(String.fromCharCode(2195)), node.childNodes[1]);
+						}
+						node = table.getHead(name).firstChild;
+						node.replaceChild(document.createTextNode(String.fromCharCode(2192+sort)), node.childNodes[1]);
+
 						table.sortByColumn(name, (function(a,b) {
 							return sort * strcmp(a._tdata,b._tdata);
 						}));
@@ -18,8 +29,13 @@
 				}
 				for (var i = 0; i < columns.length; i++) {
 					var cname = columns[i];
+					var text = document.createTextNode(cname);
+					var arrow = document.createTextNode(String.fromCharCode(2195));
+					var div = document.createElement("div");
+					div.appendChild(text);
+					div.appendChild(arrow);
 
-					table.addColumn(cname, cname);
+					table.addColumn(cname, div);
 					var node = table.getHead(cname);
 					var sort = 1;
 					node.onclick = sorter(cname);
