@@ -13,7 +13,7 @@
 					return function(event) {
 						var node;
 
-						if (lastsort != name) {
+						if (lastsort && lastsort != name) {
 							node = table.getHead(lastsort).firstChild;
 							// 2195 is updownarrow
 							node.replaceChild(document.createTextNode(String.fromCharCode(8597)), node.childNodes[1]);
