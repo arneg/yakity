@@ -8,7 +8,7 @@ inherit "module";
 void create() {
 	defvar("location", Variable.Location("/json_export/",
 			 0, "Virtual directory where json exported data can be accessed.",
-			 "This is where data is exported in json format. Use some directory which is not used otherwise.")); }
+			 "This is where data is exported in json format. Use some directory which is not used otherwise."));
 }
 
 string simpletag_jsondata(string tagname, mapping args, string content, RequestID id) {
