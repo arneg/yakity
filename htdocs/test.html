@@ -16,8 +16,8 @@
 						return sort * strcmp(a,b);
 					};
 					node.onclick = function(event) {
-						table.sortByColumn(cname, cmp);
 						sort *= -1;
+						table.sortByColumn(cname, cmp);
 					};
 				}
 
