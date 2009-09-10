@@ -1,6 +1,24 @@
 <html>
 	<head>
 		<jsondata />
+		<script type="text/javascript" src="/js/table.js"></script>
+		<script type="text/javascript">
+			var table = new TypedTable();
+			for (var key in data[0]) {
+				table.addColumn(key, key);
+			}
+
+			for (var i = 0; i < data.length; i++) {
+				var rowid = data[i]["id"];
+				table.addRow(rowid);
+				table.columns.forEach((function(key, value) {
+					if (data[i].hasOwnProperty(key)) {
+						table.addCell(rowid, key, data[i][key]);
+					}
+				});
+			}
+			document.body.appendChild(table.table);
+		</script>
 	</head>
 	<body>
 	</body>
