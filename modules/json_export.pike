@@ -11,6 +11,10 @@ void create() {
 			 "This is where data is exported in json format. Use some directory which is not used otherwise."));
 }
 
+void start() {
+	set_my_db("jobtask_webhavendemo");
+}
+
 string simpletag_jsondata(string tagname, mapping args, string content, RequestID id) {
 	return sprintf("<script type=\"text/javascript\" src=\"%s/%s\"></script>", query("location"), "test.js");
 }
