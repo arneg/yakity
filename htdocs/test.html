@@ -18,6 +18,7 @@
 							// 2195 is updownarrow
 							node.replaceChild(document.createTextNode(String.fromCharCode(8597)), node.childNodes[1]);
 						}
+						lastsort = name;
 						node = table.getHead(name).firstChild;
 						node.replaceChild(document.createTextNode(String.fromCharCode(8594+sort)), node.childNodes[1]);
 
