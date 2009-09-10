@@ -21,7 +21,9 @@
 					}));
 				}
 
-				document.body.appendChild(document.createTextNode("Query and json generation took "+time+" ms"));
+				document.body.appendChild(document.createTextNode("DB Query took "+(dbtime / 1000.0)+" ms"));
+				document.body.appendChild(document.createElement("br"));
+				document.body.appendChild(document.createTextNode("JSON generation took "+(jsontime / 1000.0)+" ms"));
 				document.body.appendChild(document.createElement("br"));
 				document.body.appendChild(table.table);
 			}
