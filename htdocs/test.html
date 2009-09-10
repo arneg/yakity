@@ -11,9 +11,7 @@
 					var sort = 1;
 					return function(event) {
 						table.sortByColumn(name, (function(a,b) {
-							if (!a) return -1;
-							if (!b) return 1;
-							return sort * strcmp(a,b);
+							return sort * strcmp(a._tdata,b._tdata);
 						}));
 						sort *= -1;
 					};
