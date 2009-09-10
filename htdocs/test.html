@@ -6,8 +6,9 @@
 		<script type="text/javascript">
 			function init() {
 				var table = new TypedTable();
-				for (var key in data[0]) {
-					table.addColumn(key, key);
+				var columns = ["website","email","id","postal_street","name","lastname","firstname","status","postal_city","phone_main"];
+				for (var i = 0; i < columns.length; i++) {
+					table.addColumn(columns[i], columns[i]);
 				}
 
 				for (var i = 0; i < data.length; i++) {
@@ -20,6 +21,8 @@
 					}));
 				}
 
+				document.body.appendChild(document.createTextNode("Query and json generation took "+time+" ms"));
+				document.body.appendChild(document.createElement("br"));
 				document.body.appendChild(table.table);
 			}
 		</script>
