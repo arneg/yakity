@@ -12,12 +12,11 @@
 					table.addColumn(cname, cname);
 					var node = table.getHead(cname);
 					var sort = 1;
-					var cmp = function(a,b) {
-						return sort * strcmp(a,b);
-					};
 					node.onclick = function(event) {
+						table.sortByColumn(cname, (function(a,b) {
+							return sort * strcmp(a,b);
+						}));
 						sort *= -1;
-						table.sortByColumn(cname, cmp);
 					};
 				}
 
