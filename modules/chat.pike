@@ -84,6 +84,12 @@ mixed find_file( string f, object id ) {
 	object session;
 
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
+		string name = id->variables["nick"];
+
+		if (!stringp(name) || !sizeof(name)) {
+			return Roxen.http_low_answer(404, sprintf("You need to enter a nickname.", id->variables["nick"]));
+		}
+
 		object user = get_user(id);
 
 		if (!user) {
