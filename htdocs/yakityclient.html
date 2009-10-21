@@ -418,11 +418,21 @@
 					clear:both;
 			}
                         
+                        #connect {
+                        
+                        }
+                        
+                        #connectRequest
+                        {
+                        	background-image: url(images/yakitychat.png);
+                        	background-repeat: no-repeat;
+                        	background-position: left 10px;
+                        }
                         
 		</style>
 </head>
 <body>
-<div id="container">
+<div id="container" style="visibility:hidden;">
         <div id="leftPane">
 			<div id="rooms">
 				<select name="chat_rooms" onchange='return chat.enterRoom(psyc.get_uniform(this.value))'>
@@ -443,5 +453,13 @@
         </div>
         <div style="float:right;"></div>
         <div style="clear:right;"></div>
-</div>	
+</div>
+<div id="connect">
+       <div id="connectRequest">
+                <form name="login" onSubmit="return init()">
+                        <input name="text" value="" size="25">
+                </form>
+                <div id="connectError"></div>
+       </div> 
+</div>
 </body>
