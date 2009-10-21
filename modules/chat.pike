@@ -87,11 +87,11 @@ mixed find_file( string f, object id ) {
 		string name = id->variables["nick"];
 
 		if (!stringp(name) || !sizeof(name)) {
-			return Roxen.http_low_answer(404, sprintf("You need to enter a nickname.", id->variables["nick"]));
+			return Roxen.http_low_answer(404, "You need to enter a nickname.");
 		}
 
 		if (sizeof(name) > 30) {
-			return Roxen.http_low_answer(404, sprintf("C'mon, that nickname is too long.", id->variables["nick"]));
+			return Roxen.http_low_answer(404, "C'mon, that nickname is too long.");
 		}
 
 		object user = get_user(id);
