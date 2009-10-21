@@ -109,7 +109,7 @@ mixed find_file( string f, object id ) {
 
 
 	// we should check whether or not this is hitting a max connections limit somewhere.
-	if (sizeof(id->query) && (session = sessions[id->variables["id"]])) {
+	if ((session = sessions[id->variables["id"]])) {
 		call_out(session->handle_id, 0, id);
 		return Roxen.http_pipe_in_progress();
 	}
