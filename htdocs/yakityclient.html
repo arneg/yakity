@@ -29,7 +29,13 @@
 				return a;
 			}
 
-			function init() {
+			function onconnect(success, uh) {
+				client.onconnect = null;
+				if (!success) {
+					alert(uh);		
+					return;
+				} 
+
 				var userlink = (function(type, key, value, m) {
 					if (type) return value.render(type);
 					if (value.is_person()) {
@@ -55,15 +61,11 @@
 									  "_source", userlink,
 									  "_supplicant", userlink
 										);
-				client = new psyc.Client("<meteorurl/>");
 				profiles = new psyc.ProfileData(client);
+				userlist = new psyc.UserList(client, profiles);
+				document.getElementById("leftPane").appendChild(userlist.table.table);
 				chat = new AccChat(client, templates);
-				client.onconnect = function(c) {
-					userlist = new psyc.UserList(client, profiles);
-					document.getElementById("leftPane").appendChild(userlist.table.table);
-				};
 
-				// ERROR
 				error = document.createElement("div");
 				var errorh = document.createElement("div");
 				var errorc = document.createElement("div");
@@ -77,7 +79,13 @@
 				chat.accordion.display(0);
 				error.style.overflow = "auto";
 				meteor.debug = error_fun;
+			}
 
+			function init() {
+				client = new psyc.Client("<meteorurl/>", "TestUser");
+				client.onconnect = onconnect;
+
+				
 			};
 
 			function AccChat(client, templates) {
@@ -130,7 +138,7 @@
 				};
 				this.createWindow = function(uniform) {
 					var win;
-					var toggler = document.createElement("div");
+					var toggler = elink("toggle");
 					UTIL.addClass(toggler, "toggler");
 
 					if (uniform.is_person()) {
@@ -146,8 +154,8 @@
 					var header = document.createElement("div");
 					UTIL.addClass(header, "header");
 					this.DOMtoWIN.set(toggler, win);
-					toggler.appendChild(profiles.getDisplayNode(uniform));
 					header.appendChild(toggler);
+					header.appendChild(profiles.getDisplayNode(uniform));
 
 					if (uniform != chat.client.uniform) { // not the status window
 						var a;
@@ -333,13 +341,7 @@
 				margin: 0;
 				padding: 3px 5px 1px;
 			}
-                        
-                        div.toggler {
-                                display: inline;
-                                font-family: 'Andale Mono', sans-serif;
-				font-size: 12px;
-                        }
-                        
+
 			blockquote {
 				padding:5px 20px;
 			}
