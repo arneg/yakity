@@ -141,7 +141,7 @@ int _request_profile(Yakity.Message m) {
 		Yakity.Message reply = Yakity.Message();
 		reply->vars = ([
 			"_profile" : ([
-				"_name_display" : user->real_name(),
+				"_name_display" : user->real_name,
 			]),
 			"_target" : source,
 		]);
