@@ -32,9 +32,13 @@
 			function onconnect(success, uh) {
 				client.onconnect = null;
 				if (!success) {
-					alert(uh);		
+					document.getElementById("connectError").appendChild(document.createTextNode(uh));
+					client = null;
 					return;
-				} 
+				} else {
+					document.getElementById("connect").style.visibility = "hidden";
+					document.getElementById("container").style.visibility = "visible";
+				}
 
 				var userlink = (function(type, key, value, m) {
 					if (type) return value.render(type);
@@ -82,10 +86,12 @@
 			}
 
 			function init() {
-				client = new psyc.Client("<meteorurl/>", "TestUser");
-				client.onconnect = onconnect;
+				if (client) return false;
 
-				
+				var name = document.getElementById("login").text.value;
+				client = new psyc.Client("<meteorurl/>", name);
+				client.onconnect = onconnect;
+				return false;
 			};
 
 			function AccChat(client, templates) {
