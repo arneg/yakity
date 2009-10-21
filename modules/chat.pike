@@ -90,6 +90,10 @@ mixed find_file( string f, object id ) {
 			return Roxen.http_low_answer(404, sprintf("You need to enter a nickname.", id->variables["nick"]));
 		}
 
+		if (sizeof(name) > 30) {
+			return Roxen.http_low_answer(404, sprintf("C'mon, that nickname is too long.", id->variables["nick"]));
+		}
+
 		object user = get_user(id);
 
 		if (!user) {
