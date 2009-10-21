@@ -138,7 +138,7 @@
 				};
 				this.createWindow = function(uniform) {
 					var win;
-					var toggler = elink("toggle");
+					var toggler = document.createElement("div");
 					UTIL.addClass(toggler, "toggler");
 
 					if (uniform.is_person()) {
@@ -154,8 +154,8 @@
 					var header = document.createElement("div");
 					UTIL.addClass(header, "header");
 					this.DOMtoWIN.set(toggler, win);
+					toggler.appendChild(profiles.getDisplayNode(uniform));
 					header.appendChild(toggler);
-					header.appendChild(profiles.getDisplayNode(uniform));
 
 					if (uniform != chat.client.uniform) { // not the status window
 						var a;
@@ -289,6 +289,10 @@
 
 			div.header a {
 				text-align: right;
+			}
+
+			div.toggler {
+				display: inline;
 			}
 
 			div.error {
