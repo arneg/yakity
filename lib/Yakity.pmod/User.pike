@@ -36,7 +36,7 @@ void create(object server, object uniform, mixed user, function logout) {
 }
 
 void implicit_logout() {
-	logout_cb();
+	logout_cb(this);
 }
 
 void add_session(object session) {
