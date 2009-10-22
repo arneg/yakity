@@ -79,6 +79,8 @@ var AccChat = psyc.Chat.extend({
 		var toggler = document.createElement("div");
 		UTIL.addClass(toggler, "toggler");
 
+		var header = document.createElement("div");
+
 		if (uniform.is_person()) {
 			win = new psyc.TemplatedWindow(this.templates, uniform);
 			UTIL.addClass(win.getMessagesNode(), "privatechat");
@@ -97,7 +99,6 @@ var AccChat = psyc.Chat.extend({
 			};
 			UTIL.addClass(win.getMessagesNode(), "roomchat");
 		}
-		var header = document.createElement("div");
 		UTIL.addClass(header, "header");
 		this.DOMtoWIN.set(toggler, win);
 		toggler.appendChild(profiles.getDisplayNode(uniform));
