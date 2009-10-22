@@ -139,7 +139,7 @@ var AccChat = psyc.Chat.extend({
 			}
 		}
                 header.appendChild(toggler);
-		UTIL.addClass(div, "chatwindow");
+		UTIL.addClass(container, "chatwindow");
 		UTIL.addClass(win.getMessagesNode(), "messages");
 		container.appendChild(win.getMessagesNode());
 
