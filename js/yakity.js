@@ -372,7 +372,8 @@ psyc.Uniform = function(str) {
 			throw("Invalid uniform: " + this.uniform);
 		}
 
-		this.root = function() { return psyc.get_uniform(this.uniform.substr(0, pos)); }
+		var root = this.uniform.substr(0, pos);
+		this.root = function() { return psyc.get_uniform(root); }
 
 		pos = str.indexOf("#");
 
