@@ -85,12 +85,12 @@ var AccChat = psyc.Chat.extend({
 		} else {
 			win = new psyc.RoomWindow(this.templates, uniform);
 			win.onenter = function() {
-				UTIL.replaceClass(toggler, "left");
-				UTIL.replaceClass(header, "left");
+				UTIL.replaceClass(toggler, "left", "joined");
+				UTIL.replaceClass(header, "left", "joined");
 			};
 			win.onleave = function() {
-				UTIL.addClass(toggler, "left");
-				UTIL.addClass(header, "left");
+				UTIL.joinedClass(toggler, "joined", "left");
+				UTIL.joinedClass(header, "joined", "left");
 			};
 			win.renderMember = function(uniform) {
 				return profiles.getDisplayNode(uniform);
