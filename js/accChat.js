@@ -102,7 +102,6 @@ var AccChat = psyc.Chat.extend({
 		UTIL.addClass(header, "header");
 		this.DOMtoWIN.set(toggler, win);
 		toggler.appendChild(profiles.getDisplayNode(uniform));
-		header.appendChild(toggler);
 
 		if (uniform != this.client.uniform) { // not the status window
 			var a;
@@ -114,27 +113,31 @@ var AccChat = psyc.Chat.extend({
 				a.onclick = function() {
 					chat.removeWindow(uniform);
 				};
+                                header.appendChild(a);
 			} else {
+			        a = document.createElement("div");
+				UTIL.addClass(a, "leaveButton");
 				var b = document.createElement("div");
 				UTIL.addClass(b, "closeButton");
+				var c = document.createElement("div");
+				UTIL.addClass(c, "enterButton");
+				
 				b.onclick = function() {
-					var win = chat.getWindow(uniform);
-					if (win.left) {
-						chat.removeWindow(uniform);
-					} else {
-						chat.leaveRoom(uniform);
-					}
+                                        chat.removeWindow(uniform);
 				};
-				header.appendChild(b);
-				a = document.createElement("div");
-				UTIL.addClass(a, "leaveButton");
 				a.onclick = function() {
 					chat.leaveRoom(uniform);
 				};
+				c.onclick = function() {
+					chat.enterRoom(uniform);
+				};
+				
+				header.appendChild(b);
+                                header.appendChild(a);
+				header.appendChild(c);
 			}
-			header.appendChild(a);
 		}
-
+                header.appendChild(toggler);
 		var div = document.createElement("div");
 		UTIL.addClass(div, "chatwindow");
 		UTIL.addClass(win.getMessagesNode(), "messages");
