@@ -77,6 +77,7 @@ var AccChat = psyc.Chat.extend({
 	createWindow : function(uniform) {
 		var win;
 		var toggler = document.createElement("div");
+		var container = document.createElement("div");
 		UTIL.addClass(toggler, "toggler");
 
 		var header = document.createElement("div");
@@ -87,11 +88,11 @@ var AccChat = psyc.Chat.extend({
 		} else {
 			win = new psyc.RoomWindow(this.templates, uniform);
 			win.onenter = function() {
-				UTIL.replaceClass(toggler, "left", "joined");
+				UTIL.replaceClass(container, "left", "joined");
 				UTIL.replaceClass(header, "left", "joined");
 			};
 			win.onleave = function() {
-				UTIL.replaceClass(toggler, "joined", "left");
+				UTIL.replaceClass(container, "joined", "left");
 				UTIL.replaceClass(header, "joined", "left");
 			};
 			win.renderMember = function(uniform) {
@@ -138,17 +139,16 @@ var AccChat = psyc.Chat.extend({
 			}
 		}
                 header.appendChild(toggler);
-		var div = document.createElement("div");
 		UTIL.addClass(div, "chatwindow");
 		UTIL.addClass(win.getMessagesNode(), "messages");
-		div.appendChild(win.getMessagesNode());
+		container.appendChild(win.getMessagesNode());
 
 		if (uniform.is_room()) {
-			div.appendChild(win.getMembersNode());
+			container.appendChild(win.getMembersNode());
 		}
 		var pos = this.accordion.elements.length;
 		document.getElementById("chathaven").appendChild(header);
-		document.getElementById("chathaven").appendChild(div);
+		document.getElementById("chathaven").appendChild(container);
 		this.accordion.addSection(toggler, div, pos);
 
 

@@ -1016,7 +1016,6 @@ psyc.RoomWindow = function(templates, id) {
 	this.members.addColumn("members", "Members");
 	this.active = 0;
 	this.left = 0;
-	UTIL.addClass(this.getMessagesNode(), "left");
 	var self = this;
 	var th = this.members.getHead("members");
 
@@ -1033,7 +1032,6 @@ psyc.RoomWindow = function(templates, id) {
 		var me = m.vars.get("_target");
 
 		if (supplicant == me) {
-			UTIL.replaceClass(this.getMessagesNode(), "left", "joined");
 			this.left = 0;
 			if (this.onenter) this.onenter(this);
 		}
@@ -1052,7 +1050,6 @@ psyc.RoomWindow = function(templates, id) {
 		var me = m.vars.get("_target");
 
 		if (supplicant == me) {
-			UTIL.replaceClass(this.getMessagesNode(), "joined", "left");
 			this.left = 1;
 			if (this.onleave) this.onleave(this);
 		}
