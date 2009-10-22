@@ -859,7 +859,12 @@ MESSAGES: for (var i = 0; i < data.length; i++) {
 					var list = this.callbacks.get(t);
 
 					for (var j = 0; j < list.length; j++) {
-						if (psyc.STOP == list[j].msg(m)) continue MESSAGES;
+						try {
+							if (psyc.STOP == list[j].msg(m)) continue MESSAGES;
+						} catch (error) {
+							if (meteor.debug) meteor.debug(error);
+							continue MESSAGES;
+						}
 					}
 				}
 
