@@ -290,6 +290,10 @@
                                 border-radius: 10px;
                         }
                         
+                        #connect input {
+                                display: inline;
+                        }
+                        
                         #connect input.textInput {
                         
                                 height: 26px; 
@@ -298,6 +302,7 @@
                         }
                         
                         #connect input.submitInput {
+                                
                         }
                         
                         #connectRequest
@@ -347,7 +352,7 @@
 <div id="connect">
        <div id="connectError"></div>
        <div id="connectRequest">
-                <form name="login" onSubmit="return init()" style="display:inline">
+                <form name="login" onSubmit="return init()">
                         <input name="name" value="Enter Nickname..." onclick="this.value=''" size="25" class="textInput"> 
                         <input type="image" src="images/yak.png" name="submit" class="submitInput">
                 </form>
