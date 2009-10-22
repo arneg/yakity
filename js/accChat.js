@@ -39,7 +39,7 @@ var AccChat = psyc.Chat.extend({
 		this.accordion.togglers.splice(win.pos, 1);
 		this.accordion.elements.splice(win.pos, 1);
 		document.getElementById("YakityChat").removeChild(win.header);
-		document.getElementById("YakityChat").removeChild(win.div);
+		document.getElementById("YakityChat").removeChild(win.container);
 		this.DOMtoWIN.remove(win.header.firstChild);
 
 		if (this.active == win) {
