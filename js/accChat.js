@@ -5,7 +5,7 @@ var AccChat = psyc.Chat.extend({
 		this.templates = templates;
 		this.active = undefined;
 		var self = this;
-		this.accordion = new Accordion(document.getElementById("chathaven"), 'a.toggler', 'div.chatwindow', {
+		this.accordion = new Accordion(document.getElementById("YakityChat"), 'a.toggler', 'div.chatwindow', {
 			onActive: function(toggler, element){
 				var chatwin = self.DOMtoWIN.get(toggler);
 				if (chatwin && self.active != chatwin) {
@@ -38,8 +38,8 @@ var AccChat = psyc.Chat.extend({
 		var win = this.getWindow(uniform);
 		this.accordion.togglers.splice(win.pos, 1);
 		this.accordion.elements.splice(win.pos, 1);
-		document.getElementById("chathaven").removeChild(win.header);
-		document.getElementById("chathaven").removeChild(win.div);
+		document.getElementById("YakityChat").removeChild(win.header);
+		document.getElementById("YakityChat").removeChild(win.div);
 		this.DOMtoWIN.remove(win.header.firstChild);
 
 		if (this.active == win) {
@@ -147,8 +147,8 @@ var AccChat = psyc.Chat.extend({
 			container.appendChild(win.getMembersNode());
 		}
 		var pos = this.accordion.elements.length;
-		document.getElementById("chathaven").appendChild(header);
-		document.getElementById("chathaven").appendChild(container);
+		document.getElementById("YakityChat").appendChild(header);
+		document.getElementById("YakityChat").appendChild(container);
 		this.accordion.addSection(toggler, container, pos);
 
 
