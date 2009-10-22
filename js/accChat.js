@@ -148,7 +148,7 @@ var AccChat = psyc.Chat.extend({
                         var members = document.createElement("div");
                         UTIL.addClass(members, "membersList");
 			members.appendChild(win.getMembersNode());
-                        container.appendChild(members);
+                        win.getMessagesNode().appendChild(members);
 		}
 		var pos = this.accordion.elements.length;
 		document.getElementById("YakityChat").appendChild(header);
