@@ -231,8 +231,21 @@
 				border: 1px solid red;
                         }
                         
+                        div.left div.leaveButton {
+                                visibility: hidden;
+                        }
+
+                        
                         div.reloadButton {
 				background: url(images/yak-icon.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+				display: block;
+				width: 20px;
+				height: 20px;
+				line-height: 20px;
+				float: right;
+				border: 1px solid red;
                         }
                         
 			blockquote {
@@ -352,7 +365,7 @@
 <div id="container" style="visibility:hidden;">
         <div id="leftPane">
 			<div id="rooms">
-				<select name="chat_rooms" onchange='return chat.enterRoom(psyc.get_uniform(this.value))'>
+				<select name="chat_rooms" onchange='return chat.enterRoom(psyc.get_uniform(this.value)); this.value=""'>
 					<option value="">Available Rooms</option>
 				<emit source="chat_rooms">
 					<option value="&_.uniform;">&_.name;</option>
