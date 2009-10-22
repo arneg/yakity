@@ -113,6 +113,7 @@ var AccChat = psyc.Chat.extend({
 				a.onclick = function() {
 					chat.removeWindow(uniform);
 				};
+                                header.appendChild(a);
 			} else {
 				var b = document.createElement("div");
 				UTIL.addClass(b, "closeButton");
@@ -126,8 +127,9 @@ var AccChat = psyc.Chat.extend({
 						chat.leaveRoom(uniform);
 					}
 				};
-				header.appendChild(c);
 				header.appendChild(b);
+                                header.appendChild(a);
+				header.appendChild(c);
 				a = document.createElement("div");
 				UTIL.addClass(a, "leaveButton");
 				a.onclick = function() {
@@ -137,7 +139,6 @@ var AccChat = psyc.Chat.extend({
 					chat.enterRoom(uniform);
 				};
 			}
-			header.appendChild(a);
 		}
                 header.appendChild(toggler);
 		var div = document.createElement("div");
