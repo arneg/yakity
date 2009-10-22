@@ -149,15 +149,15 @@ var AccChat = psyc.Chat.extend({
 		var pos = this.accordion.elements.length;
 		document.getElementById("chathaven").appendChild(header);
 		document.getElementById("chathaven").appendChild(container);
-		this.accordion.addSection(toggler, div, pos);
+		this.accordion.addSection(toggler, container, pos);
 
 
 		// fixes the flicker bug. dont know why mootools is fucking with the styles
 		// at all.
-		div.style.overflow = "auto";
+		container.style.overflow = "auto";
 
 		win.header = header;
-		win.div = div;
+		win.container = container;
 		win.pos = pos;
 
 		if (!this.active) {
