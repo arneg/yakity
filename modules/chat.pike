@@ -11,14 +11,19 @@ constant unique = 1;
 inherit Meteor.SessionHandler;
 
 object server;
+object root;
 mapping(MMP.Uniform:object) users = ([]);
 mapping(MMP.Uniform:object) rooms = ([]);
 
-MMP.Uniform to_uniform(int type, string name) {
-	name = Standards.IDNA.to_ascii(name);
+MMP.Uniform to_uniform(void|int type, void|string name) {
 	string domain = my_configuration()->query("Domain");
 	if (domain == "nowhere") domain = roxen->get_domain();
-	return server->get_uniform(sprintf("psyc://%s/%c%s", domain, type, name));
+	if (type && name) {
+		name = Standards.IDNA.to_ascii(name);
+		return server->get_uniform(sprintf("psyc://%s/%c%s", domain, type, name));
+	} else {
+		return server->get_uniform(sprintf("psyc://%s/", domain));
+	}
 }
 
 void stop() {
@@ -31,7 +36,7 @@ void stop() {
 }
 
 string status() {
-	return sprintf("<br>sessions: <br><pre>%O</pre>", values(sessions)) + sprintf("<pre>%O\n<pre>", users) + sprintf("<pre>%O</pre>", rooms);
+return sprintf("<br>sessions: <br><pre>%O</pre>", sessions) + sprintf("<br> users: <br><pre>%O\n<pre>", users) + sprintf("<br> users: <br><pre>%O</pre>", rooms) + sprintf("<br> entities: <br><pre>%O</pre>", server->entities);
 }
 
 void create() {
@@ -42,7 +47,10 @@ void create() {
 	defvar("rooms", Variable.StringList(({}), 0, "List of Rooms", "This is the list of rooms that users may join."));
 
 	server = Yakity.Server(Serialization.TypeCache());
-
+	root = Yakity.Root(server, to_uniform());
+	root->users = users;
+	root->rooms = rooms;
+	server->register_entity(root->uniform, root);
 }
 
 int start(int c, Configuration conf) {
@@ -113,6 +121,8 @@ mixed find_file( string f, object id ) {
 		call_out(session->handle_id, 0, id);
 		return Roxen.http_pipe_in_progress();
 	}
+
+	werror("'%s' not in sessions %O\n", id->variables["id"], sessions);
 	
 	return Roxen.http_low_answer(500, "me dont know you\n");
 } 

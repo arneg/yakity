@@ -15,7 +15,7 @@ mapping(int:object) history = ([]);
 void create(object server, object uniform, mixed user, function logout) {
 	::create(server, uniform);
 	this_program::user = user;
-	this_program::logout_cb = logout;
+	logout_cb = logout;
 
 	SIG::create(server->type_cache);
 
@@ -36,7 +36,11 @@ void create(object server, object uniform, mixed user, function logout) {
 }
 
 void implicit_logout() {
-	logout_cb(this);
+	if (logout_cb) {
+		logout_cb(this);
+	} else {
+		werror("NO logout callback given. Cleanup seems impossible.\n");
+	}
 }
 
 void add_session(object session) {
@@ -136,6 +140,7 @@ int _message_private(Yakity.Message m) {
 
 int _request_profile(Yakity.Message m) {
 	MMP.Uniform source = m->vars["_source"];
+	werror("_request_profile from %O\n", source);
 
 	if (source) {
 		Yakity.Message reply = Yakity.Message();
@@ -156,14 +161,15 @@ void incoming(object session, Serialization.Atom atom) {
 	Yakity.Message m = message_signature->decode(atom);
 
 	werror("%s->incoming(%O, %O)\n", this, session, m);
-	m->vars["_source"] = user->source;
+	m->vars["_source"] = uniform;
 
 	if (m->target() == uniform) {
 		m->misc["session"] = session;
-		msg(m);
+		if (Yakity.STOP == ::msg(m)) {
+			return;
+		}
+		// sending messages to yourself.
 		m_delete(m->misc, "session");
-
-		return;
 	}
 
 	// TODO: could be inaccurate.

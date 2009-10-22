@@ -19,7 +19,7 @@ void create(string client_id, void|function cb, void|function error) {
 }
 
 void _close() {
-	werror("closed file.\n");
+	werror("%O: closed file.\n");
 	int errno = connection->errno();
 	remove_id();
 	error_cb(this, sprintf("ERROR: %s (%d)\n", strerror(errno), errno));	
@@ -102,6 +102,12 @@ void handle_id(object id) {
 
 void _write() {
 	if (connection) { 
+		if (!connection->query_address()) {
+			error_cb(this, describe_error(connection->errno()));
+			remove_id();
+			return;
+		}
+
 		if (!out_buffer) {
 			if (buffer->is_empty()) {
 				write_ready = 1;
@@ -125,13 +131,15 @@ void _write() {
 			out_buffer += "0\r\n\r\n";
 		}
 			
-		werror("writing %d bytes to %O\n", sizeof(out_buffer)-out_pos, connection->query_address());
+		werror("writing %d bytes to %O", sizeof(out_buffer)-out_pos, connection->query_address());
 		int bytes = connection->write(out_pos ? out_buffer[out_pos..] : out_buffer);
+		werror("(did %d)\n", bytes);
 
 		// maybe too harsh?
 		if (bytes == -1) {
 			remove_id();
 			error_cb(this, "Could not write to socket. Connection lost.\n");
+			return;
 		} else if (bytes+out_pos < sizeof(out_buffer)) {
 			out_pos += bytes;
 		} else {
