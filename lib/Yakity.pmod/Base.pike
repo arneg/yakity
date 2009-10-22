@@ -11,11 +11,11 @@ void send(Yakity.Message m) {
 		m->vars["_source"] = uniform;
 	}
 
-	server->deliver(m);
+	call_out(server->deliver, 0, m);
 }
 
 void broadcast(Yakity.Message m) {
-	server->broadcast(m);
+	call_out(server->broadcast, 0, m);
 }
 
 void sendmsg(MMP.Uniform target, string method, string data, mapping vars, void|MMP.Uniform source) {
@@ -35,10 +35,14 @@ int msg(Yakity.Message m) {
 		array(string) t = method/"_";
 
 		for (int i = sizeof(t)-1; i >=0 ; i--) {
-			mixed f = this[(t[0..i]*"_")];
+			string s = (i == 0) ? "_" : t[0..i]*"_";
+			werror("looking for %s\n", s);
+			mixed f = this[s];
 
 			if (functionp(f)) {
+				werror("calling %s\n", s);
 				if (f(m) == Yakity.STOP) {
+					werror("STOP\n");
 					return Yakity.STOP;
 				}
 			}
