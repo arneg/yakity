@@ -115,29 +115,31 @@ var AccChat = psyc.Chat.extend({
 				};
                                 header.appendChild(a);
 			} else {
+			        a = document.createElement("div");
+				UTIL.addClass(a, "leaveButton");
 				var b = document.createElement("div");
 				UTIL.addClass(b, "closeButton");
 				var c = document.createElement("div");
 				UTIL.addClass(c, "enterButton");
+				
 				b.onclick = function() {
 					var win = chat.getWindow(uniform);
 					if (win.left) {
 						chat.removeWindow(uniform);
-					} else {
-						chat.leaveRoom(uniform);
+					}
+					chat.leaveRoom(uniform);
 					}
 				};
-				header.appendChild(b);
-                                header.appendChild(a);
-				header.appendChild(c);
-				a = document.createElement("div");
-				UTIL.addClass(a, "leaveButton");
 				a.onclick = function() {
 					chat.leaveRoom(uniform);
 				};
 				c.onclick = function() {
 					chat.enterRoom(uniform);
 				};
+				
+				header.appendChild(b);
+                                header.appendChild(a);
+				header.appendChild(c);
 			}
 		}
                 header.appendChild(toggler);
