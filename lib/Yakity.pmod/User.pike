@@ -36,6 +36,10 @@ void create(object server, object uniform, mixed user, function logout) {
 }
 
 void implicit_logout() {
+	object m = Yakity.Message();
+	m->method = "_notice_logout";
+	m->vars = ([ "_source" : uniform ]);
+	broadcast(m);
 	if (logout_cb) {
 		logout_cb(this);
 	} else {
@@ -117,7 +121,7 @@ int _request_history(Yakity.Message m) {
 }
 
 int _request_logout(Yakity.Message m) {
-	logout();
+	implicit_logout();
 
 	return Yakity.STOP;
 }
