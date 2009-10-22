@@ -102,7 +102,6 @@ var AccChat = psyc.Chat.extend({
 		UTIL.addClass(header, "header");
 		this.DOMtoWIN.set(toggler, win);
 		toggler.appendChild(profiles.getDisplayNode(uniform));
-		header.appendChild(toggler);
 
 		if (uniform != this.client.uniform) { // not the status window
 			var a;
@@ -134,7 +133,7 @@ var AccChat = psyc.Chat.extend({
 			}
 			header.appendChild(a);
 		}
-
+                header.appendChild(toggler);
 		var div = document.createElement("div");
 		UTIL.addClass(div, "chatwindow");
 		UTIL.addClass(win.getMessagesNode(), "messages");
