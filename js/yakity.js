@@ -1035,7 +1035,9 @@ psyc.RoomWindow = function(templates, id) {
 		if (supplicant == me) {
 			UTIL.replaceClass(this.getMessagesNode(), "left", "joined");
 			this.left = 0;
+			if (this.onenter) this.onenter(this);
 		}
+
 
 		if (list && list instanceof Array) {
 			for (var i = 0; i < list.length; i++) {
@@ -1052,6 +1054,7 @@ psyc.RoomWindow = function(templates, id) {
 		if (supplicant == me) {
 			UTIL.replaceClass(this.getMessagesNode(), "joined", "left");
 			this.left = 1;
+			if (this.onleave) this.onleave(this);
 		}
 
 		this.deleteMember(m.vars.get("_supplicant"));

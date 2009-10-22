@@ -84,6 +84,14 @@ var AccChat = psyc.Chat.extend({
 			UTIL.addClass(win.getMessagesNode(), "privatechat");
 		} else {
 			win = new psyc.RoomWindow(this.templates, uniform);
+			win.onenter = function() {
+				UTIL.replaceClass(toggler, "left", "joined");
+				UTIL.replaceClass(header, "left", "joined");
+			};
+			win.onleave = function() {
+				UTIL.joinedClass(toggler, "joined", "left");
+				UTIL.joinedClass(header, "joined", "left");
+			};
 			win.renderMember = function(uniform) {
 				return profiles.getDisplayNode(uniform);
 			};
