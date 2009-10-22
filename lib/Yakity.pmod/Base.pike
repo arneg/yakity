@@ -36,13 +36,10 @@ int msg(Yakity.Message m) {
 
 		for (int i = sizeof(t)-1; i >=0 ; i--) {
 			string s = (i == 0) ? "_" : t[0..i]*"_";
-			werror("looking for %s\n", s);
 			mixed f = this[s];
 
 			if (functionp(f)) {
-				werror("calling %s\n", s);
 				if (f(m) == Yakity.STOP) {
-					werror("STOP\n");
 					return Yakity.STOP;
 				}
 			}

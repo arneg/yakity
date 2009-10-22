@@ -20,5 +20,5 @@ this_program clone() {
 }
 
 string _sprintf(int type) {
-	return sprintf("Message(%s, %s -> %s)", method||"", source(), target());
+	return sprintf("Message(%s, %s -> %s)", method||"", source()||"", target()||"");
 }

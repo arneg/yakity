@@ -28,6 +28,7 @@ void broadcast(Yakity.Message m) {
 
 void deliver(Yakity.Message m) {
 	object o;
+	werror("deliver(%O)\n", m);
 
 	if ((o = entities[m->target()])) {
 		o->msg(m);
