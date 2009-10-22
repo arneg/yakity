@@ -11,8 +11,7 @@ void send(Yakity.Message m) {
 		m->vars["_source"] = uniform;
 	}
 
-	//call_out(server->deliver, 0, m);
-	server->deliver(m);
+	call_out(server->deliver, 0, m);
 }
 
 void broadcast(Yakity.Message m) {
@@ -24,7 +23,7 @@ void sendmsg(MMP.Uniform target, string method, string data, mapping vars, void|
 	m->method = method;
 	m->data = data;
 	m->vars = vars || ([]);
-	m->vars["_target"] = target;
+	m->vars += ([ "_target" : target ]); // copy this!
 	if (source) m->vars["_source"] = source;
 	send(m);
 }

@@ -18,7 +18,6 @@ void groupcast(Yakity.Message m) {
 
 void castmsg(string mc, string data, mapping vars) {
 	foreach (members; MMP.Uniform t;) {
-		werror("sendmsg(%O, %O);\n", t, mc);
 		sendmsg(t, mc, data, vars, uniform);
 	}
 }
