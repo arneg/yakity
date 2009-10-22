@@ -11,9 +11,8 @@ void send(Yakity.Message m) {
 		m->vars["_source"] = uniform;
 	}
 
-	werror("send(%O)\n", m);
-
-	call_out(server->deliver, 0, m);
+	//call_out(server->deliver, 0, m);
+	server->deliver(m);
 }
 
 void broadcast(Yakity.Message m) {
