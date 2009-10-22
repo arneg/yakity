@@ -91,8 +91,8 @@ var AccChat = psyc.Chat.extend({
 				UTIL.replaceClass(header, "left", "joined");
 			};
 			win.onleave = function() {
-				UTIL.joinedClass(toggler, "joined", "left");
-				UTIL.joinedClass(header, "joined", "left");
+				UTIL.replaceClass(toggler, "joined", "left");
+				UTIL.replaceClass(header, "joined", "left");
 			};
 			win.renderMember = function(uniform) {
 				return profiles.getDisplayNode(uniform);
