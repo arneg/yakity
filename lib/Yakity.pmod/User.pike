@@ -180,10 +180,11 @@ void incoming(object session, Serialization.Atom atom) {
 int msg(Yakity.Message m) {
 	werror("%s->msg(%O)\n", this, m);
 
-	Yakity.Message c = m->clone();
-	c->vars["_id"] = ++count;
+	if (::msg(m) == Yakity.STOP) return Yakity.STOP;
 
-	if (::msg(c) == Yakity.STOP) return Yakity.STOP;
+	Yakity.Message c = m->clone();
+	werror("NEW MESSAGE %d -> %O\n", count+1, m);
+	c->vars["_id"] = ++count;
 
 	Serialization.Atom atom;
 	mixed err = catch {
@@ -203,9 +204,9 @@ int msg(Yakity.Message m) {
 }
 
 string _sprintf(int type) {
-	if (type == 'O') {
-		return sprintf("User(%O, %O)", uniform, sessions);
+	if (type == 'O' && 0) {
+		return sprintf("User(%s, %O)", uniform, sessions);
 	} else {
-		return sprintf("User(%O)", uniform);
+		return sprintf("User(%s)", uniform);
 	}
 }
