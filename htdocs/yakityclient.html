@@ -424,6 +424,7 @@
                          #connect {
                         
                                 height: 145px;
+                                line-height: 140px;
                                 width: 500px;
                                 padding: 10px;
                                 margin-left: auto;
@@ -444,7 +445,7 @@
                         
                         #connect input.submitInput {
                         
-                                height: 30px; 
+                                height: 35px; 
                                 width: auto; 
                         }
                         
@@ -485,8 +486,7 @@
 <div id="connect">
        <div id="connectRequest">
                 <form name="login" onSubmit="return init()">
-                        Enter Nickname:<br/>
-                        <input name="name" value="" size="25" class="textInput"> 
+                        <input name="name" value="Enter Nickname..." onclick="this.value=''" size="25" class="textInput"> 
                         <input type="submit" name="submit" value="GO" class="submitInput">
                 </form>
                 <div id="connectError"></div>
