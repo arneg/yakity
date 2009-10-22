@@ -151,7 +151,7 @@
 			}
 
 			div.toggler {
-				font-size: 12px;
+				font-size: 9pt;
 				font-family: 'Andale-Mono', sans-serif;
 				display: inline;
 				width: 50%;
@@ -201,22 +201,26 @@
 				border-top: 1px #FFF solid;
 				border-bottom: 1px #999 solid;
 				font-family: 'Andale Mono', FreeSans,sans-serif;
-				font-size: 12px;
+				font-size: 9pt;
 				background: url(images/yakitytab.gif);
 				color: #528CE0;
 				margin: 0;
 				padding: 3px 5px 1px;
 			}
 
-                        div.closeButton {
-				background: url(images/cross-icon-red.png);
-				background-position: center center;
-				background-repeat: no-repeat;
-				display: block;
+                        
+                        div.closeButton, div.leaveButton, div.enterButton {
+                                display: block;
 				width: 20px;
 				height: 24px;
 				line-height: 24px;
 				float: right;
+				background-position: center center;
+				background-repeat: no-repeat;
+                        }
+                        
+                        div.closeButton {
+				background: url(images/cross-icon-red.png);
                         }
                         
                         div.joined div.closeButton {
@@ -225,13 +229,6 @@
                         
                         div.leaveButton {
 				background: url(images/cross-icon-grey.png);
-				background-position: center center;
-				background-repeat: no-repeat;
-				display: block;
-				width: 20px;
-				height: 24px;
-				line-height: 24px;
-				float: right;
                         }
                         
                         div.left div.leaveButton {
@@ -240,13 +237,6 @@
                         
                         div.enterButton {
 				background: url(images/yak-icon.png);
-				background-position: center center;
-				background-repeat: no-repeat;
-				display: block;
-				width: 20px;
-				height: 24px;
-				line-height: 24px;
-				float: right;
                         }
                         
                         div.joined div.enterButton {
@@ -254,7 +244,7 @@
                         }
                         
 			blockquote {
-				padding:5px 20px;
+				padding: 5px 20px;
 			}
 			span._user_realname {
 				color: #00f;
@@ -268,7 +258,7 @@
 			div._ {
 			        padding-left: 5px;
 				color: #000;
-				font-size: 12px;
+				font-size: 9pt;
 			}
 
 			span._timestamp-_minutes {
@@ -292,35 +282,35 @@
 			}
                         
 			#container {
-					width: 780px;
-					position: relative;
-					margin: 0px auto 0px auto;
-					background: #fff;
-					border: 1px solid #999;
+                                width: 780px;
+                                position: relative;
+                                margin: 0px auto 0px auto;
+                                background: #fff;
+                                border: 1px solid #999;
 			}
 			
 			#leftPane {
-					width: 50%;
-					position: relative;
-					float:left;
+                                width: 50%;
+                                position: relative;
+                                float:left;
 			}
 			
 			#rightPane {
-					width: 50%;
-					position: relative;
-					float:right;
+                                width: 50%;
+                                position: relative;
+                                float:right;
 			}
 			
 			#rooms {
-					padding: 20px;
+                                padding: 20px;
 			}
 			
 			#basePane {
-					height: 50px;
-					background: #efefef;
-					line-height: 50px;
-					padding: 20px;
-					clear:both;
+                                height: 50px;
+                                background: #efefef;
+                                line-height: 50px;
+                                padding: 20px;
+                                clear:both;
 			}
                         
                         #connect {
