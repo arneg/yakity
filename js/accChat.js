@@ -123,12 +123,7 @@ var AccChat = psyc.Chat.extend({
 				UTIL.addClass(c, "enterButton");
 				
 				b.onclick = function() {
-					var win = chat.getWindow(uniform);
-					if (win.left) {
-						chat.removeWindow(uniform);
-					}
-					chat.leaveRoom(uniform);
-					}
+                                        chat.removeWindow(uniform);
 				};
 				a.onclick = function() {
 					chat.leaveRoom(uniform);
