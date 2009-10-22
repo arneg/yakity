@@ -372,7 +372,8 @@ psyc.Uniform = function(str) {
 			throw("Invalid uniform: " + this.uniform);
 		}
 
-		var root = this.uniform.substr(0, 7+pos);
+		// GOD, seriously. who writes code like this?
+		var root = this.uniform.substr(0, 8+pos);
 		this.root = function() { return psyc.get_uniform(root); }
 
 		pos = str.indexOf("#");
