@@ -11,7 +11,9 @@ MMP.Uniform get_uniform(string s) {
 		return uniform_cache[s];
 	}
 
-	return uniform_cache[s] = MMP.Uniform(s);
+	object u = MMP.Uniform(s);
+	s = (string)u;
+	return uniform_cache[s] = u;
 }
 
 void broadcast(Yakity.Message m) {
