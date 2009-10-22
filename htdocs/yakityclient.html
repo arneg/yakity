@@ -93,6 +93,7 @@
 				var name = document.login.name.value;
 				client = new psyc.Client("<meteorurl/>", name);
 				client.onconnect = onconnect;
+
 				window.onunload = function() {
 					if (client) {
 						client.close();
