@@ -77,16 +77,21 @@ var AccChat = psyc.Chat.extend({
 	createWindow : function(uniform) {
 		var win;
 		var toggler = document.createElement("div");
+                UTIL.addClass(toggler, "toggler");
+		var togglemembers = document.createElement("div");
+                UTIL.addClass(togglemembers, "toggleInfo");
+		toggler.appendChild(togglemembers);
+		
 		var container = document.createElement("div");
-		UTIL.addClass(toggler, "toggler");
-
 		var header = document.createElement("div");
 
 		if (uniform.is_person()) {
 			win = new psyc.TemplatedWindow(this.templates, uniform);
 			UTIL.addClass(win.getMessagesNode(), "privatechat");
+                        UTIL.addClass(header, "private");
 		} else {
 			win = new psyc.RoomWindow(this.templates, uniform);
+                        UTIL.addClass(header, "public");
 			win.onenter = function() {
 				UTIL.replaceClass(container, "left", "joined");
 				UTIL.replaceClass(header, "left", "joined");
