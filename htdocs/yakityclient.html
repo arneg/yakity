@@ -79,8 +79,8 @@
 				errorc.appendChild(error);
 				UTIL.addClass(errorh, "header");
 				UTIL.addClass(error, "error");
-				document.getElementById("chathaven").appendChild(errorh);
-				document.getElementById("chathaven").appendChild(errorc);
+				document.getElementById("YakityChat").appendChild(errorh);
+				document.getElementById("YakityChat").appendChild(errorc);
 				chat.accordion.addSection(errorh, errorc, chat.accordion.elements.length);
 				chat.accordion.display(0);
 				error.style.overflow = "auto";
@@ -177,17 +177,51 @@
 				overflow: auto;
 				border-bottom: 1px #ccc solid;	
 			}
-
-			div.chatwindow table {
-				height: 100px;
-				overflow: auto;
-			}
-
-			div.chatwindow {
+			
+                        div.chatwindow {
 				background-color: #dddddd;
 				border-right: 1px #ccc solid;
 				border-left: 1px #ccc solid;
+				position: relative;
 			}
+			
+                        
+			div.membersList
+			{
+				height: 200px;
+				overflow: auto;
+				position:absolute;
+				top: 0px;
+				right: 0px;
+				float:right;
+			}
+			
+			div.membersList table td {
+			        font-size: 9pt;
+			}
+
+                        div.private div.toggleInfo {
+                                width: 12px;
+                                height: 24px;
+                                line-height: 24px;
+                                margin-right: 5px;
+                                float:left;
+                                background: url(images/member-icon.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+                        }
+                        
+                        div.public div.toggleInfo {
+                                width: 15px;
+                                padding-right: 5px;
+                                height: 24px;
+                                line-height: 24px;
+                                float:left;
+                                background: url(images/group-icon.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+                        }
+			
 
 			div.left div.roomchat {
 				background-color: #aaaaaa;
@@ -374,7 +408,7 @@
 			</div>
         </div>
         <div id="rightPane">
-			<div id="chathaven"></div>
+			<div id="YakityChat"></div>
         </div>
         <div id="basePane">
 			<form name=chat_input onSubmit="return atom()">

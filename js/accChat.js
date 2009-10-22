@@ -5,7 +5,7 @@ var AccChat = psyc.Chat.extend({
 		this.templates = templates;
 		this.active = undefined;
 		var self = this;
-		this.accordion = new Accordion(document.getElementById("chathaven"), 'a.toggler', 'div.chatwindow', {
+		this.accordion = new Accordion(document.getElementById("YakityChat"), 'a.toggler', 'div.chatwindow', {
 			onActive: function(toggler, element){
 				var chatwin = self.DOMtoWIN.get(toggler);
 				if (chatwin && self.active != chatwin) {
@@ -38,8 +38,8 @@ var AccChat = psyc.Chat.extend({
 		var win = this.getWindow(uniform);
 		this.accordion.togglers.splice(win.pos, 1);
 		this.accordion.elements.splice(win.pos, 1);
-		document.getElementById("chathaven").removeChild(win.header);
-		document.getElementById("chathaven").removeChild(win.div);
+		document.getElementById("YakityChat").removeChild(win.header);
+		document.getElementById("YakityChat").removeChild(win.container);
 		this.DOMtoWIN.remove(win.header.firstChild);
 
 		if (this.active == win) {
@@ -77,16 +77,21 @@ var AccChat = psyc.Chat.extend({
 	createWindow : function(uniform) {
 		var win;
 		var toggler = document.createElement("div");
+                UTIL.addClass(toggler, "toggler");
+		var togglemembers = document.createElement("div");
+                UTIL.addClass(togglemembers, "toggleInfo");
+		toggler.appendChild(togglemembers);
+		
 		var container = document.createElement("div");
-		UTIL.addClass(toggler, "toggler");
-
 		var header = document.createElement("div");
 
 		if (uniform.is_person()) {
 			win = new psyc.TemplatedWindow(this.templates, uniform);
 			UTIL.addClass(win.getMessagesNode(), "privatechat");
+                        UTIL.addClass(header, "private");
 		} else {
 			win = new psyc.RoomWindow(this.templates, uniform);
+                        UTIL.addClass(header, "public");
 			win.onenter = function() {
 				UTIL.replaceClass(container, "left", "joined");
 				UTIL.replaceClass(header, "left", "joined");
@@ -144,11 +149,15 @@ var AccChat = psyc.Chat.extend({
 		container.appendChild(win.getMessagesNode());
 
 		if (uniform.is_room()) {
-			container.appendChild(win.getMembersNode());
+		        
+                        var members = document.createElement("div");
+                        UTIL.addClass(members, "membersList");
+			members.appendChild(win.getMembersNode());
+                        win.getMessagesNode().appendChild(members);
 		}
 		var pos = this.accordion.elements.length;
-		document.getElementById("chathaven").appendChild(header);
-		document.getElementById("chathaven").appendChild(container);
+		document.getElementById("YakityChat").appendChild(header);
+		document.getElementById("YakityChat").appendChild(container);
 		this.accordion.addSection(toggler, container, pos);
 
 
