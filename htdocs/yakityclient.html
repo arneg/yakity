@@ -475,6 +475,11 @@
 			}
 			
 			#rooms {
+
+				height: 120px;
+				width: 200px;
+				overflow: auto;
+                                float: right;
                                 padding: 20px;
                                 padding-right: 5px;
 			}
@@ -555,7 +560,7 @@
 			<div id="rooms">
 					Available Rooms
 				<emit source="chat_rooms">
-					<div onclick='return chat.enterRoom(psyc.get_uniform(&_.uniform;));'>&_.name;</div>
+					<a onclick='return chat.enterRoom(psyc.get_uniform("&_.uniform;"));'>&_.name;</a>
 				</emit>
 
 			</div>
