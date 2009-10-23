@@ -799,6 +799,15 @@ psyc.Client.prototype = {
 		this.client.reconnect = 0;	
 	},
 	incoming : function (data) {
+		if (this.keepalive) {
+			window.clearTimeout(this.keepalive);
+		}
+		var self = this;
+		var wrapper = function() {
+			self.connection.reconnect_incoming();
+		};
+		this.keepalive = window.setTimeout(wrapper, 45*1000);
+
 		try {
 			data = this.parser.parse(data);
 		} catch (error) {
