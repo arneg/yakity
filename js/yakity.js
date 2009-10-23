@@ -373,7 +373,7 @@ psyc.Uniform = function(str) {
 		}
 
 		// GOD, seriously. who writes code like this?
-		var root = this.uniform.substr(0, 8+pos);
+		var root = this.uniform.substr(0, 7+pos);
 		this.root = function() { return psyc.get_uniform(root); }
 
 		pos = str.indexOf("#");
