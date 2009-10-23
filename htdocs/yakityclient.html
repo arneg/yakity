@@ -69,7 +69,9 @@
 					if (value.is_person()) {
 						return ulink(value);
 					} else {
-						return profiles.getDisplayNode(value);
+						var span = document.createElement("span");
+						span.appendChild(profiles.getDisplayNode(value));
+						return span;
 					}
 				});
 				var templates = new psyc.Vars({
