@@ -25,6 +25,11 @@ void _close() {
 	error_cb(this, sprintf("ERROR: %s (%d)\n", strerror(errno), errno));	
 }
 
+// this is called in intervals
+void keepalive() {
+	send(Serialization.Atom("_keepalive", "");
+}
+
 void remove_id() {
 	connection_id = 0;
 
@@ -40,7 +45,7 @@ void register_new_id() {
 	remove_id();
 	connection_id = new_id;
 	connection = connection_id->connection();
-	connection->set_keepalive(1);
+	//connection->set_keepalive(1);
 
 	if (-1 != search(connection_id->request_headers["user-agent"], "MSIE")) {
 		// we close after first write.
@@ -101,6 +106,12 @@ void handle_id(object id) {
 }
 
 void _write() {
+	if (find_call_out(keepalive) != -1) {
+		remove_call_out(keepalive);
+	}
+
+	call_out(keepalive, 30);
+
 	if (connection) { 
 		if (!connection->query_address()) {
 			error_cb(this, describe_error(connection->errno()));
