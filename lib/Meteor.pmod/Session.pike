@@ -119,8 +119,8 @@ void _write() {
 		call_out(keepalive, 30);
 
 		if (!connection->query_address()) {
-			error_cb(this, describe_error(connection->errno()));
 			remove_id();
+			error_cb(this, describe_error(connection->errno()));
 			return;
 		}
 

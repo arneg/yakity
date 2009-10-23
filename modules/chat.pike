@@ -36,7 +36,11 @@ void stop() {
 }
 
 string status() {
-return sprintf("<br>sessions: <br><pre>%O</pre>", sessions) + sprintf("<br> users: <br><pre>%O\n<pre>", users) + sprintf("<br> users: <br><pre>%O</pre>", rooms) + sprintf("<br> entities: <br><pre>%O</pre>", server->entities);
+
+	return sprintf("<br>sessions: <br><pre>%O</pre>", mkmapping(values(sessions), _refs(values(sessions)[*]))) 
+			+ sprintf("<br> users: <br><pre>%O\n<pre>", users) 
+			+ sprintf("<br> users: <br><pre>%O</pre>", rooms) 
+			+ sprintf("<br> entities: <br><pre>%O</pre>", server->entities);
 }
 
 void create() {
