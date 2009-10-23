@@ -31,7 +31,7 @@ void keepalive() {
 }
 
 void remove_id() {
-	werror("REMOVING %s: %O\n", client_id, describe_backtrace(backtrace()));
+	werror("REMOVING %s: %s\n", client_id, describe_backtrace(backtrace()));
 	connection_id = 0;
 	if (find_call_out(keepalive) != -1) {
 		remove_call_out(keepalive);
@@ -47,7 +47,7 @@ void remove_id() {
 }
 
 void register_new_id() {
-	remove_id();
+	if (connection_id) remove_id();
 	connection_id = new_id;
 	connection = connection_id->connection();
 	//connection->set_keepalive(1);
