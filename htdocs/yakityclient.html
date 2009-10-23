@@ -74,9 +74,9 @@
 					_status_circuit : "Welcome to the chat at [_source-_host].",
 					_notice_enter : "[_supplicant] enters [_source].",
 					_notice_leave : "[_supplicant] leaves [_source].",
-					_message_public : "[_timestamp] [_source_relay]: [data]",
-					_message_private : "[_timestamp] [_source]: [data]",
-					_echo_message_public : "[_timestamp] [_source_relay]: [data]",
+					_message_public : "[_timestamp] [_source_relay] [data]",
+					_message_private : "[_timestamp] [_source] [data]",
+					_echo_message_public : "[_timestamp] [_source_relay] [data]",
 					_echo_message_private : "[_timestamp] [data]",
 					_source : userlink,
 					_supplicant : userlink,
@@ -328,12 +328,14 @@
 			div._ {
                                 font-family: 'Andale Mono', FreeSans, sans-serif;
 			        padding-left: 5px;
+			        padding-right: 5px;
 				color: #000;
 				font-size: 9pt;
 				line-height: 120%;
 			}
 
-                        span._timestamp {
+                        div._timestamp {
+                                float: right;
                                 font-size: 8pt;
                                 color: #999;
                         }
@@ -347,16 +349,13 @@
                                 color: #000;
 			}
 			
-			span._supplicant a {
+			div._supplicant, div._source {
 				color: #528CE0;
+                                font-weight: bold;
                                 text-decoration: none;
+                                cursor: hand;
 			}
 			
-			span._source a {
-				color: #528CE0;
-				font-weight: bold;
-                                text-decoration: none;
-			}
 			
 			br.clearall {
 				clear:both;
