@@ -1269,9 +1269,12 @@ psyc.UserList = psyc.Base.extend({
 	_update_users : function(m) {
 		var source = m.source();
 		var list = m.vars.get("_users");
+
 		for (var i = 0; i < list.length; i++) {
-			this.table.addRow(list[i]);
-			this.table.addCell(list[i], "users", this.profiles.getDisplayNode(list[i]));
+			if (!this.table.getRow(list[i])) {
+				this.table.addRow(list[i]);
+				this.table.addCell(list[i], "users", this.profiles.getDisplayNode(list[i]));
+			}
 		}
 		
 		return psyc.STOP;
