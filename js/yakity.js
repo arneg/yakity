@@ -895,9 +895,9 @@ psyc.funky_text = function(m, templates) {
 		var t;
 
 		if (s == "data") {
-			t = XSS.html_string_encode(m.data);
+			t = m.data;
 		} else if (s == "method") {
-			t = XSS.html_string_encode(m.method);
+			t = m.method;
 		} else if (m.vars.hasIndex(s)) {
 			var vtml = templates.get(s);
 			t = m.vars.get(s);
@@ -922,6 +922,7 @@ psyc.funky_text = function(m, templates) {
 			}
 		} else {
 			var span = document.createElement("span");
+			span.className = classes.join(" ");
 			span.appendChild(document.createTextNode(t));
 			t = span;
 		}
