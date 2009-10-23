@@ -43,7 +43,7 @@
 				}
 
 				var ulink = function (uniform) {
-					var a = elink(profiles.getDisplayNode(uniform));
+					var a = profiles.getDisplayNode(uniform);
 					a.onclick = function() {
 						var win = chat.getWindow(uniform);
 						chat.active = win;
