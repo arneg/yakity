@@ -890,7 +890,8 @@ psyc.funky_text = function(m, templates) {
 		var type;
 		if (a.length > 1) {
 			type = a[1];
-			span.className = s+" "+type+" "+span.className;
+			span.className = psyc.abbreviations(s).join(" ");
+			UTIL.addClass(span, type);
 		}
 		var t;
 
