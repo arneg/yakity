@@ -1308,7 +1308,7 @@ psyc.ProfileData.prototype._request_profile = function(m) {
 psyc.UserList = function(client, profiles) {
 	this.client = client;
 	this.profiles = profiles;
-	client.register_method({ method : "_update_users", source : client.uniform, object : this });
+	client.register_method({ method : "_update_users", source : client.uniform.root(), object : this });
 	client.register_method({ method : "_notice_login", source : null, object : this });
 	client.register_method({ method : "_notice_logout", source : null, object : this });
 	this.table = new TypedTable();
