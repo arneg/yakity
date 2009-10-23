@@ -94,6 +94,7 @@
 				userlist = new psyc.UserList(client, lprofiles);
 				
 				var userdiv = document.createElement("div");
+                                UTIL.addClass(userdiv, "userList");
                                 userdiv.appendChild(userlist.table.table);
 				document.getElementById("leftPane").appendChild(userdiv);
 
