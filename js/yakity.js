@@ -923,6 +923,7 @@ psyc.funky_text = function(m, templates) {
 			}
 		} else {
 			var span = document.createElement("span");
+			span.className = classes.join(" ");
 			span.appendChild(document.createTextNode(t));
 			t = span;
 		}
