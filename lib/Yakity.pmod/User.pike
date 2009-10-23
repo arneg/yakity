@@ -134,6 +134,7 @@ int _message_private(Yakity.Message m) {
 		reply->vars = copy_value(m->vars);
 		m_delete(reply->vars, "_source");
 		reply->vars["_target"] = source;
+		reply->vars["_source_relay"] = source;
 		reply->method = "_echo_message_private";
 		reply->data = m->data;
 		send(reply);
