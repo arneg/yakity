@@ -22,7 +22,7 @@ MMP.Uniform to_uniform(void|int type, void|string name) {
 		name = Standards.IDNA.to_ascii(name);
 		return server->get_uniform(sprintf("psyc://%s/%c%s", domain, type, name));
 	} else {
-		return server->get_uniform(sprintf("psyc://%s/", domain));
+		return server->get_uniform(sprintf("psyc://%s", domain));
 	}
 }
 
