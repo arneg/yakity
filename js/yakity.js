@@ -953,7 +953,7 @@ psyc.funky_text = function(m, templates) {
 
 	return div;
 };
-psyc.Base = function() {
+psyc.Base = Base.extend({
 	this.msg = function (m) {
 		var method = m.method;
 		var none = 1;
@@ -975,8 +975,8 @@ psyc.Base = function() {
 		if (none && meteor.debug) {
 			meteor.debug("No handler for "+method+" in "+this);	
 		}
-	};
-	this.sendmsg = function(target, method, vars, data) {
+	},
+	sendmsg : function(target, method, vars, data) {
 		if (!vars) {
 			vars = new psyc.Vars();
 		}
@@ -984,69 +984,72 @@ psyc.Base = function() {
 		vars.set("_target", target);
 		var m = new psyc.Message(method, vars, data);
 		this.client.send(m);
-	};
-};
-psyc.ChatWindow = function(id) {
-	this.mlist = new Array();
-	this.mset = new Mapping();
-	this.messages = document.createElement("div");
-	this.name = id;
-};
-psyc.ChatWindow.prototype = new psyc.Base();
-psyc.ChatWindow.prototype._ = function(m) {
-	this.mset.set(m, this.mlist.length);
-	this.mlist.push(m);
-	this.messages.appendChild(this.renderMessage(m));
-};
-psyc.ChatWindow.prototype.getMessages = function() {
-	return this.mlist.concat();
-};
-psyc.ChatWindow.prototype.render = function(o) {
-	if (typeof(o) == "object" && typeof(o.render) == "function") {
-		return o.render("dom");
 	}
+});
+psyc.ChatWindow = psyc.Base.extend({
+	constructor : function(id) {
+		this.mlist = new Array();
+		this.mset = new Mapping();
+		this.messages = document.createElement("div");
+		this.name = id;
+	},
+	_ : function(m) {
+		this.mset.set(m, this.mlist.length);
+		this.mlist.push(m);
+		this.messages.appendChild(this.renderMessage(m));
+	},
+	getMessages : function() {
+		return this.mlist.concat();
+	},
+	render : function(o) {
+		if (typeof(o) == "object" && typeof(o.render) == "function") {
+			return o.render("dom");
+		}
 
-	if (o == undefined || o == null || typeof(o) == "number") {
-		return document.createTextNode(new Number(o).toString());
+		if (o == undefined || o == null || typeof(o) == "number") {
+			return document.createTextNode(new Number(o).toString());
+		}
+
+		return document.createTextNode(o.toString());
+	},
+	getMessageNode : function(m) {
+		return this.messages.childNodes[this.mset.get(m)];
+	},
+	getMessagesNode : function() {
+		return this.messages;
 	}
+});
+psyc.TemplatedWindow = psyc.ChatWindow.extend({
+	constructor : function(templates, id) {
+		this.base(id);
+		if (templates) this.setTemplates(templates);
+	},
+	setTemplates : function(t) {
+		this.templates = t;
+	},
+	renderMessage : function(m) {
+		return psyc.funky_text(m, this.templates);
+	}
+});
+psyc.RoomWindow = psyc.TemplatedWindow.extend({
+	constructor : function(templates, id) {
+		this.base(templates, id);
+		this.members = new TypedTable();
+		this.members.addColumn("members", "Members");
+		this.active = 0;
+		this.left = 0;
+		var self = this;
+		var th = this.members.getHead("members");
 
-	return document.createTextNode(o.toString());
-};
-psyc.ChatWindow.prototype.getMessageNode = function(m) {
-	return this.messages.childNodes[this.mset.get(m)];
-};
-psyc.ChatWindow.prototype.getMessagesNode = function() {
-	return this.messages;
-};
-psyc.TemplatedWindow = function(templates, id) {
-	psyc.ChatWindow.call(this, id);
-	if (templates) this.setTemplates(templates);
-};
-psyc.TemplatedWindow.prototype = new psyc.ChatWindow();
-psyc.TemplatedWindow.prototype.setTemplates = function(t) {
-	this.templates = t;
-};
-psyc.TemplatedWindow.prototype.renderMessage = function(m) {
-	return psyc.funky_text(m, this.templates);
-};
-psyc.TemplatedWindow.prototype.constructor = psyc.TemplatedWindow;
-psyc.RoomWindow = function(templates, id) {
-	psyc.TemplatedWindow.call(this, templates, id);
-	this.members = new TypedTable();
-	this.members.addColumn("members", "Members");
-	this.active = 0;
-	this.left = 0;
-	var self = this;
-	var th = this.members.getHead("members");
-
-	var sort = 1;
-	th.onclick = function(event) {
-		self.members.sortByColumn("members", (function(a, b) {
-			return sort*a._tdata.cmp(b._tdata);
-		}));
-		sort *= -1;
-	};
-	this._notice_enter = function(m) {
+		var sort = 1;
+		th.onclick = function(event) {
+			self.members.sortByColumn("members", (function(a, b) {
+				return sort*a._tdata.cmp(b._tdata);
+			}));
+			sort *= -1;
+		};
+	},
+	_notice_enter : function(m) {
 		var list = m.vars.get("_members");
 		var supplicant = m.vars.get("_supplicant");
 		var me = m.vars.get("_target");
@@ -1064,8 +1067,8 @@ psyc.RoomWindow = function(templates, id) {
 		}
 
 		this.addMember(supplicant);
-	};
-	this._notice_leave = function(m) {
+	},
+	_notice_leave : function(m) {
 		var supplicant = m.vars.get("_supplicant");
 		var me = m.vars.get("_target");
 
@@ -1075,27 +1078,25 @@ psyc.RoomWindow = function(templates, id) {
 		}
 
 		this.deleteMember(m.vars.get("_supplicant"));
-	};
-};
-psyc.RoomWindow.prototype = new psyc.TemplatedWindow();
-psyc.RoomWindow.prototype.constructor = psyc.RoomWindow;
-psyc.RoomWindow.prototype.getMembersNode = function() {
-	return this.members.table;
-};
-psyc.RoomWindow.prototype.addMember = function(member) {
-	// people could get several notices
-	if (!this.members.getRow(member)) {
-		this.members.addRow(member);
-		var cell = this.members.addCell(member, "members", this.renderMember(member));
-		cell._tdata = member;
+	},
+	getMembersNode : function() {
+		return this.members.table;
+	},
+	addMember : function(member) {
+		// people could get several notices
+		if (!this.members.getRow(member)) {
+			this.members.addRow(member);
+			var cell = this.members.addCell(member, "members", this.renderMember(member));
+			cell._tdata = member;
+		}
+	},
+	renderMember : function(member) {
+		return document.createTextNode(member.toString());
+	},
+	deleteMember : function(member) {
+		this.members.deleteRow(member);
 	}
-};
-psyc.RoomWindow.prototype.renderMember = function(member) {
-	return document.createTextNode(member.toString());
-};
-psyc.RoomWindow.prototype.deleteMember = function(member) {
-	this.members.deleteRow(member);
-};
+});
 /**
  * Creates a new tabbed chat application.
  * @param {Object} client psyc.Client object to use.
@@ -1150,210 +1151,118 @@ psyc.Chat = Base.extend({
 		// close window after _notice_leave is there or after double click on close button
 	}
 });
-psyc.TabbedRoom = function(templates, id) {
-	psyc.RoomWindow.call(this, templates, id);
-	this.li = document.createElement("li");
-	// hide all by default
-	this.container = document.createElement("div");
-	this.li.className = "chatheader roomchat header_hidden";
-	this.container.className = "chatwindow roomchat window_hidden";
-	this.container.appendChild(this.messages);
-	this.container.appendChild(this.getMembersNode());
-	this.active = null;
-};
-psyc.TabbedRoom.prototype = new psyc.RoomWindow();
-psyc.TabbedRoom.prototype.constructor = psyc.TabbedRoom;
-psyc.TabbedRoom.prototype.hide = function() {
-	this.li.className = this.li.className.replace("header_shown", "header_hidden");
-	this.container.className = this.container.className.replace("window_shown", "window_hidden");
-};
-psyc.TabbedRoom.prototype.show = function() {
-	this.li.className = this.li.className.replace("header_hidden", "header_shown");
-	this.container.className = this.container.className.replace("window_hidden", "window_shown");
-};
-psyc.TabbedPrivate = function(templates, id) {
-	psyc.TemplatedWindow.call(this, templates, id);
-	this.li = document.createElement("li");
-	// hide all by default
-	this.container = document.createElement("div");
-	this.li.className = "chatheader privatechat header_hidden";
-	this.container.className = "chatwindow privatechat window_hidden";
-	this.container.appendChild(this.messages);
-	this.active = null;
-};
-psyc.TabbedPrivate.prototype = new psyc.TemplatedWindow();
-psyc.TabbedPrivate.prototype.constructor = psyc.TabbedPrivate;
-psyc.TabbedPrivate.prototype.hide = function() {
-	this.li.className = this.li.className.replace(/header_shown/g, "header_hidden");
-	this.container.className = this.container.className.replace(/window_shown/g, "window_hidden");
-};
-psyc.TabbedPrivate.prototype.show = function() {
-	this.li.className = this.li.className.replace(/header_hidden/g, "header_shown");
-	this.container.className = this.container.className.replace(/window_hidden/g, "window_shown");
-};
-psyc.TabbedChat = psyc.Chat.extend({
-	constructor : function(client, templates) {
-		psyc.Chat.call(this, client);
-
-		if (!client) return;
-
-		this.templates = templates;
-
-		this.ul = document.createElement("ul");
-		this.ul.className = "chatheader";
-		this.div = document.createElement("div");
-		this.div.className = "chatcontainer";
+psyc.ProfileData = psyc.Base.extend({
+	constructor : function(client) {
+		this.client = client;
+		this.cache = new Mapping();
+		this.requests = new Mapping();
+		this.requestees = new Mapping();
+		client.register_method({ method : "_update_profile", source : null, object : this });
+		client.register_method({ method : "_request_profile", source : null, object : this });
 	},
-	/**
-	 * Opens a new tab inside the chat. It will be used to display messages coming from the entity specified by uniform. Use this for cases like private messages where the conversation is not initiated by a handshake (in contrary to group chats).
-	 * @param {Object} uniform Uniform to use this ChatTab for.
-	 */
-	createWindow : function(uniform) {
-		var win;
+	setProfileData : function(m) {
+		this.profile = m;
+	},
+	getDisplayNode : function(uniform) {
 
-		if (uniform.is_room()) {
-			win = new psyc.TabbedRoom(this.templates, uniform);
-		} else {
-			win = new psyc.TabbedPrivate(this.templates, uniform);
+		if (this.cache.hasIndex(uniform)) {
+			var name = this.cache.get(uniform).get("_name_display");
+			if (name) return document.createTextNode(name);
 		}
 
-		if (!this.active) {
-			this.active = win;
-			win.show();
-		}
+		var node = document.createTextNode(uniform.name);
 
-		var self = this;
-		win.li.onclick = function(event) {
-			self.activateWindow(uniform);
+		var cb = function(profile) {
+			var name = profile.get("_name_display");
+			node.parentNode.replaceChild(document.createTextNode(name), node);
 		};
 
-		this.ul.appendChild(win.li);
-		this.div.appendChild(win.container);
-
-		return win;
+		var self = this;
+		
+		var iefuck = function() {
+			self.getProfileData(uniform, cb);	
+		};
+		window.setTimeout(iefuck, 0);
+		return node;
 	},
-	activateWindow : function(uniform) {
-		var win = this.getWindow(uniform);
-
-		//if (this.active == win) return;
-		if (this.active) {
-			this.active.hide();
+	getProfileData : function(uniform, callback) {
+		if (this.cache.hasIndex(uniform)) {
+			callback(this.cache.get(uniform));
+			return;
 		}
-		this.active = win;
-		win.show();
+
+		if (this.requests.hasIndex(uniform)) {
+			this.requests.get(uniform).push(callback);
+			return;
+		}
+
+		this.requests.set(uniform, (new Array(callback)));
+		this.sendmsg(uniform, "_request_profile");
+	},
+	_update_profile : function(m) {
+		var source = m.source();
+		var profile = m.vars.get("_profile");
+
+		this.cache.set(source, profile);
+
+		if (this.requests.hasIndex(source)) {
+			var list = this.requests.get(source);
+
+			for (var i = 0; i < list.length; i++) {
+				list[i](profile);
+			}
+		}
+
+		return psyc.STOP;
+	},
+	_request_profile : function(m) {
+		var source = m.source();
+
+		if (!this.profile) {
+			this.profile = new Mapping();
+		}
+
+		this.sendmsg(source, "_update_profile", new psyc.Vars({ _profile : this.profile }));
+		return psyc.STOP;
 	}
 });
-psyc.ProfileData = function(client) {
-	this.client = client;
-	this.cache = new Mapping();
-	this.requests = new Mapping();
-	this.requestees = new Mapping();
-	client.register_method({ method : "_update_profile", source : null, object : this });
-	client.register_method({ method : "_request_profile", source : null, object : this });
-};
-psyc.ProfileData.prototype = new psyc.Base();
-psyc.ProfileData.prototype.setProfileData = function(m) {
-	this.profile = m;
-};
-psyc.ProfileData.prototype.getDisplayNode = function(uniform) {
-
-	if (this.cache.hasIndex(uniform)) {
-		var name = this.cache.get(uniform).get("_name_display");
-		if (name) return document.createTextNode(name);
-	}
-
-	var node = document.createTextNode(uniform.name);
-
-	var cb = function(profile) {
-		var name = profile.get("_name_display");
-		node.parentNode.replaceChild(document.createTextNode(name), node);
-	};
-
-	var self = this;
-	
-	var iefuck = function() {
-		self.getProfileData(uniform, cb);	
-	};
-
-	window.setTimeout(iefuck, 0);
-	return node;
-};
-psyc.ProfileData.prototype.getProfileData = function(uniform, callback) {
-	if (this.cache.hasIndex(uniform)) {
-		callback(this.cache.get(uniform));
-		return;
-	}
-
-	if (this.requests.hasIndex(uniform)) {
-		this.requests.get(uniform).push(callback);
-		return;
-	}
-
-	this.requests.set(uniform, (new Array(callback)));
-	this.sendmsg(uniform, "_request_profile");
-};
-psyc.ProfileData.prototype._update_profile = function(m) {
-	var source = m.source();
-	var profile = m.vars.get("_profile");
-
-	this.cache.set(source, profile);
-
-	if (this.requests.hasIndex(source)) {
-		var list = this.requests.get(source);
-
-		for (var i = 0; i < list.length; i++) {
-			list[i](profile);
+psyc.UserList = psyc.Base.extend({
+	constructor : function(client, profiles) {
+		this.client = client;
+		this.profiles = profiles;
+		client.register_method({ method : "_update_users", source : client.uniform.root(), object : this });
+		client.register_method({ method : "_notice_login", source : null, object : this });
+		client.register_method({ method : "_notice_logout", source : null, object : this });
+		this.table = new TypedTable();
+		this.table.addColumn("users", "Users");
+		this.sendmsg(client.uniform.root(), "_request_users");
+	},
+	_notice_logout : function(m) {
+		var source = m.source();
+		if (this.table.getRow(source)) {
+			this.table.deleteRow(source);
 		}
-	}
 
-	return psyc.STOP;
-};
-psyc.ProfileData.prototype._request_profile = function(m) {
-	var source = m.source();
+		return psyc.STOP;
+	},
+	_notice_login : function(m) {
+		var source = m.source();
+		if (!this.table.getRow(source)) {
+			this.table.addRow(source);
+			this.table.addCell(source, "users", this.profiles.getDisplayNode(source));
+		}
 
-	if (!this.profile) {
-		this.profile = new Mapping();
+		return psyc.STOP;
+	},
+	_update_users : function(m) {
+		var source = m.source();
+		var list = m.vars.get("_users");
+		for (var i = 0; i < list.length; i++) {
+			this.table.addRow(list[i]);
+			this.table.addCell(list[i], "users", this.profiles.getDisplayNode(list[i]));
+		}
+		
+		return psyc.STOP;
 	}
-
-	this.sendmsg(source, "_update_profile", new psyc.Vars({ _profile : this.profile }));
-	return psyc.STOP;
-};
-psyc.UserList = function(client, profiles) {
-	this.client = client;
-	this.profiles = profiles;
-	client.register_method({ method : "_update_users", source : client.uniform.root(), object : this });
-	client.register_method({ method : "_notice_login", source : null, object : this });
-	client.register_method({ method : "_notice_logout", source : null, object : this });
-	this.table = new TypedTable();
-	this.table.addColumn("users", "Users");
-	this.sendmsg(client.uniform.root(), "_request_users");
-};
-psyc.UserList.prototype = new psyc.Base();
-psyc.UserList.prototype._notice_logout = function(m) {
-	var source = m.source();
-	if (this.table.getRow(source)) {
-		this.table.deleteRow(source);
-	}
-
-	return psyc.STOP;
-};
-psyc.UserList.prototype._notice_login = function(m) {
-	var source = m.source();
-	if (!this.table.getRow(source)) {
-		this.table.addRow(source);
-		this.table.addCell(source, "users", this.profiles.getDisplayNode(source));
-	}
-
-	return psyc.STOP;
-};
-psyc.UserList.prototype._update_users = function(m) {
-	var source = m.source();
-	var list = m.vars.get("_users");
-	for (var i = 0; i < list.length; i++) {
-		this.table.addRow(list[i]);
-		this.table.addCell(list[i], "users", this.profiles.getDisplayNode(list[i]));
-	}
-	
-	return psyc.STOP;
-};
+});
 
