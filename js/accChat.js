@@ -30,9 +30,9 @@ var AccChat = psyc.Chat.extend({
 		});
 	},
 	msg : function(m) {
+		var win = this.getWindow(m.vars.get("_source"));
 		var scroll = (win.getMessagesNode().scrollTop == win.getMessagesNode().scrollHeight);
 		var ret = this.base(m);	
-		var win = this.getWindow(m.vars.get("_source"));
 		if (scroll) win.getMessagesNode().scrollTop = win.getMessagesNode().scrollHeight;
 		return ret;
 	},
