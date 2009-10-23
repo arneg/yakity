@@ -42,7 +42,6 @@ void keepalive() {
 }
 
 void remove_id() {
-	werror("REMOVING %s: %s\n", client_id, describe_backtrace(backtrace()));
 	connection_id = 0;
 
 	KEEPDEAD;
@@ -89,7 +88,6 @@ void handle_id(object id) {
 	LOCK;
 
 	if (id->method == "POST" && stringp(id->data) && sizeof(id->data)) {
-		werror("DATA: %O\n", id->data);
 		parser->feed(utf8_to_string(id->data));
 
 		Serialization.Atom a;
@@ -145,7 +143,6 @@ void _write() {
 		if (!out_buffer) {
 			if (buffer->is_empty()) {
 				write_ready = 1;
-				werror("Buffer is empty.\n");
 				RETURN;
 			}
 

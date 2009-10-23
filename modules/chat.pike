@@ -76,7 +76,7 @@ object get_user(RequestID id) {
 	object o;
 	string name = id->variables["nick"];
 
-	werror("get_user %O\n", id);
+	//werror("get_user %O\n", id);
 
 	uniform = to_uniform('~', name);
 
