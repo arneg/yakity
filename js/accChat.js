@@ -29,13 +29,6 @@ var AccChat = psyc.Chat.extend({
 			//opacity : false
 		});
 	},
-	msg : function(m) {
-		var win = this.getWindow(m.vars.get("_source"));
-		var scroll = (win.getMessagesNode().scrollTop == win.getMessagesNode().scrollHeight);
-		var ret = this.base(m);	
-		if (scroll) win.getMessagesNode().scrollTop = win.getMessagesNode().scrollHeight;
-		return ret;
-	},
 	removeWindow : function(uniform) {
 		var win = this.getWindow(uniform);
 		this.accordion.togglers.splice(win.pos, 1);
@@ -71,6 +64,13 @@ var AccChat = psyc.Chat.extend({
 		this.client.send(m);
 
 		this.base(uniform);
+	},
+	msg : function(m) {
+		var messages = this.getWindow(m.vars.get("_source")).getMessagesNode();
+		var scroll = (messages.scrollTop == messages.scrollHeight);
+		var ret = this.base(m);	
+		if (scroll) messages.scrollTop = messages.scrollHeight;
+		return ret;
 	},
 	enterRoom : function(uniform) {
 		this.base(uniform);
