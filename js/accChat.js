@@ -77,9 +77,9 @@ var AccChat = psyc.Chat.extend({
 	createWindow : function(uniform) {
 		var win;
 		var toggler = document.createElement("div");
-                UTIL.addClass(toggler, "toggler");
+		UTIL.addClass(toggler, "toggler");
 		var togglemembers = document.createElement("div");
-                UTIL.addClass(togglemembers, "toggleInfo");
+		UTIL.addClass(togglemembers, "toggleInfo");
 		toggler.appendChild(togglemembers);
 		
 		var container = document.createElement("div");
@@ -88,10 +88,13 @@ var AccChat = psyc.Chat.extend({
 		if (uniform.is_person()) {
 			win = new psyc.TemplatedWindow(this.templates, uniform);
 			UTIL.addClass(win.getMessagesNode(), "privatechat");
-                        UTIL.addClass(header, "private");
+			UTIL.addClass(header, "private");
 		} else {
 			win = new psyc.RoomWindow(this.templates, uniform);
-                        UTIL.addClass(header, "public");
+			win.renderMember = function(uniform) {
+				return profiles.getDisplayNode(uniform);
+			};
+			UTIL.addClass(header, "public");
 			win.onenter = function() {
 				UTIL.replaceClass(container, "left", "joined");
 				UTIL.replaceClass(header, "left", "joined");
@@ -115,13 +118,13 @@ var AccChat = psyc.Chat.extend({
 
 			if (uniform.is_person()) {
 				a = document.createElement("div");
-                                UTIL.addClass(a, "closeButton");
+				UTIL.addClass(a, "closeButton");
 				a.onclick = function() {
 					chat.removeWindow(uniform);
 				};
-                                header.appendChild(a);
+				header.appendChild(a);
 			} else {
-			        a = document.createElement("div");
+				a = document.createElement("div");
 				UTIL.addClass(a, "leaveButton");
 				var b = document.createElement("div");
 				UTIL.addClass(b, "closeButton");
@@ -129,7 +132,7 @@ var AccChat = psyc.Chat.extend({
 				UTIL.addClass(c, "enterButton");
 				
 				b.onclick = function() {
-                                        chat.removeWindow(uniform);
+					chat.removeWindow(uniform);
 				};
 				a.onclick = function() {
 					chat.leaveRoom(uniform);
@@ -139,22 +142,23 @@ var AccChat = psyc.Chat.extend({
 				};
 				
 				header.appendChild(b);
-                                header.appendChild(a);
+				header.appendChild(a);
 				header.appendChild(c);
 			}
 		}
-                header.appendChild(toggler);
+
+		header.appendChild(toggler);
 		UTIL.addClass(container, "chatwindow");
 		UTIL.addClass(win.getMessagesNode(), "messages");
 		container.appendChild(win.getMessagesNode());
 
 		if (uniform.is_room()) {
-		        
-                        var members = document.createElement("div");
-                        UTIL.addClass(members, "membersList");
+			var members = document.createElement("div");
+			UTIL.addClass(members, "membersList");
 			members.appendChild(win.getMembersNode());
-                        win.getMessagesNode().appendChild(members);
+			win.getMessagesNode().appendChild(members);
 		}
+
 		var pos = this.accordion.elements.length;
 		document.getElementById("YakityChat").appendChild(header);
 		document.getElementById("YakityChat").appendChild(container);
