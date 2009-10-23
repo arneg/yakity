@@ -83,7 +83,12 @@
 					_timestamp : timestamp
 				});
 				profiles = new psyc.ProfileData(client);
-				userlist = new psyc.UserList(client, profiles);
+				var lprofiles = new psyc.ProfileData(client).extend({
+					getDisplayNode : function(uniform) {
+						return ulink(uniform);
+					}
+				});
+				userlist = new psyc.UserList(client, lprofiles);
 				document.getElementById("leftPane").appendChild(userlist.table.table);
 				var CustomChat = AccChat.extend({
 					createWindow : function(uniform) {
