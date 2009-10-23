@@ -84,7 +84,10 @@
 				});
 				profiles = new psyc.ProfileData(client);
 				userlist = new psyc.UserList(client, profiles);
-				document.getElementById("leftPane").appendChild(userlist.table.table);
+				
+                                var userdiv = document.createElement("div");
+                                userdiv.appendChild(userlist.table.table);
+				document.getElementById("leftPane").appendChild(userdiv);
 				var CustomChat = AccChat.extend({
 					createWindow : function(uniform) {
 						var win = this.base(uniform);
