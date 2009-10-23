@@ -132,6 +132,7 @@ void handle_id(object id) {
 
 void _write() {
 	LOCK;
+	werror("_write(the_end: %d, empty: %d, out_buffer: %d)\n", the_end, buffer->is_empty(), stringp(out_buffer) ? sizeof(out_buffer) : 0);
 
 	KEEPDEAD;
 
@@ -139,8 +140,8 @@ void _write() {
 		KEEPALIVE;
 
 		if (!connection->query_address()) {
-			remove_id();
 			call_out(error_cb, 0, this, describe_error(connection->errno()));
+			remove_id();
 			RETURN;
 		}
 
