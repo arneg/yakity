@@ -269,40 +269,6 @@
                                 cursor: hand;
                                 color: #528CE0;
 			}
-
-
-			div.userList
-			{
-				height: 120px;
-				width: 200px;
-				overflow: auto;
-                                float: right;
-			}
-			
-			div.userList table
-			{
-                                background-color: #fff;
-                                width: 100%;
-			}
-			
-			div.userList table thead th
-			{
-				font-size: 10pt;
-			}
-			
-			div.userList table tbody td
-			{
-                                font-size: 8pt;
-                                cursor: pointer;
-                                cursor: hand;
-                                color: #528CE0;
-			}
-			
-			select.chatRooms {
-			        width: 200px;
-			        margin-bottom: 5px;
-			        float: right;
-			}
 			
                         div.private div.toggleInfo {
                                 width: 25px;
@@ -475,13 +441,51 @@
 			}
 			
 			#rooms {
-
-				height: 120px;
+				height: 80px;
 				width: 200px;
 				overflow: auto;
                                 float: right;
                                 padding: 20px;
                                 padding-right: 5px;
+			}
+			
+			#rooms div.roomHeader {
+			        text-align: center;
+                                font-size: 10pt;
+			}
+			
+			#rooms a {
+                                font-size: 8pt;
+                                cursor: pointer;
+                                cursor: hand;
+                                color: #528CE0;
+			}
+			
+			div.userList
+			{
+				height: 120px;
+				width: 200px;
+				overflow: auto;
+                                float: right;
+			}
+			
+			div.userList table
+			{
+                                background-color: #fff;
+                                width: 100%;
+			}
+			
+			div.userList table thead th
+			{
+				font-size: 10pt;
+			}
+			
+			div.userList table tbody td
+			{
+                                font-size: 8pt;
+                                cursor: pointer;
+                                cursor: hand;
+                                color: #528CE0;
 			}
 			
 			#basePane {
@@ -558,7 +562,7 @@
 <div id="container" style="display:none;">
         <div id="leftPane">
 			<div id="rooms">
-					Available Rooms
+					<div class="roomHeader">Available Rooms</div>
 				<emit source="chat_rooms">
 					<a onclick='return chat.enterRoom(psyc.get_uniform("&_.uniform;"));'>&_.name;</a>
 				</emit>
