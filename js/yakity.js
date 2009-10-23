@@ -954,7 +954,7 @@ psyc.funky_text = function(m, templates) {
 	return div;
 };
 psyc.Base = Base.extend({
-	this.msg = function (m) {
+	msg : function (m) {
 		var method = m.method;
 		var none = 1;
 
