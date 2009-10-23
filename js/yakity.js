@@ -886,7 +886,6 @@ psyc.funky_text = function(m, templates) {
 		var a = s.split("-");
 		s = a[0];
 		var classes = psyc.abbreviations(s);
-		classes.push(s);
 		var type;
 		if (a.length > 1) {
 			type = a[1];
