@@ -38,8 +38,8 @@
 					client = null;
 					return;
 				} else {
-					document.getElementById("connect").style.visibility = "hidden";
-					document.getElementById("container").style.visibility = "visible";
+					document.getElementById("connect").style.display = "none";
+					document.getElementById("container").style.display = "none";
 				}
 
 				var userlink = (function(type, key, value, m) {
@@ -334,6 +334,7 @@
 			}
 			
 			#leftPane {
+			        min-height: 155px;
                                 width: 50%;
                                 position: relative;
                                 float:left;
@@ -423,7 +424,7 @@
 		</style>
 </head>
 <body>
-<div id="container" style="visibility:hidden;">
+<div id="container" style="display:none;">
         <div id="leftPane">
 			<div id="rooms">
 				<select name="chat_rooms" onchange='return chat.enterRoom(psyc.get_uniform(this.value)); this.value=""'>
