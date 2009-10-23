@@ -87,6 +87,7 @@ var AccChat = psyc.Chat.extend({
 		var members = document.createElement("div");
 
 		if (uniform == this.client.uniform) {
+			win = new psyc.TemplatedWindow(this.templates, uniform);
 			toggler.appendChild(document.createTextNode("Status"));
 			UTIL.addClass(header, "status");
 			UTIL.addClass(container, "status");
