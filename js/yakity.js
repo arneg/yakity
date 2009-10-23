@@ -886,6 +886,7 @@ psyc.funky_text = function(m, templates) {
 		var a = s.split("-");
 		s = a[0];
 		var classes = psyc.abbreviations(s);
+		classes.push(s);
 		var type;
 		if (a.length > 1) {
 			type = a[1];
@@ -895,9 +896,9 @@ psyc.funky_text = function(m, templates) {
 		var t;
 
 		if (s == "data") {
-			t = XSS.html_string_encode(m.data);
+			t = m.data;
 		} else if (s == "method") {
-			t = XSS.html_string_encode(m.method);
+			t = m.method;
 		} else if (m.vars.hasIndex(s)) {
 			var vtml = templates.get(s);
 			t = m.vars.get(s);
