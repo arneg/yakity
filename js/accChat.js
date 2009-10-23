@@ -106,7 +106,7 @@ var AccChat = psyc.Chat.extend({
 			};
 			
 			togglemembers.onclick = function() {
-                                if (members.style.display="none") {
+                                if (members.style.display=="none") {
                                         members.style.display="block";	
                                 } 
                                 else {
