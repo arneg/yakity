@@ -815,14 +815,19 @@ psyc.Client.prototype = {
 		}
 		var test = this;
 MESSAGES: for (var i = 0; i < data.length; i++) {
-			var m = this.poly.decode(data[i]);
+			if (data[i].type == "_keepalive") {
+				// dont try to decode the keepalive packet
+				continue MESSAGES;
+			}
 			try {
+				var m = this.poly.decode(data[i]);
 			} catch (error) {
 				if (meteor.debug) meteor.debug("failed to decode: "+data[i]+"\nERROR: "+error);
 				continue;
 			}
 			if (m instanceof psyc.Message) {
 				var method = m.method;	
+				if (meteor.debug) meteor.debug("incoming: " + method);
 				var count = m.vars.get("_id");	
 				var target = m.vars.get("_target");
 				var source = m.source();
