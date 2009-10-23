@@ -286,13 +286,19 @@
                                 height: 120px;
 			}
 			
+			div.userList table thead
+			{
+                                position: relative;
+			}
+			
 			div.userList table thead th
 			{
                                 font-size: 10pt;
                                 border: 3px solid #fff;
                                 padding: .1em;
                                 display: block;
-                                position: fixed;
+                                position: absolute;
+                                left: -10px;
 			}
 			
 			div.userList table tbody td
@@ -557,7 +563,7 @@
 <body>
 <div id="container" style="display:none;">
         <div id="leftPane">
-			<div id="rooms"><b>Rooms: </b>
+			<div id="rooms">
 				<select name="chat_rooms" class="chatRooms" onchange='return chat.enterRoom(psyc.get_uniform(this.value));'>
 					<option value="">Available Rooms</option>
 				<emit source="chat_rooms">
