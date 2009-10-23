@@ -13,6 +13,7 @@ var AccChat = psyc.Chat.extend({
 					
 					self.active = chatwin;
 					window.setTimeout((function(node) {
+											chatwin.getMessagesNode().scrollTop = chatwin.getMessagesNode().scrollHeight;
 											chatwin.getMessagesNode().style.overflow="auto";
 									  }), 700);
 				} else if (!chatwin) {
@@ -27,12 +28,6 @@ var AccChat = psyc.Chat.extend({
 			}
 			//opacity : false
 		});
-	},
-	msg : function(m) {
-		var ret = this.base(m);	
-		var win = this.getWindow(m.vars.get("_source"));
-		win.getMessagesNode().scrollTop = win.getMessagesNode().scrollHeight;
-		return ret;
 	},
 	removeWindow : function(uniform) {
 		var win = this.getWindow(uniform);
@@ -69,6 +64,12 @@ var AccChat = psyc.Chat.extend({
 		this.client.send(m);
 
 		this.base(uniform);
+	},
+	msg : function(m) {
+		var messages = this.getWindow(m.vars.get("_source")).getMessagesNode();
+		var ret = this.base(m);	
+		messages.scrollTop = messages.scrollHeight;
+		return ret;
 	},
 	enterRoom : function(uniform) {
 		this.base(uniform);

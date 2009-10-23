@@ -815,14 +815,19 @@ psyc.Client.prototype = {
 		}
 		var test = this;
 MESSAGES: for (var i = 0; i < data.length; i++) {
-			var m = this.poly.decode(data[i]);
+			if (data[i].type == "_keepalive") {
+				// dont try to decode the keepalive packet
+				continue MESSAGES;
+			}
 			try {
+				var m = this.poly.decode(data[i]);
 			} catch (error) {
 				if (meteor.debug) meteor.debug("failed to decode: "+data[i]+"\nERROR: "+error);
 				continue;
 			}
 			if (m instanceof psyc.Message) {
 				var method = m.method;	
+				if (meteor.debug) meteor.debug("incoming: " + method);
 				var count = m.vars.get("_id");	
 				var target = m.vars.get("_target");
 				var source = m.source();
@@ -866,14 +871,21 @@ MESSAGES: for (var i = 0; i < data.length; i++) {
 
 					none = 0;
 					var list = this.callbacks.get(t);
+					var stop = 0;
 
 					for (var j = 0; j < list.length; j++) {
 						try {
-							if (psyc.STOP == list[j].msg(m)) continue MESSAGES;
+							if (psyc.STOP == list[j].msg(m)) {
+								stop = 1;
+							}
 						} catch (error) {
 							if (meteor.debug) meteor.debug(error);
-							continue MESSAGES;
 						}
+					}
+
+					// we do this to stop only after all callbacks on the same level have been handled.
+					if (stop) {
+						continue MESSAGES;
 					}
 				}
 
@@ -1257,9 +1269,12 @@ psyc.UserList = psyc.Base.extend({
 	_update_users : function(m) {
 		var source = m.source();
 		var list = m.vars.get("_users");
+
 		for (var i = 0; i < list.length; i++) {
-			this.table.addRow(list[i]);
-			this.table.addCell(list[i], "users", this.profiles.getDisplayNode(list[i]));
+			if (!this.table.getRow(list[i])) {
+				this.table.addRow(list[i]);
+				this.table.addCell(list[i], "users", this.profiles.getDisplayNode(list[i]));
+			}
 		}
 		
 		return psyc.STOP;

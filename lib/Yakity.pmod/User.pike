@@ -19,15 +19,21 @@ void create(object server, object uniform, mixed user, function logout) {
 
 	SIG::create(server->type_cache);
 
-	object pp = Serialization.Types.Polymorphic();
-	pp->register_type("string", "_method", Method());                                                                                                                   
-	pp->register_type("string", "_string", UTF8String());
-	pp->register_type(Yakity.Date, "_time", Yakity.Types.Date());
-	pp->register_type("int", "_integer", Int());
-	pp->register_type("mapping", "_mapping", Mapping(pp,pp));
-	pp->register_type("array", "_list", List(pp));
-	pp->register_type(MMP.Uniform, "_uniform", Uniform());
- 	message_signature = Yakity.Types.Message(Method(), Mapping(Method(), pp), UTF8String());
+	if (!has_index(server->type_cache[Yakity.Types.Message], 0)) {
+		object pp = Serialization.Types.Polymorphic();
+		pp->register_type("string", "_method", Method());                                                                                                                   
+		pp->register_type("string", "_string", UTF8String());
+		pp->register_type(Yakity.Date, "_time", Yakity.Types.Date());
+		pp->register_type("int", "_integer", Int());
+		pp->register_type("mapping", "_mapping", Mapping(pp,pp));
+		pp->register_type("array", "_list", List(pp));
+		pp->register_type(MMP.Uniform, "_uniform", Uniform());
+		message_signature = Yakity.Types.Message(Method(), Mapping(Method(), pp), UTF8String());
+		server->type_cache[Yakity.Types.Message][0] = message_signature;
+	} else {
+		message_signature = server->type_cache[Yakity.Types.Message][0];
+	}
+
 
 	object m = Yakity.Message();
 	m->method = "_notice_login";
@@ -36,15 +42,17 @@ void create(object server, object uniform, mixed user, function logout) {
 }
 
 void implicit_logout() {
-	object m = Yakity.Message();
-	m->method = "_notice_logout";
-	m->vars = ([ "_source" : uniform ]);
-	broadcast(m);
 	if (logout_cb) {
 		logout_cb(this);
+		object m = Yakity.Message();
+		m->method = "_notice_logout";
+		m->vars = ([ "_source" : uniform ]);
+		broadcast(m);
+		logout_cb = 0;
 	} else {
 		werror("NO logout callback given. Cleanup seems impossible.\n");
 	}
+
 }
 
 void add_session(object session) {
@@ -134,6 +142,7 @@ int _message_private(Yakity.Message m) {
 		reply->vars = copy_value(m->vars);
 		m_delete(reply->vars, "_source");
 		reply->vars["_target"] = source;
+		reply->vars["_source_relay"] = source;
 		reply->method = "_echo_message_private";
 		reply->data = m->data;
 		send(reply);

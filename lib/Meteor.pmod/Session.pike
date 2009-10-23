@@ -27,17 +27,21 @@ void _close() {
 
 // this is called in intervals
 void keepalive() {
-	send(Serialization.Atom("_keepalive", "");
+	send(Serialization.Atom("_keepalive", ""));
 }
 
 void remove_id() {
 	connection_id = 0;
+	if (find_call_out(keepalive) != -1) {
+		remove_call_out(keepalive);
+	}
 
 	if (connection) {
 		connection->set_write_callback(0);
 		connection->set_close_callback(0);
 		connection->close();
 		connection = 0;
+		write_ready = 0;
 	}
 }
 
@@ -60,6 +64,7 @@ void register_new_id() {
 	connection->set_write_callback(_write);
 	connection->set_close_callback(_close);
 	connection->write("HTTP/1.1 200 OK\r\n" + headers); // fire and forget
+	call_out(keepalive, 30);
 
 	new_id = 0;
 	_write();
@@ -110,9 +115,9 @@ void _write() {
 		remove_call_out(keepalive);
 	}
 
-	call_out(keepalive, 30);
-
 	if (connection) { 
+		call_out(keepalive, 30);
+
 		if (!connection->query_address()) {
 			error_cb(this, describe_error(connection->errno()));
 			remove_id();

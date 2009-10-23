@@ -83,11 +83,20 @@
 					_timestamp : timestamp
 				});
 				profiles = new psyc.ProfileData(client);
-				userlist = new psyc.UserList(client, profiles);
+		
+				var lprofiles = new psyc.ProfileData(client).extend({
+					getDisplayNode : function(uniform) {
+						return ulink(uniform);
+					}
+				});
 				
-                                var userdiv = document.createElement("div");
+				
+				userlist = new psyc.UserList(client, lprofiles);
+				
+				var userdiv = document.createElement("div");
                                 userdiv.appendChild(userlist.table.table);
 				document.getElementById("leftPane").appendChild(userdiv);
+
 				var CustomChat = AccChat.extend({
 					createWindow : function(uniform) {
 						var win = this.base(uniform);
@@ -96,6 +105,15 @@
 								return ulink(uniform);
 							}
 						}
+						win.extend({
+							renderMessage : function(m) {
+								var div = this.base(m);
+								if (m.vars.get("_source_relay") == client.uniform) {
+									UTIL.addClass(div, "self");	
+								}
+								return div;
+							},
+						});
 
 						return win;
 					}

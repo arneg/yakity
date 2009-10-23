@@ -60,6 +60,12 @@ int start(int c, Configuration conf) {
 
 class Guest(string real_name) {
 }
+void logout_callback(object o) {
+	m_delete(users, o->uniform);
+	server->unregister_entity(o->uniform);
+	werror("%O logged out.\n", o->uniform);
+};
+
 
 object get_user(RequestID id) {
 	MMP.Uniform uniform;
@@ -72,14 +78,8 @@ object get_user(RequestID id) {
 
 	if (has_index(users, uniform)) return 0;
 
-	void cb(object o) {
-		m_delete(users, o->uniform);
-		server->unregister_entity(o->uniform);
-		werror("%O logged out.\n", o->uniform);
-	};
-
 	object user = Guest(name);
-	server->register_entity(uniform, o = Yakity.User(server, uniform, user, cb));
+	server->register_entity(uniform, o = Yakity.User(server, uniform, user, logout_callback));
 	users[uniform] = o;
 
 	return o;

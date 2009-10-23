@@ -43,8 +43,11 @@ int _request_enter(Yakity.Message m) {
 int _notice_logout(Yakity.Message m) {
 	MMP.Uniform source = m->source();
 
-	members[source] = 0;
-	castmsg("_notice_leave", "Logout", ([ "_supplicant" : source ]));
+	if (has_index(members, source)) {
+		members[source] = 0;
+		castmsg("_notice_leave", "Logout", ([ "_supplicant" : source ]));
+	}
+
 	return Yakity.STOP;
 }
 
