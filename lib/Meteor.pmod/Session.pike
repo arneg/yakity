@@ -3,7 +3,7 @@ function cb, error_cb;
 
 Thread.Mutex mutex = Thread.Mutex();
 object lock;
-#define RETURN	destruct(lock); lock = 0;
+#define RETURN	destruct(lock); lock = 0; return;
 #define LOCK	lock = mutex->lock();
 
 #define KEEPALIVE	if (!kid) kid = call_out(keepalive, 30);
@@ -39,7 +39,6 @@ void _close() {
 // this is called in intervals
 void keepalive() {
 	send(Serialization.Atom("_keepalive", ""));
-	werror("sending keepalive\n");
 }
 
 void remove_id() {
@@ -132,8 +131,6 @@ void handle_id(object id) {
 
 void _write() {
 	LOCK;
-	werror("_write(the_end: %d, empty: %d, out_buffer: %d)\n", the_end, buffer->is_empty(), stringp(out_buffer) ? sizeof(out_buffer) : 0);
-
 	KEEPDEAD;
 
 	if (connection) { 
