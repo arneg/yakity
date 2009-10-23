@@ -334,7 +334,6 @@
 			}
 			
 			#leftPane {
-			        min-height: 135px;
                                 width: 50%;
                                 position: relative;
                                 float:left;
@@ -360,6 +359,16 @@
                                 line-height: 50px;
                                 padding: 20px;
                                 clear:both;
+                                -moz-border-radius-bottomright: 0px;
+                                -webkit-border-radius-bottomright: 0px;
+                                border-bottom-right-radius: 0px;
+                                -moz-border-radius-bottomleft: 0px;
+                                -webkit-border-radius-bottomleft: 0px;
+                                border-bottom-left-radius: 0px;
+                                
+			}
+			
+			.basePane {
                                 -moz-border-radius-bottomright: 0px;
                                 -webkit-border-radius-bottomright: 0px;
                                 border-bottom-right-radius: 0px;
@@ -433,8 +442,8 @@
 				<input name=text value="" size="50" class="chattext">
 			</form>
         </div>
-        <div style="float:right;"></div>
-        <div style="clear:right;"></div>
+        <div class="basePane" style="float:right;"></div>
+        <div class="basePane" style="clear:right;"></div>
 </div>
 <div id="connect">
        <div id="connectError"></div>
