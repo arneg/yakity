@@ -36,15 +36,17 @@ void create(object server, object uniform, mixed user, function logout) {
 }
 
 void implicit_logout() {
-	object m = Yakity.Message();
-	m->method = "_notice_logout";
-	m->vars = ([ "_source" : uniform ]);
-	broadcast(m);
 	if (logout_cb) {
 		logout_cb(this);
+		object m = Yakity.Message();
+		m->method = "_notice_logout";
+		m->vars = ([ "_source" : uniform ]);
+		broadcast(m);
+		logout_cb = 0;
 	} else {
 		werror("NO logout callback given. Cleanup seems impossible.\n");
 	}
+
 }
 
 void add_session(object session) {
