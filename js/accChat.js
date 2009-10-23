@@ -87,7 +87,7 @@ var AccChat = psyc.Chat.extend({
 		var members = document.createElement("div");
 
 		if (uniform == this.client.uniform) {
-			toggler.appendChild(document.createTextNode("Status")));
+			toggler.appendChild(document.createTextNode("Status"));
 			UTIL.addClass(header, "status");
 			UTIL.addClass(container, "status");
 		} else if (uniform.is_person()) {
