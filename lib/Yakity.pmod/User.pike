@@ -219,7 +219,7 @@ int msg(Yakity.Message m) {
 }
 
 string _sprintf(int type) {
-	if (type == 'O' && 0) {
+	if (type == 'O') {
 		return sprintf("User(%s, %O)", uniform, sessions);
 	} else {
 		return sprintf("User(%s)", uniform);
