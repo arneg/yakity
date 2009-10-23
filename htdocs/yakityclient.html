@@ -61,17 +61,18 @@
 						return profiles.getDisplayNode(value);
 					}
 				});
-				var templates = new psyc.Vars("_", "[_source] says: [data]",
-									  "_status_circuit", "Welcome to the chat at [_source-_host].",
-									  "_notice_enter", "[_supplicant] enters [_source].",
-									  "_notice_leave", "[_supplicant] leaves [_source].",
-									  "_message_public", "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds] [_source_relay]: [data]",
-									  "_message_private", "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds] [_source]: [data]",
-									  "_echo_message_public", "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds]  [_source_relay]: [data]",
-									  "_echo_message_private", "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds] [data]",
-									  "_source", userlink,
-									  "_supplicant", userlink
-										);
+				var templates = new psyc.Vars({
+					_ : "[_source] says: [data]",
+					_status_circuit : "Welcome to the chat at [_source-_host].",
+					_notice_enter : "[_supplicant] enters [_source].",
+					_notice_leave : "[_supplicant] leaves [_source].",
+					_message_public : "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds] [_source_relay]: [data]",
+					_message_private : "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds] [_source]: [data]",
+					_echo_message_public : "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds]  [_source_relay]: [data]",
+					_echo_message_private : "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds] [data]",
+					_source : userlink,
+					_supplicant : userlink
+				});
 				profiles = new psyc.ProfileData(client);
 				userlist = new psyc.UserList(client, profiles);
 				document.getElementById("leftPane").appendChild(userlist.table.table);
