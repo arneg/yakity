@@ -316,9 +316,7 @@
 				display: none;
                         }
                         
-			blockquote {
-				padding: 5px 20px;
-			}
+
 			span._user_realname {
 				color: #00f;
 				font-variant: small-caps;
@@ -339,9 +337,10 @@
                                 margin-right: 5px;
                         }
 
-			div._message {
+			div._message, div._notice {
 				text-decoration: none;
-                                color: #999; padding: 5px;
+                                color: #999; 
+                                padding: 5px;
 			}
 			
 			div._message .data {
@@ -354,6 +353,13 @@
 			}
 			
 			div._supplicant, div._source {
+				color: #528CE0;
+                                font-weight: bold;
+                                text-decoration: none;
+                                cursor: hand;
+			}
+			
+			div._source_relay {
 				color: #528CE0;
                                 font-weight: bold;
                                 text-decoration: none;
