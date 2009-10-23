@@ -10,7 +10,7 @@ int _request_users(Yakity.Message m) {
 	MMP.Uniform source = m->source();
 
 	if (users) {
-		sendmsg(source, "_notice_enter", 0,  ([ "_users" : indices(users) ]));
+		sendmsg(source, "_update_users", 0,  ([ "_users" : indices(users) ]));
 	}
 
 	return Yakity.STOP;
