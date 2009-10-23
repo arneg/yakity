@@ -84,6 +84,7 @@ var AccChat = psyc.Chat.extend({
 		
 		var container = document.createElement("div");
 		var header = document.createElement("div");
+                var members = document.createElement("div");
 
 		if (uniform.is_person()) {
 			win = new psyc.TemplatedWindow(this.templates, uniform);
@@ -160,7 +161,6 @@ var AccChat = psyc.Chat.extend({
 
 		if (uniform.is_room()) {
 		        
-                        var members = document.createElement("div");
                         UTIL.addClass(members, "membersList");
 			members.appendChild(win.getMembersNode());
                         win.getMessagesNode().appendChild(members);
