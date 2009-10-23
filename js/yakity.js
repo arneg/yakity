@@ -883,15 +883,14 @@ psyc.funky_text = function(m, templates) {
 	
 	var cb = function(result, m) {
 		s = result[0].substr(1, result[0].length-2);
-		var span = document.createElement("span");
 		var a = s.split("-");
 		s = a[0];
-		span.className = psyc.abbreviations(s).join(" ");
+		var classes = psyc.abbreviations(s);
 		var type;
 		if (a.length > 1) {
 			type = a[1];
-			UTIL.addClass(span, a.join("-"));
-			UTIL.addClass(span, type);
+			classes.push(a.join("-"));
+			classes.push(type);
 		}
 		var t;
 
@@ -913,17 +912,21 @@ psyc.funky_text = function(m, templates) {
 				}
 			}
 		} else {
-			span.className = "missing_variable";
+			classes = new Array("missing_variable");
 			t = "["+s+"]";
 		}
 
 		if (objectp(t)) {
-			span.appendChild(t);
+			for (var i = 0; i < classes.length; i++) {
+				UTIL.addClass(t, classes[i]);
+			}
 		} else {
+			var span = document.createElement("span");
 			span.appendChild(document.createTextNode(t));
+			t = span;
 		}
 
-		return span;
+		return t;
 	};
 
 	var a = UTIL.split_replace(reg, template, cb, m);
