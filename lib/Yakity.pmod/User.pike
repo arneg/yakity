@@ -155,7 +155,6 @@ int _message_private(Yakity.Message m) {
 
 int _request_profile(Yakity.Message m) {
 	MMP.Uniform source = m->vars["_source"];
-	werror("_request_profile from %O\n", source);
 
 	if (source) {
 		Yakity.Message reply = Yakity.Message();
@@ -175,7 +174,7 @@ int _request_profile(Yakity.Message m) {
 void incoming(object session, Serialization.Atom atom) {
 	Yakity.Message m = message_signature->decode(atom);
 
-	werror("%s->incoming(%O, %O)\n", this, session, m);
+	//werror("%s->incoming(%O, %O)\n", this, session, m);
 	m->vars["_source"] = uniform;
 
 	if (m->target() == uniform) {
@@ -193,12 +192,12 @@ void incoming(object session, Serialization.Atom atom) {
 }
 
 int msg(Yakity.Message m) {
-	werror("%s->msg(%O)\n", this, m);
+	//werror("%s->msg(%O)\n", this, m);
 
 	if (::msg(m) == Yakity.STOP) return Yakity.STOP;
 
 	Yakity.Message c = m->clone();
-	werror("NEW MESSAGE %d -> %O\n", count+1, m);
+	//werror("NEW MESSAGE %d -> %O\n", count+1, m);
 	c->vars["_id"] = ++count;
 
 	Serialization.Atom atom;

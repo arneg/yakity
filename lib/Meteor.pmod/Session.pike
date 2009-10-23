@@ -3,11 +3,15 @@ function cb, error_cb;
 
 Thread.Mutex mutex = Thread.Mutex();
 object lock;
-#define RETURN	destruct(lock); lock = 0;
+#define RETURN	destruct(lock); lock = 0; return;
 #define LOCK	lock = mutex->lock();
+
+#define KEEPALIVE	if (!kid) kid = call_out(keepalive, 30);
+#define KEEPDEAD	if (kid) { remove_call_out(kid); kid = 0; }
 
 Serialization.AtomParser parser = Serialization.AtomParser();
 MMP.Utils.Queue buffer = MMP.Utils.Queue();
+mixed kid;
 
 object connection;
 object connection_id;
@@ -38,11 +42,9 @@ void keepalive() {
 }
 
 void remove_id() {
-	werror("REMOVING %s: %s\n", client_id, describe_backtrace(backtrace()));
 	connection_id = 0;
-	if (find_call_out(keepalive) != -1) {
-		remove_call_out(keepalive);
-	}
+
+	KEEPDEAD;
 
 	if (connection) {
 		connection->set_write_callback(0);
@@ -74,7 +76,7 @@ void register_new_id() {
 	connection->set_write_callback(_write);
 	connection->set_close_callback(_close);
 	connection->write("HTTP/1.1 200 OK\r\n" + headers); // fire and forget
-	call_out(keepalive, 30);
+	KEEPALIVE;
 
 	new_id = 0;
 	call_out(_write, 0);
@@ -86,7 +88,6 @@ void handle_id(object id) {
 	LOCK;
 
 	if (id->method == "POST" && stringp(id->data) && sizeof(id->data)) {
-		werror("DATA: %O\n", id->data);
 		parser->feed(utf8_to_string(id->data));
 
 		Serialization.Atom a;
@@ -128,24 +129,20 @@ void handle_id(object id) {
 
 void _write() {
 	LOCK;
-
-	if (find_call_out(keepalive) != -1) {
-		remove_call_out(keepalive);
-	}
+	KEEPDEAD;
 
 	if (connection) { 
-		call_out(keepalive, 30);
+		KEEPALIVE;
 
 		if (!connection->query_address()) {
-			remove_id();
 			call_out(error_cb, 0, this, describe_error(connection->errno()));
+			remove_id();
 			RETURN;
 		}
 
 		if (!out_buffer) {
 			if (buffer->is_empty()) {
 				write_ready = 1;
-				werror("Buffer is empty.\n");
 				RETURN;
 			}
 
