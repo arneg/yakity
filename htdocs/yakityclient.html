@@ -279,10 +279,17 @@
                                 float: right;
 			}
 			
+			div.userList table
+			{
+                                background-color: #fff;
+                                width: 100%;
+			}
+			
 			div.userList table thead
 			{
                                 background-color: #fff;
                                 width: 100%;
+                                border: 3px solid red;
 			}
 			
 			div.userList table thead th
@@ -548,7 +555,7 @@
 <body>
 <div id="container" style="display:none;">
         <div id="leftPane">
-			<div id="rooms">
+			<div id="rooms"><b>Rooms: </b>
 				<select name="chat_rooms" class="chatRooms" onchange='return chat.enterRoom(psyc.get_uniform(this.value));'>
 					<option value="">Available Rooms</option>
 				<emit source="chat_rooms">
