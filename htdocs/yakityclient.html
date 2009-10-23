@@ -39,7 +39,7 @@
 					return;
 				} else {
 					document.getElementById("connect").style.display = "none";
-					document.getElementById("container").style.display = "none";
+					delete document.getElementById("container").style.display;
 				}
 
 				var userlink = (function(type, key, value, m) {
