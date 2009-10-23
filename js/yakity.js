@@ -871,14 +871,21 @@ MESSAGES: for (var i = 0; i < data.length; i++) {
 
 					none = 0;
 					var list = this.callbacks.get(t);
+					var stop = 0;
 
 					for (var j = 0; j < list.length; j++) {
 						try {
-							if (psyc.STOP == list[j].msg(m)) continue MESSAGES;
+							if (psyc.STOP == list[j].msg(m)) {
+								stop = 1;
+							}
 						} catch (error) {
 							if (meteor.debug) meteor.debug(error);
-							continue MESSAGES;
 						}
+					}
+
+					// we do this to stop only after all callbacks on the same level have been handled.
+					if (stop) {
+						continue MESSAGES;
 					}
 				}
 
