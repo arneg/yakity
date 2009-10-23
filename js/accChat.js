@@ -86,13 +86,20 @@ var AccChat = psyc.Chat.extend({
 		var header = document.createElement("div");
 		var members = document.createElement("div");
 
-		if (uniform.is_person()) {
+		if (uniform == this.client.uniform) {
+			toggler.appendChild(document.createTextNode("Status")));
+			UTIL.addClass(header, "status");
+			UTIL.addClass(container, "status");
+		} else if (uniform.is_person()) {
 			win = new psyc.TemplatedWindow(this.templates, uniform);
 			UTIL.addClass(win.getMessagesNode(), "privatechat");
 			UTIL.addClass(header, "private");
+			UTIL.addClass(container, "private");
+			toggler.appendChild(profiles.getDisplayNode(uniform));
 		} else {
 			win = new psyc.RoomWindow(this.templates, uniform);
 			UTIL.addClass(header, "public");
+			UTIL.addClass(container, "public");
 			win.onenter = function() {
 				UTIL.replaceClass(container, "left", "joined");
 				UTIL.replaceClass(header, "left", "joined");
@@ -101,24 +108,20 @@ var AccChat = psyc.Chat.extend({
 				UTIL.replaceClass(container, "joined", "left");
 				UTIL.replaceClass(header, "joined", "left");
 			};
-			win.renderMember = function(uniform) {
-				return profiles.getDisplayNode(uniform);
-			};
 			
 			togglemembers.onclick = function() {
-                                if (members.style.display=="none") {
-                                        members.style.display="block";	
-                                } 
-                                else {
-                                        members.style.display="none";	
-                                }
-                        };
+				if (members.style.display=="none") {
+					members.style.display="block";	
+				} else {
+					members.style.display="none";	
+				}
+			};
 			
 			UTIL.addClass(win.getMessagesNode(), "roomchat");
+			toggler.appendChild(profiles.getDisplayNode(uniform));
 		}
 		UTIL.addClass(header, "header");
 		this.DOMtoWIN.set(toggler, win);
-		toggler.appendChild(profiles.getDisplayNode(uniform));
 
 		if (uniform != this.client.uniform) { // not the status window
 			var a;
