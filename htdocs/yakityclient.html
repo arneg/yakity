@@ -56,14 +56,9 @@
 
 				var timestamp = (function(type, key, value, m) {
 					var div = document.createElement("div");
-					div.appendChild(value.render("_hours"));
-					div.appendChild(document.createTextNode(":"));
-					div.appendChild(value.render("_minutes"));
-					div.appendChild(document.createTextNode(":"));
-					div.appendChild(value.render("_seconds"));
+					div.appendChild(document.createTextNode(value.render("_hours") + ":" + value.render("_minutes") + ":" + value.render("_seconds")));
 					return div;
 				});
-
 				var userlink = (function(type, key, value, m) {
 					if (type) return value.render(type);
 					if (value.is_person()) {
