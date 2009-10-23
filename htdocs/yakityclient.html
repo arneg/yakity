@@ -191,9 +191,6 @@
 				background-color: #007fc2;
 			}
                         
-			#chathaven {
-				margin: 0; 
-			}
 
 			div.header a {
 				text-align: right;
@@ -256,7 +253,9 @@
 			div.userList
 			{
 				height: 200px;
-				overflow: scroll;
+				width: 200px;
+				overflow: auto;
+				right: 0px;
 			}
 			
 			div.membersList table {
@@ -527,7 +526,7 @@
 <div id="container" style="display:none;">
         <div id="leftPane">
 			<div id="rooms">
-				<select name="chat_rooms" onchange='return chat.enterRoom(psyc.get_uniform(this.value)); this.value=""'>
+				<select name="chat_rooms" class="chatRooms" onchange='return chat.enterRoom(psyc.get_uniform(this.value));'>
 					<option value="">Available Rooms</option>
 				<emit source="chat_rooms">
 					<option value="&_.uniform;">&_.name;</option>
