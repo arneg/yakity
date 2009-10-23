@@ -43,15 +43,26 @@
 				}
 
 				var ulink = function (uniform) {
-					var a = elink(profiles.getDisplayNode(uniform));
-					a.onclick = function() {
+					var div = document.createElement("div");
+					div.appendChild(profiles.getDisplayNode(uniform));
+					div.onclick = function() {
 						var win = chat.getWindow(uniform);
 						chat.active = win;
 						chat.accordion.display(win.pos);
 					};
 
-					return a;
+					return div;
 				};
+
+				var timestamp = (function(type, key, value, m) {
+					var div = document.createElement("div");
+					div.appendChild(value.render("_hours"));
+					div.appendChild(document.createTextNode(":"));
+					div.appendChild(value.render("_minutes"));
+					div.appendChild(document.createTextNode(":"));
+					div.appendChild(value.render("_seconds"));
+					return div;
+				});
 
 				var userlink = (function(type, key, value, m) {
 					if (type) return value.render(type);
@@ -66,12 +77,13 @@
 					_status_circuit : "Welcome to the chat at [_source-_host].",
 					_notice_enter : "[_supplicant] enters [_source].",
 					_notice_leave : "[_supplicant] leaves [_source].",
-					_message_public : "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds] [_source_relay]: [data]",
-					_message_private : "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds] [_source]: [data]",
-					_echo_message_public : "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds]  [_source_relay]: [data]",
-					_echo_message_private : "[_timestamp-_hours]:[_timestamp-_minutes]:[_timestamp-_seconds] [data]",
+					_message_public : "[_timestamp] [_source_relay]: [data]",
+					_message_private : "[_timestamp] [_source]: [data]",
+					_echo_message_public : "[_timestamp] [_source_relay]: [data]",
+					_echo_message_private : "[_timestamp] [data]",
 					_source : userlink,
-					_supplicant : userlink
+					_supplicant : userlink,
+					_timestamp : timestamp
 				});
 				profiles = new psyc.ProfileData(client);
 				userlist = new psyc.UserList(client, profiles);
