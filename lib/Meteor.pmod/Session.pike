@@ -3,6 +3,8 @@ function cb, error_cb;
 
 Thread.Mutex mutex = Thread.Mutex();
 object lock;
+#define RETURN	destruct(lock); lock = 0;
+#define LOCK	lock = mutex->lock();
 
 Serialization.AtomParser parser = Serialization.AtomParser();
 MMP.Utils.Queue buffer = MMP.Utils.Queue();
@@ -22,12 +24,12 @@ void create(string client_id, void|function cb, void|function error) {
 }
 
 void _close() {
-	lock = mutex->lock();
+	LOCK;
 	werror("%O: closed file.\n");
 	int errno = connection->errno();
 	remove_id();
 	error_cb(this, sprintf("ERROR: %s (%d)\n", strerror(errno), errno));	
-	destruct(lock);
+	RETURN;
 }
 
 // this is called in intervals
@@ -52,7 +54,7 @@ void remove_id() {
 }
 
 void register_new_id() {
-	lock = mutex->lock();
+	LOCK;
 
 	if (connection_id) remove_id();
 	connection_id = new_id;
@@ -77,11 +79,11 @@ void register_new_id() {
 	new_id = 0;
 	call_out(_write, 0);
 
-	destruct(lock);
+	RETURN;
 }
 
 void handle_id(object id) {
-	lock = mutex->lock();
+	LOCK;
 
 	if (id->method == "POST" && stringp(id->data) && sizeof(id->data)) {
 		werror("DATA: %O\n", id->data);
@@ -98,7 +100,7 @@ void handle_id(object id) {
 			id->send_result(Roxen.http_low_answer(500, "bad input"));
 			remove_id();
 			call_out(error_cb, 0, this, err);
-			return;
+			RETURN;
 		}
 
 		id->send_result(Roxen.http_string_answer("ok"));
@@ -121,11 +123,11 @@ void handle_id(object id) {
 		}
 	}
 
-	destruct(lock);
+	RETURN;
 }
 
 void _write() {
-	lock = mutex->lock();
+	LOCK;
 
 	if (find_call_out(keepalive) != -1) {
 		remove_call_out(keepalive);
@@ -137,14 +139,14 @@ void _write() {
 		if (!connection->query_address()) {
 			remove_id();
 			call_out(error_cb, 0, this, describe_error(connection->errno()));
-			return;
+			RETURN;
 		}
 
 		if (!out_buffer) {
 			if (buffer->is_empty()) {
 				write_ready = 1;
 				werror("Buffer is empty.\n");
-				return;
+				RETURN;
 			}
 
 			String.Buffer s = String.Buffer();
@@ -171,7 +173,7 @@ void _write() {
 		if (bytes == -1) {
 			remove_id();
 			error_cb(this, "Could not write to socket. Connection lost.\n");
-			return;
+			RETURN;
 		} else if (bytes+out_pos < sizeof(out_buffer)) {
 			out_pos += bytes;
 		} else {
@@ -195,7 +197,8 @@ void _write() {
 	} else {
 		call_out(error_cb, 0, this, "No connection found.\n");
 	}
-	destruct(lock);	
+
+	RETURN;
 }
 
 string _sprintf(int type) {
@@ -205,7 +208,7 @@ string _sprintf(int type) {
 }
 
 void send(Serialization.Atom atom) {
-	lock = mutex->lock();
+	LOCK;
 	buffer->push(atom);
 
 	if (write_ready) {
@@ -215,5 +218,5 @@ void send(Serialization.Atom atom) {
 			call_out(_write, 0);
 		}
 	}
-	destruct(lock);
+	RETURN;
 }
