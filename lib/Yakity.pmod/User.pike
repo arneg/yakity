@@ -81,6 +81,8 @@ void logout() {
 
 void session_error(object session, mixed err) {
 	sessions -= ({ session });
+	session->error_cb = 0;
+	session->cb = 0;
 
 	if (!sizeof(sessions)) {
 		if (-1 == find_call_out(implicit_logout)) call_out(implicit_logout, 10);
