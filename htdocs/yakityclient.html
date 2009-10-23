@@ -286,9 +286,10 @@
                                 height: 120px;
 			}
 			
-			div.userList table thead
+			div.userList table thead, div.userList table thead tr
 			{
-                                position: relative;
+                                position: fixed;
+                                background-color: #fff;
 			}
 			
 			div.userList table thead th
@@ -300,9 +301,13 @@
 				left: -10px;
 			}
 			
-			div.userList table tbody td
+			div.userList table tbody
 			{
                                 overflow: auto;
+			}
+			
+			div.userList table tbody td
+			{
                                 font-size: 8pt;
                                 cursor: pointer;
                                 cursor: hand;
@@ -311,7 +316,6 @@
 			
 			select.chatRooms {
 			        width: 200px;
-			        float: right;
 			        margin-bottom: 5px;
 			}
 			
