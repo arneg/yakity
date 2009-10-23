@@ -103,6 +103,16 @@ var AccChat = psyc.Chat.extend({
 			win.renderMember = function(uniform) {
 				return profiles.getDisplayNode(uniform);
 			};
+			
+			togglemembers.onclick = function() {
+                                if (membersList.stlye.display = "none") {
+                                        membersList.stlye.display = "block";	
+                                } 
+                                else {
+                                        membersList.stlye.display = "none";	
+                                }
+                        };
+			
 			UTIL.addClass(win.getMessagesNode(), "roomchat");
 		}
 		UTIL.addClass(header, "header");
@@ -161,7 +171,7 @@ var AccChat = psyc.Chat.extend({
 		this.accordion.addSection(toggler, container, pos);
 
 
-		// fixes the flicker bug. dont know why mootools is fucking with the styles
+		// fixes the flicker bug. dont know why mootools is f*cking with the styles
 		// at all.
 		container.style.overflow = "auto";
 
