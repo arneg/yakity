@@ -39,6 +39,7 @@ void _close() {
 // this is called in intervals
 void keepalive() {
 	send(Serialization.Atom("_keepalive", ""));
+	werror("sending keepalive\n");
 }
 
 void remove_id() {
