@@ -884,13 +884,13 @@ psyc.funky_text = function(m, templates) {
 	var cb = function(result, m) {
 		s = result[0].substr(1, result[0].length-2);
 		var span = document.createElement("span");
-		span.className = s;
 		var a = s.split("-");
 		s = a[0];
+		span.className = psyc.abbreviations(s).join(" ");
 		var type;
 		if (a.length > 1) {
 			type = a[1];
-			span.className = psyc.abbreviations(s).join(" ");
+			UTIL.addClass(span, a.join("-"));
 			UTIL.addClass(span, type);
 		}
 		var t;
