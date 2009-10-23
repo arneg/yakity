@@ -553,12 +553,11 @@
 <div id="container" style="display:none;">
         <div id="leftPane">
 			<div id="rooms">
-				<select name="chat_rooms" class="chatRooms" onchange='return chat.enterRoom(psyc.get_uniform(this.value));'>
-					<option value="">Available Rooms</option>
+					Available Rooms
 				<emit source="chat_rooms">
-					<option value="&_.uniform;">&_.name;</option>
+					<div onclick='return chat.enterRoom(psyc.get_uniform(&_.uniform;));'>&_.name;</div>
 				</emit>
-				</select>
+
 			</div>
         </div>
         <div id="rightPane">
