@@ -84,6 +84,7 @@ var AccChat = psyc.Chat.extend({
 		
 		var container = document.createElement("div");
 		var header = document.createElement("div");
+                var members = document.createElement("div");
 
 		if (uniform.is_person()) {
 			win = new psyc.TemplatedWindow(this.templates, uniform);
@@ -106,6 +107,16 @@ var AccChat = psyc.Chat.extend({
 			win.renderMember = function(uniform) {
 				return profiles.getDisplayNode(uniform);
 			};
+			
+			togglemembers.onclick = function() {
+                                if (members.style.display=="none") {
+                                        members.style.display="block";	
+                                } 
+                                else {
+                                        members.style.display="none";	
+                                }
+                        };
+			
 			UTIL.addClass(win.getMessagesNode(), "roomchat");
 		}
 		UTIL.addClass(header, "header");
@@ -153,7 +164,6 @@ var AccChat = psyc.Chat.extend({
 		container.appendChild(win.getMessagesNode());
 
 		if (uniform.is_room()) {
-			var members = document.createElement("div");
 			UTIL.addClass(members, "membersList");
 			members.appendChild(win.getMembersNode());
 			win.getMessagesNode().appendChild(members);
@@ -165,7 +175,7 @@ var AccChat = psyc.Chat.extend({
 		this.accordion.addSection(toggler, container, pos);
 
 
-		// fixes the flicker bug. dont know why mootools is fucking with the styles
+		// fixes the flicker bug. dont know why mootools is f*cking with the styles
 		// at all.
 		container.style.overflow = "auto";
 
