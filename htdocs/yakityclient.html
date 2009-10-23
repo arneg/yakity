@@ -42,16 +42,21 @@
 					document.getElementById("container").style.display = "block";
 				}
 
+				var ulink = function (uniform) {
+					var a = elink(profiles.getDisplayNode(uniform));
+					a.onclick = function() {
+						var win = chat.getWindow(uniform);
+						chat.active = win;
+						chat.accordion.display(win.pos);
+					};
+
+					return a;
+				};
+
 				var userlink = (function(type, key, value, m) {
 					if (type) return value.render(type);
 					if (value.is_person()) {
-						var a = elink(profiles.getDisplayNode(value));
-						a.onclick = function() {
-							var win = chat.getWindow(value);
-							chat.active = win;
-							chat.accordion.display(win.pos);
-						};
-						return a;
+						return ulink(value);
 					} else {
 						return profiles.getDisplayNode(value);
 					}
@@ -70,7 +75,19 @@
 				profiles = new psyc.ProfileData(client);
 				userlist = new psyc.UserList(client, profiles);
 				document.getElementById("leftPane").appendChild(userlist.table.table);
-				chat = new AccChat(client, templates);
+				var CustomChat = AccChat.extend({
+					createWindow : function(uniform) {
+						var win = this.base(uniform);
+						if (uniform.is_room()) {
+							win.renderMember = function(uniform) {
+								return ulink(uniform);
+							}
+						}
+
+						return win;
+					}
+				});
+				chat = new CustomChat(client, templates);
 
 				error = document.createElement("div");
 				var errorh = document.createElement("div");
