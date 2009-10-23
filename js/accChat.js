@@ -106,11 +106,11 @@ var AccChat = psyc.Chat.extend({
 			};
 			
 			togglemembers.onclick = function() {
-                                if (members.stlye.display = "none") {
-                                        members.stlye.display = "block";	
+                                if (members.style.display="none") {
+                                        members.style.display="block";	
                                 } 
                                 else {
-                                        members.stlye.display = "none";	
+                                        members.style.display="none";	
                                 }
                         };
 			
