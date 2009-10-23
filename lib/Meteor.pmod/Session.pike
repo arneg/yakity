@@ -75,7 +75,7 @@ void register_new_id() {
 	call_out(keepalive, 30);
 
 	new_id = 0;
-	_write();
+	call_out(_write, 0);
 
 	destruct(lock);
 }
