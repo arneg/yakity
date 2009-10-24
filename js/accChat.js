@@ -1,11 +1,12 @@
 var AccChat = psyc.Chat.extend({
-	constructor : function (client, templates) {
+	constructor : function (client, templates, target_id) {
+		this.target_id = target_id;
 		this.base(client, templates);
 		this.DOMtoWIN = new Mapping();
 		this.templates = templates;
 		this.active = undefined;
 		var self = this;
-		this.accordion = new Accordion(document.getElementById("YakityChat"), 'a.toggler', 'div.chatwindow', {
+		this.accordion = new Accordion(document.getElementById(this.target_id), 'a.toggler', 'div.chatwindow', {
 			onActive: function(toggler, element){
 				var chatwin = self.DOMtoWIN.get(toggler);
 				if (chatwin && self.active != chatwin) {
@@ -33,8 +34,8 @@ var AccChat = psyc.Chat.extend({
 		var win = this.getWindow(uniform);
 		this.accordion.togglers.splice(win.pos, 1);
 		this.accordion.elements.splice(win.pos, 1);
-		document.getElementById("YakityChat").removeChild(win.header);
-		document.getElementById("YakityChat").removeChild(win.container);
+		document.getElementById(this.target_id).removeChild(win.header);
+		document.getElementById(this.target_id).removeChild(win.container);
 		this.DOMtoWIN.remove(win.header.firstChild);
 
 		if (this.active == win) {
@@ -172,8 +173,8 @@ var AccChat = psyc.Chat.extend({
 		}
 
 		var pos = this.accordion.elements.length;
-		document.getElementById("YakityChat").appendChild(header);
-		document.getElementById("YakityChat").appendChild(container);
+		document.getElementById(this.target_id).appendChild(header);
+		document.getElementById(this.target_id).appendChild(container);
 		this.accordion.addSection(toggler, container, pos);
 
 
