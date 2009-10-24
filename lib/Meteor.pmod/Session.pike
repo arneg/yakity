@@ -38,7 +38,7 @@ void _close() {
 
 // this is called in intervals
 void keepalive() {
-	send(Serialization.Atom("_keepalive", ""));
+	call_out(send, 0, Serialization.Atom("_keepalive", ""));
 }
 
 void remove_id() {
@@ -117,7 +117,7 @@ void handle_id(object id) {
 			if (!(out_buffer)) {
 				out_buffer = "";
 				out_pos = 0;
-				if (write_ready) _write();
+				if (write_ready) call_out(_write, 0);
 			}
 		} else {
 			call_out(register_new_id, 0);
