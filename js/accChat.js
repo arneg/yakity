@@ -188,6 +188,7 @@ var AccChat = psyc.Chat.extend({
 
 		if (!this.active) {
 			this.active = win;
+			this.accordion.display(1);
 			this.accordion.display(pos);
 		}
 
