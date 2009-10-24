@@ -155,12 +155,14 @@
 				return false;
 			};
 
+/*
 			function error_fun(str) {
 				var text = document.createTextNode(str);
 				error.appendChild(text);
 				error.appendChild(document.createElement("br"));
 				error.scrollTop = error.scrollHeight;
 			};
+			*/
 
 			function atom() {
 				var str = document.chat_input.text.value;
@@ -176,7 +178,7 @@
 						this.client.send(p);
 						document.chat_input.text.value = "";
 					} else {
-						error_fun("You cannot chat to the DEBUG!");
+						//error_fun("You cannot chat to the DEBUG!");
 					}
 				} catch (err) {
 					meteor.debug("send failed: ".err.toString());
