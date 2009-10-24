@@ -209,7 +209,7 @@
 			div.error {
 				font-family: monospace;
 				font-size: small;
-				height: 400px;
+				height: 350px;
 				color: black;
 				overflow:auto;
 			}
@@ -220,13 +220,13 @@
                         }
                         
 			div.status div.messages, div.public div.messages {
-				height: 400px;
+				height: 350px;
 				overflow: auto;
 				border-bottom: 1px #ccc solid;	
 			}
 
 			div.private div.messages {
-				height: 400px;
+				height: 350px;
 				overflow: auto;
 				border-bottom: 1px #ccc solid;	
 			}
@@ -270,40 +270,6 @@
                                 cursor: pointer;
                                 cursor: hand;
                                 color: #528CE0;
-			}
-
-
-			div.userList
-			{
-				height: 120px;
-				width: 200px;
-				overflow: auto;
-                                float: right;
-			}
-			
-			div.userList table
-			{
-                                background-color: #fff;
-                                width: 100%;
-			}
-			
-			div.userList table thead th
-			{
-				font-size: 10pt;
-			}
-			
-			div.userList table tbody td
-			{
-                                font-size: 8pt;
-                                cursor: pointer;
-                                cursor: hand;
-                                color: #528CE0;
-			}
-			
-			select.chatRooms {
-			        width: 200px;
-			        margin-bottom: 5px;
-			        float: right;
 			}
 			
                         div.private div.toggleInfo {
@@ -477,8 +443,52 @@
 			}
 			
 			#rooms {
+				height: 80px;
+				width: 200px;
+				overflow: auto;
+                                float: right;
                                 padding: 20px;
                                 padding-right: 5px;
+			}
+			
+			#rooms div.roomHeader {
+			        text-align: center;
+                                font-size: 10pt;
+                                font-weight: bold;
+			}
+			
+			#rooms a {
+                                font-size: 8pt;
+                                cursor: pointer;
+                                cursor: hand;
+                                color: #528CE0;
+			}
+			
+			div.userList
+			{
+				height: 120px;
+				width: 200px;
+				overflow: auto;
+                                float: right;
+			}
+			
+			div.userList table
+			{
+                                background-color: #fff;
+                                width: 100%;
+			}
+			
+			div.userList table thead th
+			{
+				font-size: 10pt;
+			}
+			
+			div.userList table tbody td
+			{
+                                font-size: 8pt;
+                                cursor: pointer;
+                                cursor: hand;
+                                color: #528CE0;
 			}
 			
 			#basePane {
@@ -555,12 +565,11 @@
 <div id="container" style="display:none;">
         <div id="leftPane">
 			<div id="rooms">
-				<select name="chat_rooms" class="chatRooms" onchange='return chat.enterRoom(psyc.get_uniform(this.value));'>
-					<option value="">Available Rooms</option>
+					<div class="roomHeader">Available Rooms</div>
 				<emit source="chat_rooms">
-					<option value="&_.uniform;">&_.name;</option>
+					<a onclick='return chat.enterRoom(psyc.get_uniform("&_.uniform;"));'>&_.name;</a>
 				</emit>
-				</select>
+
 			</div>
         </div>
         <div id="rightPane">
