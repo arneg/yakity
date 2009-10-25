@@ -1,5 +1,6 @@
 mapping(MMP.Uniform:object) entities = ([]); //set_weak_flag(([]), Pike.WEAK);
-mapping(string:MMP.Uniform) uniform_cache = ([]); //set_weak_flag(([]), Pike.WEAK_VALUES);
+mapping(string:MMP.Uniform) uniform_cache = set_weak_flag(([]), Pike.WEAK_VALUES);
+Thread.Mutex ucm = Thread.Mutex();
 object type_cache;
 
 void create(object type_cache) {
@@ -11,8 +12,16 @@ MMP.Uniform get_uniform(string s) {
 		return uniform_cache[s];
 	}
 
+	object lock = ucm->lock();
+
+	if (has_index(uniform_cache, s)) {
+		return uniform_cache[s];
+	}
+
 	object u = MMP.Uniform(s);
-	return uniform_cache[(string)u] = u;
+	uniform_cache[(string)u] = u;
+	destruct(lock);
+	return u;
 }
 
 void broadcast(Yakity.Message m) {
@@ -40,11 +49,14 @@ void deliver(Yakity.Message m) {
 
 void register_entity(MMP.Uniform u, object o) {
 	entities[u] = o;
+	object lock = ucm->lock();
 
 	// this is a hack to keep the uniform cache consistent
 	if (!has_index(uniform_cache, (string)u)) {
 		uniform_cache[(string)u] = u;
 	}
+
+	destruct(lock);
 }
 
 void unregister_entity(MMP.Uniform u) {

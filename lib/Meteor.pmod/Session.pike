@@ -2,9 +2,8 @@ string client_id;
 function cb, error_cb;
 
 Thread.Mutex mutex = Thread.Mutex();
-object lock;
-#define RETURN	destruct(lock); lock = 0; return;
-#define LOCK	lock = mutex->lock();
+#define RETURN	destruct(lock); return;
+#define LOCK	object lock = mutex->lock();
 
 #define KEEPALIVE	if (!kid) kid = call_out(keepalive, 30);
 #define KEEPDEAD	if (kid) { remove_call_out(kid); kid = 0; }
