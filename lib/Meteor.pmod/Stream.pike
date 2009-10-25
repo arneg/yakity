@@ -18,8 +18,8 @@ void create(Stdio.File connection, function cb, function error, int|void autoclo
 	this_program::connection = connection;
 	this_program::close_cb = cb;
 	this_program::error_cb = error;
-	//if (autoclose) this_program::autoclose_after_send = autoclose;
-	if (autoclose) this_program::autoclose = autoclose;
+	// we dont want to close right after the headers have been sent
+	if (autoclose) this_program::autoclose_after_send = autoclose;
 	connection->set_write_callback(_write);
 	connection->set_close_callback(_close);
 }
@@ -87,6 +87,9 @@ void _write() {
 			if (5 != connection->write("0\r\n\r\n")) {
 				ERROR(sprintf("Could not write the the closing 5 bytes to %O\n", connection->query_address()));
 			} else {
+				// we actually have to close it. this is not a keepalive connection
+				connection->set_close_callback(0);
+				connection->close();
 				CLOSE("AutoClose");
 			}
 		}
