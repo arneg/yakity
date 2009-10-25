@@ -1,24 +1,23 @@
+// vim:syntax=c
 string client_id;
 function cb, error_cb;
+int closing = 1;
+MMP.Utils.Queue queue = MMP.Utils.Queue();
 
 Thread.Mutex mutex = Thread.Mutex();
-#define RETURN	destruct(lock); return;
-#define LOCK	object lock = mutex->lock();
+#define RETURN	destruct(lock); return
+#define LOCK	object lock = mutex->lock()
 
 #define KEEPALIVE	if (!kid) kid = call_out(keepalive, 30);
 #define KEEPDEAD	if (kid) { remove_call_out(kid); kid = 0; }
 
 Serialization.AtomParser parser = Serialization.AtomParser();
-MMP.Utils.Queue buffer = MMP.Utils.Queue();
 mixed kid;
 
-object connection;
+// we keep the new id and the current and one stream
 object connection_id;
 object new_id;
-object packet;
-string out_buffer;
-int out_pos, write_ready;
-int the_end = 0;
+object stream;
 
 void create(string client_id, void|function cb, void|function error) {
 	this_program::client_id = client_id;
@@ -26,60 +25,74 @@ void create(string client_id, void|function cb, void|function error) {
 	this_program::error_cb = error;
 }
 
-void _close() {
-	LOCK;
-	werror("%O: closed file.\n");
-	int errno = connection->errno();
-	remove_id();
-	error_cb(this, sprintf("ERROR: %s (%d)\n", strerror(errno), errno));	
-	RETURN;
-}
-
 // this is called in intervals
 void keepalive() {
 	call_out(send, 0, Serialization.Atom("_keepalive", ""));
 }
 
-void remove_id() {
-	connection_id = 0;
+void stream_close(Meteor.Stream s, string reason) {
+	LOCK;
+	werror("%O: Proper close (%s)\n", this, reason);
 
+	if (stream != s) {
+		werror("an old stream got closed again: %O\n", s);
+	}
+
+	werror("new_id: %O\n", new_id);
+
+	// dont write to the stream anymore
+	connection_id = 0;
+	closing = 1;
+	stream = 0;
 	KEEPDEAD;
 
-	if (connection) {
-		connection->set_write_callback(0);
-		connection->set_close_callback(0);
-		connection->close();
-		connection = 0;
-		write_ready = 0;
+	if (new_id) {
+		call_out(register_new_id, 0);
+	} else {
+		// call_out and close after a timeout
 	}
+	RETURN;
+}
+
+void stream_error(Meteor.Stream s, string reason) {
+	LOCK;
+	werror("%O: error on stream (%s)\n", this, reason);
+	// TODO: do something about this. probably remove the stream.
+	// get rid of the stream and start keeping messages in the queue and
+	// wait for a new one
+	stream = 0;
+	closing = 1;
+	connection_id = 0;
+	KEEPDEAD;
+	RETURN;
 }
 
 void register_new_id() {
 	LOCK;
+	werror("%O: register_new_id(%O)\n", this, new_id);
 
-	if (connection_id) remove_id();
 	connection_id = new_id;
-	connection = connection_id->connection();
-	//connection->set_keepalive(1);
-
-	if (-1 != search(connection_id->request_headers["user-agent"], "MSIE")) {
-		// we close after first write.
-		the_end = 1;
-	}
+	new_id = 0;
+	// IE needs an autoclose right now
+	int autoclose = (-1 != search(connection_id->request_headers["user-agent"], "MSIE"));
+	autoclose = 1;
+	stream = Meteor.Stream(connection_id->connection(), stream_close, stream_error, autoclose);
+	closing = 0;
+	KEEPALIVE;
 
 	string headers = Roxen.make_http_headers(([
-		"Content-Type" : connection_id->method == "GET" ? "text/plain" : "application/octet-stream",
+		"Content-Type" : "application/octet-stream",
 		"Transfer-Encoding" : "chunked",
 	]));
 
-	connection->set_write_callback(_write);
-	connection->set_close_callback(_close);
-	connection->write("HTTP/1.1 200 OK\r\n" + headers); // fire and forget
+	// send this first
+	stream->out_buffer = "HTTP/1.1 200 OK\r\n" + headers;
+
+	while (!queue->isEmpty()) {
+		stream->write(queue->shift()->render());
+	}
+
 	KEEPALIVE;
-
-	new_id = 0;
-	call_out(_write, 0);
-
 	RETURN;
 }
 
@@ -92,33 +105,33 @@ void handle_id(object id) {
 		Serialization.Atom a;
 		mixed err = catch {
 			while (a = parser->parse()) {
+				werror("%O: incoming(%O)\n", this, a);
 				call_out(cb, 0, this, a);
 			}
 		};
 
 		if (err) { // this is reason to disconnect
+			werror("%O: Peer sent malformed atom, discarding.\n", this);
 			id->send_result(Roxen.http_low_answer(500, "bad input"));
-			remove_id();
-			call_out(error_cb, 0, this, err);
+			parser = Serialization.AtomParser();
 			RETURN;
 		}
 
 		id->send_result(Roxen.http_string_answer("ok"));
 	} else {
-		werror("New connection from %O.\n", id->connection()->query_address());
+		werror("%O: New connection from %O.\n", this, id->connection()->query_address());
 
 		// TODO: change internal timeout from 180 s to infinity for Request
-		new_id = id;	
+		new_id = id;
 
-		if (connection) {
-			the_end = 1;
-
-			if (!(out_buffer)) {
-				out_buffer = "";
-				out_pos = 0;
-				if (write_ready) call_out(_write, 0);
-			}
+		if (connection_id) {
+			werror("There still is a connection. closing first.\n");
+			// close the current one and then use the new
+			closing = 1;
+			KEEPDEAD;
+			stream->close();
 		} else {
+			werror("There is no stream, starting to use the new one.\n");
 			call_out(register_new_id, 0);
 		}
 	}
@@ -126,93 +139,19 @@ void handle_id(object id) {
 	RETURN;
 }
 
-void _write() {
-	LOCK;
-	KEEPDEAD;
-
-	if (connection) { 
-		KEEPALIVE;
-
-		if (!connection->query_address()) {
-			call_out(error_cb, 0, this, describe_error(connection->errno()));
-			remove_id();
-			RETURN;
-		}
-
-		if (!out_buffer) {
-			if (buffer->is_empty()) {
-				write_ready = 1;
-				RETURN;
-			}
-
-			String.Buffer s = String.Buffer();
-
-			while (!buffer->is_empty()) {
-				buffer->shift()->render(s); 
-			}
-
-			out_buffer = s->get();
-			out_buffer = sprintf("%x\r\n%s\r\n", sizeof(out_buffer), out_buffer);
-			out_pos = 0;
-		}
-
-		if (the_end) {
-			werror("Finishing request.\n");
-			out_buffer += "0\r\n\r\n";
-		}
-			
-		werror("writing %d bytes to %O", sizeof(out_buffer)-out_pos, connection->query_address());
-		int bytes = connection->write(out_pos ? out_buffer[out_pos..] : out_buffer);
-		werror("(did %d)\n", bytes);
-
-		// maybe too harsh?
-		if (bytes == -1) {
-			remove_id();
-			error_cb(this, "Could not write to socket. Connection lost.\n");
-			RETURN;
-		} else if (bytes+out_pos < sizeof(out_buffer)) {
-			out_pos += bytes;
-		} else {
-			out_buffer = 0;
-			out_pos = 0;
-
-			if (the_end) {
-				the_end = 0;
-
-				// the_end is also used to close connections for
-				// ie
-				if (new_id) {
-					call_out(register_new_id, 0);
-				} else {
-					remove_id();
-				}
-			}
-		}
-
-		write_ready = 0;
-	} else {
-		call_out(error_cb, 0, this, "No connection found.\n");
-	}
-
-	RETURN;
-}
-
 string _sprintf(int type) {
 	if (type == 'O') {
-		return sprintf("Session(%O)", connection ? connection->query_address() : sprintf("disconnected refs: %d", _refs(this)));
+		return sprintf("Session(%O%s, refs: %d)", stream, closing ? "c" : "",  _refs(this));
 	} else return "Session()";
 }
 
 void send(Serialization.Atom atom) {
 	LOCK;
-	buffer->push(atom);
-
-	if (write_ready) {
-		// call out to allow for several sends in a row
-
-		if (find_call_out(_write) == -1) {
-			call_out(_write, 0);
-		}
+	werror("%O: send(%O)\n", this, atom);
+	if (closing) {
+		queue->push(atom);	
+	} else {
+		stream->write(atom->render());
 	}
 	RETURN;
 }
