@@ -8,8 +8,8 @@ Thread.Mutex mutex = Thread.Mutex();
 #define RETURN	destruct(lock); return
 #define LOCK	object lock = mutex->lock()
 
-#define KEEPALIVE	if (!kid) kid = call_out(keepalive, 30);
-#define KEEPDEAD	if (kid) { remove_call_out(kid); kid = 0; }
+#define KEEPALIVE	if (!kid) { kid = call_out(keepalive, 30); werror("%O: Staying alive, staying alive! YEAH!\n", this); }
+#define KEEPDEAD	if (kid) { remove_call_out(kid); kid = 0; werror("%O: The good ones die young!!\n", this); }
 
 Serialization.AtomParser parser = Serialization.AtomParser();
 mixed kid;
@@ -30,6 +30,14 @@ void keepalive() {
 	call_out(send, 0, Serialization.Atom("_keepalive", ""));
 }
 
+void end_stream() {
+	connection_id->end();
+	connection_id = 0;
+	closing = 1;
+	stream = 0;
+	KEEPDEAD;
+}
+
 void stream_close(Meteor.Stream s, string reason) {
 	LOCK;
 	werror("%O: Proper close (%s)\n", this, reason);
@@ -41,10 +49,7 @@ void stream_close(Meteor.Stream s, string reason) {
 	werror("new_id: %O\n", new_id);
 
 	// dont write to the stream anymore
-	connection_id = 0;
-	closing = 1;
-	stream = 0;
-	KEEPDEAD;
+	end_stream();
 
 	if (new_id) {
 		call_out(register_new_id, 0);
@@ -60,10 +65,7 @@ void stream_error(Meteor.Stream s, string reason) {
 	// TODO: do something about this. probably remove the stream.
 	// get rid of the stream and start keeping messages in the queue and
 	// wait for a new one
-	stream = 0;
-	closing = 1;
-	connection_id = 0;
-	KEEPDEAD;
+	end_stream();
 	RETURN;
 }
 
@@ -75,24 +77,23 @@ void register_new_id() {
 	new_id = 0;
 	// IE needs an autoclose right now
 	int autoclose = (-1 != search(connection_id->request_headers["user-agent"], "MSIE"));
-	autoclose = 1;
 	stream = Meteor.Stream(connection_id->connection(), stream_close, stream_error, autoclose);
 	closing = 0;
 	KEEPALIVE;
 
-	string headers = Roxen.make_http_headers(([
-		"Content-Type" : "application/octet-stream",
+	mapping headers = ([
+		"Content-Type" : "text/plain; charset=utf-8",
 		"Transfer-Encoding" : "chunked",
-	]));
+	]);
+	if (autoclose) headers["Connection"] = "keep-alive";
 
 	// send this first
-	stream->out_buffer = "HTTP/1.1 200 OK\r\n" + headers;
+	stream->out_buffer = "HTTP/1.1 200 OK\r\n" + Roxen.make_http_headers(headers);
 
 	while (!queue->isEmpty()) {
 		stream->write(queue->shift()->render());
 	}
 
-	KEEPALIVE;
 	RETURN;
 }
 
@@ -147,10 +148,12 @@ string _sprintf(int type) {
 
 void send(Serialization.Atom atom) {
 	LOCK;
+	KEEPDEAD;
 	werror("%O: send(%O)\n", this, atom);
 	if (closing) {
 		queue->push(atom);	
 	} else {
+		KEEPALIVE;
 		stream->write(atom->render());
 	}
 	RETURN;

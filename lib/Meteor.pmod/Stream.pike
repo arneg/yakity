@@ -54,6 +54,8 @@ void write(string data) {
 void _write() {
 	LOCK;
 
+
+
 	// maybe the connection gets removed during lock ? 
 	if (!connection->query_address()) {
 		call_out(close_cb, 0, this, strerror(connection->errno()));
@@ -87,9 +89,7 @@ void _write() {
 			if (5 != connection->write("0\r\n\r\n")) {
 				ERROR(sprintf("Could not write the the closing 5 bytes to %O\n", connection->query_address()));
 			} else {
-				// we actually have to close it. this is not a keepalive connection
-				connection->set_close_callback(0);
-				connection->close();
+				// we actually have to close it, if this is not a keepalive connection
 				CLOSE("AutoClose");
 			}
 		}
