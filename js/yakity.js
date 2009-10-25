@@ -1049,7 +1049,7 @@ psyc.RoomWindow = psyc.TemplatedWindow.extend({
 		this.members = new TypedTable();
 		this.members.addColumn("members", "Members");
 		this.active = 0;
-		this.left = 0;
+		this.left = 1;
 		var self = this;
 		var th = this.members.getHead("members");
 
@@ -1067,8 +1067,12 @@ psyc.RoomWindow = psyc.TemplatedWindow.extend({
 		var me = m.vars.get("_target");
 
 		if (supplicant == me) {
-			this.left = 0;
-			if (this.onenter) this.onenter(this);
+			if (this.left) {
+				this.left = 0;
+				if (this.onenter) this.onenter(this);
+			} else {
+				return psyc.STOP;
+			}
 		}
 
 
@@ -1085,8 +1089,12 @@ psyc.RoomWindow = psyc.TemplatedWindow.extend({
 		var me = m.vars.get("_target");
 
 		if (supplicant == me) {
-			this.left = 1;
-			if (this.onleave) this.onleave(this);
+			if (!this.left) {
+				this.left = 1;
+				if (this.onleave) this.onleave(this);
+			} else {
+				return psyc.STOP;
+			}
 		}
 
 		this.deleteMember(m.vars.get("_supplicant"));
