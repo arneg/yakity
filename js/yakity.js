@@ -902,6 +902,13 @@ MESSAGES: for (var i = 0; i < data.length; i++) {
 psyc.funky_text = function(m, templates) {
 	var template = templates.get(m.method);
 	var reg = /\[[\w-]+\]/g;
+
+	if (functionp(template)) {
+		var node = template(m);
+		node.className = psyc.abbreviations(m.method).join(" ");
+		return node;
+	}
+
 	var div = document.createElement("div");
 	div.className = psyc.abbreviations(m.method).join(" ");
 	
