@@ -10,6 +10,7 @@ release:
 	mkdir $(NAME)
 	cp -r lib $(NAME)
 	cp README $(NAME)
+	cp gpl-2.0.txt $(NAME)
 	cp LICENSE $(NAME)
 	mkdir $(NAME)/modules
 	cp modules/yakitychat.pike $(NAME)/modules/
