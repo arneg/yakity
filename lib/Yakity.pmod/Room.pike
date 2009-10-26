@@ -26,6 +26,8 @@ void stop() {
 	foreach (members; MMP.Uniform target;) {
 		sendmsg(target, "_notice_leave", "Room is being shut down.", ([ "_supplicant" : target ]), uniform);
 	}
+
+	members = (<>);
 }
 
 int _request_enter(Yakity.Message m) {
