@@ -11,8 +11,8 @@ Thread.Mutex m = Thread.Mutex();
 #define LOCK object lock = m->lock();
 #define RETURN	do { destruct(lock); return; } while (0)
 // remove all references and callbacks.
-#define CLOSE(reason)	do { connection->set_close_callback(0); connection->set_write_callback(0); connection = 0; close_cb = error_cb = 0; call_out(close_cb, 0, this, reason); } while(0)
-#define ERROR(reason)	do { connection->set_close_callback(0); connection->set_write_callback(0); connection = 0; close_cb = error_cb = 0; call_out(error_cb, 0, this, reason); } while(0)
+#define CLOSE(reason)	do { connection->set_close_callback(0); connection->set_write_callback(0); connection = 0; call_out(close_cb, 0, this, reason); close_cb = error_cb = 0; } while(0)
+#define ERROR(reason)	do { connection->set_close_callback(0); connection->set_write_callback(0); connection = 0; call_out(error_cb, 0, this, reason); close_cb = error_cb = 0; } while(0)
 
 void create(Stdio.File connection, function cb, function error, int|void autoclose) {
 	this_program::connection = connection;
@@ -35,7 +35,14 @@ void _close() {
 }
 
 void close() {
+	LOCK;
 	autoclose = 1;
+
+	if (!buffer && !sizeof(out_buffer)) {
+		close_now();
+	}
+
+	RETURN;	
 }
 
 void write(string data) {
@@ -84,17 +91,21 @@ void _write() {
 		out_buffer = "";
 
 		if (autoclose) {
-			if (5 != connection->write("0\r\n\r\n")) {
-				ERROR(sprintf("Could not write the the closing 5 bytes to %O\n", connection->query_address()));
-			} else {
-				// we actually have to close it, if this is not a keepalive connection
-				CLOSE("AutoClose");
-			}
+			close_now();
 		}
 	}
 
 	write_ready = 0;
 	RETURN;	
+}
+
+void close_now() {
+	if (5 != connection->write("0\r\n\r\n")) {
+		ERROR(sprintf("Could not write the the closing 5 bytes to %O\n", connection->query_address()));
+	} else {
+		// we actually have to close it, if this is not a keepalive connection
+		CLOSE("AutoClose");
+	}
 }
 
 string _sprintf(int type) {
