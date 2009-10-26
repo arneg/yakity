@@ -134,14 +134,26 @@ mixed find_file( string f, object id ) {
 
 void changed(Variable.StringList var) {
 	// TODO delete things.
+	mapping should = ([]);
+	
 	foreach (var->query(); ; string name) {
 		if (!sizeof(name)) continue;
 
 		MMP.Uniform u = to_uniform('@', name);
+		should[u] = 1;
 		if (!has_index(rooms, u)) {
 			object r = Yakity.Room(server, u, name);
 			rooms[u] = r;
 			server->register_entity(u, r);
+		}
+	}
+
+	// sort out the old ones
+	foreach (rooms; MMP.Uniform u; object room) {
+		if (!has_index(should, u)) {
+			room->stop();
+			server->unregister_entity(u);
+			m_delete(rooms, u);
 		}
 	}
 }
