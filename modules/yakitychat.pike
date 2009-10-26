@@ -1,4 +1,5 @@
 #include <module.h>
+
 inherit "module";
 
 constant module_type = MODULE_LOCATION|MODULE_TAG|MODULE_PROVIDER;
@@ -10,13 +11,14 @@ constant unique = 1;
 //
 inherit Meteor.SessionHandler;
 
+mixed configuration;
 object server;
 object root;
 mapping(MMP.Uniform:object) users = ([]);
 mapping(MMP.Uniform:object) rooms = ([]);
 
 MMP.Uniform to_uniform(void|int type, void|string name) {
-	string domain = my_configuration()->query("Domain");
+	string domain = configuration->query("Domain");
 	if (domain == "nowhere") domain = roxen->get_domain();
 	if (type && name) {
 		name = Standards.IDNA.to_ascii(name);
@@ -50,15 +52,21 @@ void create() {
 										 "namespace of your server."));
 	defvar("rooms", Variable.StringList(({}), 0, "List of Rooms", "This is the list of rooms that users may join."));
 
-	server = Yakity.Server(Serialization.TypeCache());
-	root = Yakity.Root(server, to_uniform());
-	root->users = users;
-	root->rooms = rooms;
-	server->register_entity(root->uniform, root);
 }
 
 int start(int c, Configuration conf) {
-	if (!c) getvar("rooms")->set_changed_callback(changed);
+	if (!configuration) {
+		this_program::configuration = conf;
+		server = Yakity.Server(Serialization.TypeCache());
+		root = Yakity.Root(server, to_uniform());
+		root->users = users;
+		root->rooms = rooms;
+		server->register_entity(root->uniform, root);
+		
+	}
+	if (!c) {
+		getvar("rooms")->set_changed_callback(changed);
+	}
 	changed(getvar("rooms"));
 }
 
