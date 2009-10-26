@@ -70,9 +70,9 @@ void _write() {
 		RETURN;
 	}
 
-	werror("writing %d bytes to %O", sizeof(out_buffer), connection->query_address());
+	//werror("writing %d bytes to %O", sizeof(out_buffer), connection->query_address());
 	int bytes = connection->write(out_buffer);
-	werror("(did %d)\n", bytes);
+	//werror(" (did %d)\n", bytes);
 
 	// maybe too harsh?
 	if (bytes == -1) {
