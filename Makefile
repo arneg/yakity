@@ -1,5 +1,5 @@
 ifdef V
-	VERSION = V
+	VERSION = $(V)
 else
 	VERSION = local
 endif
@@ -17,6 +17,7 @@ release:
 	mkdir $(NAME)/ppp-js/
 	cp ppp/js/*.js $(NAME)/ppp-js/
 	rm $(NAME)/ppp-js/time.js
+	rm $(NAME)/ppp-js/psyc.js
 	cp -r ppp/lib/Serialization.pmod $(NAME)/lib/
 	cp ppp-bsd ppp/lib/Serialization.pmod/LICENSE
 	cp -r ppp/lib/MMP.pmod $(NAME)/lib/
