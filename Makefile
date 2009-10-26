@@ -14,7 +14,12 @@ release:
 	mkdir $(NAME)/modules
 	cp modules/yakitychat.pike $(NAME)/modules/
 	cp -r js $(NAME)/
-	cp ppp/js/*.js $(NAME)/js/
-	rm $(NAME)/js/time.js
+	mkdir $(NAME)/ppp-js/
+	cp ppp/js/*.js $(NAME)/ppp-js/
+	rm $(NAME)/ppp-js/time.js
 	cp -r ppp/lib/Serialization.pmod $(NAME)/lib/
 	cp -r ppp/lib/MMP.pmod $(NAME)/lib/
+	mkdir $(NAME)/htdocs
+	cp htdocs/index.html $(NAME)/htdocs/
+	cp htdocs/mootools-1.2.3-core-nc.js $(NAME)/htdocs/
+	cp htdocs/mootools-1-1.2.3.1-more.js $(NAME)/htdocs/
