@@ -8,11 +8,12 @@ Thread.Mutex mutex = Thread.Mutex();
 #define RETURN	destruct(lock); return
 #define LOCK	object lock = mutex->lock()
 
-#define KEEPALIVE	if (!kid) { kid = call_out(keepalive, 30); werror("%O: Staying alive, staying alive! YEAH!\n", this); }
-#define KEEPDEAD	if (kid) { remove_call_out(kid); kid = 0; werror("%O: The good ones die young!!\n", this); }
+#define KEEPALIVE	if (!kid) { kid = call_out(keepalive, 30); }
+#define KEEPDEAD	if (kid) { remove_call_out(kid); kid = 0; }
 
 Serialization.AtomParser parser = Serialization.AtomParser();
-mixed kid;
+// call_out ids for keepalive and logout
+mixed kid, lid;
 
 // we keep the new id and the current and one stream
 object connection_id;
@@ -38,9 +39,19 @@ void end_stream() {
 	KEEPDEAD;
 }
 
+void die(string reason) {
+	LOCK;
+
+	call_out(error_cb, 0, this, reason);
+	cb = 0;
+	error_cb = 0;
+
+	RETURN;
+}
+
 void stream_close(Meteor.Stream s, string reason) {
 	LOCK;
-	werror("%O: Proper close (%s)\n", this, reason);
+	//werror("%O: Proper close (%s)\n", this, reason);
 
 	if (stream != s) {
 		werror("an old stream got closed again: %O\n", s);
@@ -54,6 +65,7 @@ void stream_close(Meteor.Stream s, string reason) {
 	if (new_id) {
 		call_out(register_new_id, 0);
 	} else {
+		lid = call_out(die, 30, reason);
 		// call_out and close after a timeout
 	}
 	RETURN;
@@ -61,7 +73,7 @@ void stream_close(Meteor.Stream s, string reason) {
 
 void stream_error(Meteor.Stream s, string reason) {
 	LOCK;
-	werror("%O: error on stream (%s)\n", this, reason);
+	lid = call_out(error_cb, 0, this, sprintf("Timed out after error: %s.\n", reason));
 	// TODO: do something about this. probably remove the stream.
 	// get rid of the stream and start keeping messages in the queue and
 	// wait for a new one
@@ -72,6 +84,11 @@ void stream_error(Meteor.Stream s, string reason) {
 void register_new_id() {
 	LOCK;
 	//werror("%O: register_new_id(%O)\n", this, new_id);
+
+	if (lid) {
+		remove_call_out(lid);
+		lid = 0;
+	}
 
 	connection_id = new_id;
 	new_id = 0;
@@ -122,7 +139,7 @@ void handle_id(object id) {
 		Serialization.Atom a;
 		mixed err = catch {
 			while (a = parser->parse()) {
-			//	werror("%O: incoming(%O)\n", this, a);
+				//werror("%O: incoming(%O)\n", this, a);
 				call_out(cb, 0, this, a);
 			}
 		};
@@ -142,7 +159,7 @@ void handle_id(object id) {
 		new_id = id;
 
 		if (connection_id) {
-			//werror("There still is a connection. closing first.\n");
+			werror("There still is a connection. closing first.\n");
 			// close the current one and then use the new
 			closing = 1;
 			KEEPDEAD;

@@ -37,7 +37,7 @@ void create(object server, object uniform, mixed user, function logout) {
 
 	object m = Yakity.Message();
 	m->method = "_notice_login";
-	m->vars = ([ "_source" : uniform ]);
+	m->vars = ([ "_source" : uniform, "_profile" : get_profile() ]);
 	broadcast(m);
 }
 
@@ -79,16 +79,16 @@ void logout() {
 	call_out(logout_cb, 0, this);
 }
 
-void session_error(object session, mixed err) {
+void session_error(object session, string err) {
 	sessions -= ({ session });
 	session->error_cb = 0;
 	session->cb = 0;
 
 	if (!sizeof(sessions)) {
-		if (-1 == find_call_out(implicit_logout)) call_out(implicit_logout, 10);
+		if (-1 == find_call_out(implicit_logout)) call_out(implicit_logout, 0);
 	}
 
-	werror("ERROR: %O %s", session, err);
+	werror("ERROR: %O %s\n", session, err);
 }
 int _request_history_delete(Yakity.Message m) {
 	if (m->vars["_source"] != uniform) {
@@ -153,15 +153,17 @@ int _message_private(Yakity.Message m) {
 	return Yakity.GOON;
 }
 
+mapping get_profile() {
+	return ([ "_name_display" : user->real_name ]);
+}
+
 int _request_profile(Yakity.Message m) {
 	MMP.Uniform source = m->vars["_source"];
 
 	if (source) {
 		Yakity.Message reply = Yakity.Message();
 		reply->vars = ([
-			"_profile" : ([
-				"_name_display" : user->real_name,
-			]),
+			"_profile" : get_profile(),
 			"_target" : source,
 		]);
 		reply->method = "_update_profile";

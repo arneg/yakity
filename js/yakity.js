@@ -529,6 +529,9 @@ psyc.Atom = function(type, data) {
 		return this.type.length + new String(this.data.length).length 
 			+ this.data.length + 2;
     };
+	this.toString = function() {
+		return "Atom("+this.type+", "+this.data.length+")";
+	};
 };
 /**
  * PSYC message class.
@@ -1178,6 +1181,8 @@ psyc.ProfileData = psyc.Base.extend({
 		this.requests = new Mapping();
 		this.requestees = new Mapping();
 		client.register_method({ method : "_update_profile", source : null, object : this });
+		client.register_method({ method : "_notice_login", source : null, object : this });
+		client.register_method({ method : "_update_users", source : client.uniform.root(), object : this });
 		client.register_method({ method : "_request_profile", source : null, object : this });
 	},
 	setProfileData : function(m) {
@@ -1235,6 +1240,23 @@ psyc.ProfileData = psyc.Base.extend({
 
 		return psyc.STOP;
 	},
+	_notice_login : function(m) {
+		if (m.vars.hasIndex("_profile")) {
+			this._update_profile(m);
+		}
+
+		return psyc.GOON;
+	},
+	_update_users : function(m) {
+		var source = m.source();
+		var list = m.vars.get("_users");
+
+		if (list instanceof Mapping) list.forEach((function(key, value) {
+			this.cache.set(key, value);	
+		}), this);
+		
+		return psyc.STOP;
+	},
 	_request_profile : function(m) {
 		var source = m.source();
 
@@ -1277,6 +1299,8 @@ psyc.UserList = psyc.Base.extend({
 	_update_users : function(m) {
 		var source = m.source();
 		var list = m.vars.get("_users");
+
+		if (list instanceof Mapping) list = list.indices();
 
 		for (var i = 0; i < list.length; i++) {
 			if (!this.table.getRow(list[i])) {
