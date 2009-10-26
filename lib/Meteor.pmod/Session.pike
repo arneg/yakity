@@ -46,7 +46,7 @@ void stream_close(Meteor.Stream s, string reason) {
 		werror("an old stream got closed again: %O\n", s);
 	}
 
-	werror("new_id: %O\n", new_id);
+	//werror("new_id: %O\n", new_id);
 
 	// dont write to the stream anymore
 	end_stream();
@@ -71,13 +71,21 @@ void stream_error(Meteor.Stream s, string reason) {
 
 void register_new_id() {
 	LOCK;
-	werror("%O: register_new_id(%O)\n", this, new_id);
+	//werror("%O: register_new_id(%O)\n", this, new_id);
 
 	connection_id = new_id;
 	new_id = 0;
 	// IE needs an autoclose right now
 	int autoclose = (-1 != search(connection_id->request_headers["user-agent"], "MSIE"));
-	stream = Meteor.Stream(connection_id->connection(), stream_close, stream_error, autoclose);
+
+	if (connection_id->misc["content_type_type"] == "application/octet-stream") {
+		//werror("creating binary stream\n");
+		stream = Meteor.Stream(connection_id->connection(), stream_close, stream_error, autoclose);
+	} else {
+		//werror("creating utf8 stream\n");
+		stream = Meteor.UTF8Stream(connection_id->connection(), stream_close, stream_error, autoclose);
+	}
+
 	closing = 0;
 	KEEPALIVE;
 
@@ -101,12 +109,20 @@ void handle_id(object id) {
 	LOCK;
 
 	if (id->method == "POST" && stringp(id->data) && sizeof(id->data)) {
-		parser->feed(utf8_to_string(id->data));
+
+		if (id->request_headers["content-type"] == "application/octet-stream") {
+		//	werror("Feeding %d bytes of data.\n", sizeof(id->data));
+			parser->feed(id->data);
+		} else {
+			string s = utf8_to_string(id->data);
+			//werror("Feeding %d bytes of data.\n", sizeof(s));
+			parser->feed(s);
+		}
 
 		Serialization.Atom a;
 		mixed err = catch {
 			while (a = parser->parse()) {
-				werror("%O: incoming(%O)\n", this, a);
+			//	werror("%O: incoming(%O)\n", this, a);
 				call_out(cb, 0, this, a);
 			}
 		};
@@ -120,19 +136,19 @@ void handle_id(object id) {
 
 		id->send_result(Roxen.http_string_answer("ok"));
 	} else {
-		werror("%O: New connection from %O.\n", this, id->connection()->query_address());
+		//werror("%O: New connection from %O.\n", this, id->connection()->query_address());
 
 		// TODO: change internal timeout from 180 s to infinity for Request
 		new_id = id;
 
 		if (connection_id) {
-			werror("There still is a connection. closing first.\n");
+			//werror("There still is a connection. closing first.\n");
 			// close the current one and then use the new
 			closing = 1;
 			KEEPDEAD;
 			stream->close();
 		} else {
-			werror("There is no stream, starting to use the new one.\n");
+			//werror("There is no stream, starting to use the new one.\n");
 			call_out(register_new_id, 0);
 		}
 	}
@@ -149,7 +165,7 @@ string _sprintf(int type) {
 void send(Serialization.Atom atom) {
 	LOCK;
 	KEEPDEAD;
-	werror("%O: send(%O)\n", this, atom);
+	//werror("%O: send(%O)\n", this, atom);
 	if (closing) {
 		queue->push(atom);	
 	} else {

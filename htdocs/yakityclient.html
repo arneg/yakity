@@ -23,6 +23,7 @@
 			var chat;
 			var profiles;
 			var userlist;
+			var METEORURL = "<meteorurl/>";
 
 			function elink(name) {
 				var a = document.createElement("a");
@@ -80,7 +81,25 @@
 					_echo_message_private : "[_timestamp] [_source_relay] [data]",
 					_source : userlink,
 					_supplicant : userlink,
-					_timestamp : timestamp
+					_timestamp : timestamp,
+					_test_binary : (function(m) {
+						var b = m.vars.get("_test");
+						var str = b.str;
+						var div = document.createElement("div");
+						if(meteor.debug) meteor.debug(str);
+						for (var i = 0; i < str.length; i++) {
+							if (str.charCodeAt(i) != i+1) {
+								div.appendChild(document.createTextNode("not ok: "+i+" was: "+str.charCodeAt(i)));
+								div.appendChild(document.createElement("br"));
+							}
+						}
+
+						if (!div.firstChild) {
+							div.appendChild(document.createTextNode("_test_binary was okay.\n"));
+						}
+
+						return div;
+					})
 				});
 				profiles = new psyc.ProfileData(client);
 		
@@ -121,7 +140,6 @@
 				});
 				chat = new CustomChat(client, templates, "YakityChat");
 
-				/*
 				error = document.createElement("div");
 				var errorh = document.createElement("div");
 				var errorc = document.createElement("div");
@@ -135,15 +153,33 @@
 				chat.accordion.display(0);
 				error.style.overflow = "auto";
 				meteor.debug = error_fun;
-				*/
 			}
+			var BinaryT = function(base) {
+					this.base = base;
+					this.type = "_binary";
+			};
+			BinaryT.prototype = new serialization.Base();
+			BinaryT.prototype.can_encode = function(o) {
+					return o instanceof Binary;
+			};
+			BinaryT.prototype.decode = function(atom) {
+					return new Binary(atom.data);
+			};
+			BinaryT.prototype.encode = function(o) {
+					return new psyc.Atom("_binary", o.str);
+			};
+			BinaryT.prototype.constructor = BinaryT;
+			var Binary = function(str) {
+				this.str = str;
+			};
 
 			function init() {
 				if (client) return false;
 
 				var name = document.login.name.value;
-				client = new psyc.Client("<meteorurl/>", name);
+				client = new psyc.Client(METEORURL, name);
 				client.onconnect = onconnect;
+				client.pol.register_type("_binary", Binary, new BinaryT());
 
 				window.onunload = function() {
 					if (client) {
@@ -155,14 +191,12 @@
 				return false;
 			};
 
-/*
 			function error_fun(str) {
 				var text = document.createTextNode(str);
 				error.appendChild(text);
 				error.appendChild(document.createElement("br"));
 				error.scrollTop = error.scrollHeight;
 			};
-			*/
 
 			function atom() {
 				var str = document.chat_input.text.value;
@@ -185,6 +219,24 @@
 				}
 				return false;
 			};
+
+			function testBinary() {
+				var t = new Array();
+				for (var i = 1 ; i<255;i++) {
+					t[i-1] = i;
+				}
+
+				var str = String.fromCharCode.apply(window, t);
+				var b = new Binary(str);
+
+				var vars = new psyc.Vars({
+					 "_target" : client.uniform,
+					 "_test" : b
+				});
+
+				var p = new psyc.Message("_test_binary", vars, "");
+				client.send(p);
+			}
 
 		</script>
 		<style type="text/css">
@@ -216,10 +268,10 @@
 				overflow:auto;
 			}
 
-                        div._notice_enter div._supplicant, div._notice_leave div._supplicant {
-                                float: left;
-                                margin-right: 3px;
-                        }
+			div._notice_enter div._supplicant, div._notice_leave div._supplicant {
+				float: left;
+				margin-right: 3px;
+			}
                         
 			div.status div.messages, div.public div.messages {
 				height: 350px;
@@ -233,7 +285,7 @@
 				border-bottom: 1px #ccc solid;	
 			}
 			
-                        div.chatwindow {
+			div.chatwindow {
 				background-color: #dddddd;
 				border-right: 1px #ccc solid;
 				border-left: 1px #ccc solid;
@@ -255,44 +307,43 @@
 			}
 			
 			div.membersList table {
-			        width: 100%;
+				width: 100%;
 			}
 			
 			div.membersList table th {
-			        font-size: 10pt;
+				font-size: 10pt;
 			}
 			
 			div.membersList table td {
-			        font-size: 8pt;
-			        text-align: right;
-			        padding-right: 15px;
+				font-size: 8pt;
+				text-align: right;
+				padding-right: 15px;
 			}
 			
 			div.membersList table tbody div {
-                                cursor: pointer;
-                                cursor: hand;
-                                color: #528CE0;
+				cursor: pointer;
+				cursor: hand;
+				color: #528CE0;
 			}
 			
-                        div.private div.toggleInfo {
-                                width: 25px;
-                                height: 24px;
-                                line-height: 24px;
-                                float:left;
-                                background: url(images/member-icon.png);
+			div.private div.toggleInfo {
+				width: 25px;
+				height: 24px;
+				line-height: 24px;
+				float:left;
+				background: url(images/member-icon.png);
 				background-position: center center;
 				background-repeat: no-repeat;
-                        }
-                        
-                        div.public div.toggleInfo {
-                                width: 25px;
-                                height: 24px;
-                                line-height: 24px;
-                                float:left;
-                                background: url(images/group-icon.png);
+			}
+			div.public div.toggleInfo {
+				width: 25px;
+				height: 24px;
+				line-height: 24px;
+				float:left;
+				background: url(images/group-icon.png);
 				background-position: center center;
 				background-repeat: no-repeat;
-                        }
+			}
 			
 
 			div.left div.roomchat {
@@ -315,44 +366,43 @@
 				padding: 3px 5px 1px;
 			}
 
-                        
-                        div.closeButton, div.leaveButton, div.enterButton {
-                                display: block;
+			div.closeButton, div.leaveButton, div.enterButton {
+				display: block;
 				width: 20px;
 				height: 24px;
 				line-height: 24px;
 				float: right;
-                        }
+			}
                         
-                        div.closeButton {
+			div.closeButton {
 				background: url(images/cross-icon-red.png);
 				background-position: center center;
 				background-repeat: no-repeat;
-                        }
+			}
                         
-                        div.joined div.closeButton {
-                                display: none;
-                        }
+			div.joined div.closeButton {
+				display: none;
+			}
                         
-                        div.leaveButton {
+			div.leaveButton {
 				background: url(images/cross-icon-grey.png);
 				background-position: center center;
 				background-repeat: no-repeat;
-                        }
+			}
                         
-                        div.left div.leaveButton {
-                                display: none;
-                        }
+			div.left div.leaveButton {
+				display: none;
+			}
                         
-                        div.enterButton {
+			div.enterButton {
 				background: url(images/yak-icon.png);
 				background-position: center center;
 				background-repeat: no-repeat;
-                        }
+			}
                         
-                        div.joined div.enterButton {
+			div.joined div.enterButton {
 				display: none;
-                        }
+			}
                         
 
 			span._user_realname {
@@ -362,50 +412,50 @@
 
 			
 			div._ {
-                                font-family: 'Andale Mono', FreeSans, sans-serif;
+				font-family: 'Andale Mono', FreeSans, sans-serif;
 				color: #000;
 				font-size: 9pt;
 				line-height: 120%;
 			}
 
-                        div._timestamp {
-                                float: right;
-                                font-size: 8pt;
-                                color: #999;
-                                margin-right: 5px;
-                        }
+			div._timestamp {
+				float: right;
+				font-size: 8pt;
+				color: #999;
+				margin-right: 5px;
+			}
 
-                        div._echo_message_private {
-                                padding: 5px;
-                        }
+			div._echo_message_private {
+				padding: 5px;
+			}
                         
 			div._message, div._notice {
 				text-decoration: none;
-                                color: #999; 
-                                padding: 5px;
+				color: #999; 
+				padding: 5px;
 			}
 			
 			div._message .data {
-                                color: #000;
-                                white-space: -moz-pre-wrap;
-                                white-space: -pre-wrap;
-                                white-space: -o-pre-wrap;
-                                white-space: pre-wrap;
-                                word-wrap: break-word;
+				color: #000;
+				white-space: -moz-pre-wrap;
+				white-space: -pre-wrap;
+				white-space: -o-pre-wrap;
+				white-space: pre-wrap;
+				word-wrap: break-word;
 			}
 			
 			div._supplicant, div._source {
 				color: #528CE0;
-                                font-weight: bold;
-                                text-decoration: none;
-                                cursor: pointer;
-                                cursor: hand;
+				font-weight: bold;
+				text-decoration: none;
+				cursor: pointer;
+				cursor: hand;
 			}
 			
 			div.self div._source_relay {
 				color: #000;
-                                font-weight: bold;
-                                text-decoration: none;
+				font-weight: bold;
+				text-decoration: none;
 			}
 			
 			
@@ -418,52 +468,52 @@
 			}
                         
 			#container {
-                                width: 780px;
-                                position: relative;
-                                margin: 0px auto 0px auto;
-                                background: #fff;
-                                border: 2px solid #555;
-                                -moz-border-radius-topleft: 10px;
-                                -webkit-border-top-left-radius: 10px;
-                                border-top-left-radius: 10px;
+				width: 780px;
+				position: relative;
+				margin: 0px auto 0px auto;
+				background: #fff;
+				border: 2px solid #555;
+				-moz-border-radius-topleft: 10px;
+				-webkit-border-top-left-radius: 10px;
+				border-top-left-radius: 10px;
 			}
 			
 			#leftPane {
-			        min-height: 155px;
-                                width: 50%;
-                                position: relative;
-                                float:left;
-                                background-image: url(images/yakitychat.png);
-                        	background-repeat: no-repeat;
-                        	background-position: 10px 10px;
+				min-height: 155px;
+				width: 50%;
+				position: relative;
+				float:left;
+				background-image: url(images/yakitychat.png);
+				background-repeat: no-repeat;
+				background-position: 10px 10px;
 			}
 			
 			#rightPane {
-                                width: 50%;
-                                position: relative;
-                                float:right;
+				width: 50%;
+				position: relative;
+				float:right;
 			}
 			
 			#rooms {
 				height: 80px;
 				width: 200px;
 				overflow: auto;
-                                float: right;
-                                padding: 20px;
-                                padding-right: 5px;
+				float: right;
+				padding: 20px;
+				padding-right: 5px;
 			}
 			
 			#rooms div.roomHeader {
-			        text-align: center;
-                                font-size: 10pt;
-                                font-weight: bold;
+				text-align: center;
+				font-size: 10pt;
+				font-weight: bold;
 			}
 			
 			#rooms a {
-                                font-size: 8pt;
-                                cursor: pointer;
-                                cursor: hand;
-                                color: #528CE0;
+				font-size: 8pt;
+				cursor: pointer;
+				cursor: hand;
+				color: #528CE0;
 			}
 			
 			div.userList
@@ -471,13 +521,13 @@
 				height: 120px;
 				width: 200px;
 				overflow: auto;
-                                float: right;
+				float: right;
 			}
 			
 			div.userList table
 			{
-                                background-color: #fff;
-                                width: 100%;
+				background-color: #fff;
+				width: 100%;
 			}
 			
 			div.userList table thead th
@@ -487,80 +537,79 @@
 			
 			div.userList table tbody td
 			{
-                                font-size: 8pt;
-                                cursor: pointer;
-                                cursor: hand;
-                                color: #528CE0;
+				font-size: 8pt;
+				cursor: pointer;
+				cursor: hand;
+				color: #528CE0;
 			}
 			
 			#basePane {
-                                height: 50px;
-                                background: #efefef;
-                                line-height: 50px;
-                                padding: 20px;
-                                clear:both;
-                                -moz-border-radius-bottomright: 10px;
-                                -webkit-border-bottom-right-radius: 10px;
-                                border-bottom-right-radius: 10px;
-                                -moz-border-radius-bottomleft: 10px;
-                                -webkit-border-bottom-left-radius: 10px;
-                                border-bottom-left-radius: 10px;
+				height: 50px;
+				background: #efefef;
+				line-height: 50px;
+				padding: 20px;
+				clear:both;
+				-moz-border-radius-bottomright: 10px;
+				-webkit-border-bottom-right-radius: 10px;
+				border-bottom-right-radius: 10px;
+				-moz-border-radius-bottomleft: 10px;
+				-webkit-border-bottom-left-radius: 10px;
+				border-bottom-left-radius: 10px;
                                 
 			}
 			
 			.basePane {
-                                -moz-border-radius-bottomright: 10px;
-                                -webkit-border-bottom-right-radius: 10px;
-                                border-bottom-right-radius: 10px;
-                                -moz-border-radius-bottomleft: 10px;
-                                -webkit-border-bottom-left-radius: 10px;
-                                border-bottom-left-radius: 10px;
+				-moz-border-radius-bottomright: 10px;
+				-webkit-border-bottom-right-radius: 10px;
+				border-bottom-right-radius: 10px;
+				-moz-border-radius-bottomleft: 10px;
+				-webkit-border-bottom-left-radius: 10px;
+				border-bottom-left-radius: 10px;
                                 
 			}
                         
-                        #connect {
-                                position: relative;
-                                width: 500px;
-                                padding: 10px;
-                                margin-left: auto;
-                                margin-right: auto;
-                                margin-top: 150px;
-                                background: #fff;
-                                border: 2px solid #555;
-                                -moz-border-radius: 10px;
-                                -webkit-border-radius: 10px;
-                                border-radius: 10px;
-                        }
-                        
-                        
-                        #connect input {
-                                float:right; 
-                                margin-top: 55px;
-                        }
-                        
-                        #connect .textInput {
-                        
-                                height: 26px; 
-                                width: 300px; 
-                                font-size: 16pt; 
-                                margin-right: 10px;
-                        }
-                        
-                        #connectRequest
-                        {
-                                height: 145px;
-                                line-height: 145px;
-                                padding-left: 135px;
-                        	background-image: url(images/yakitychat.png);
-                        	background-repeat: no-repeat;
-                        	background-position: left 0px;
-                        }
-                        
-                        .terms {
-                                font-size: 6.5pt;
-                                text-align: center;
-                                font-family: 'Andale Mono', FreeSans, sans-serif;
-                        }
+			#connect {
+				position: relative;
+				width: 500px;
+				padding: 10px;
+				margin-left: auto;
+				margin-right: auto;
+				margin-top: 150px;
+				background: #fff;
+				border: 2px solid #555;
+				-moz-border-radius: 10px;
+				-webkit-border-radius: 10px;
+				border-radius: 10px;
+			}
+			
+			
+			#connect input {
+				float:right; 
+				margin-top: 55px;
+			}
+			
+			#connect .textInput {
+				height: 26px; 
+				width: 300px; 
+				font-size: 16pt; 
+				margin-right: 10px;
+			}
+			
+			#connectRequest
+			{
+				height: 145px;
+				line-height: 145px;
+				padding-left: 135px;
+				background-image: url(images/yakitychat.png);
+				background-repeat: no-repeat;
+				background-position: left 0px;
+			}
+			
+			.terms {
+				font-size: 6.5pt;
+				text-align: center;
+				font-family: 'Andale Mono', FreeSans, sans-serif;
+			}
 		</style>
 </head>
 <body>
@@ -578,6 +627,7 @@
 			<div id="YakityChat"></div>
         </div>
         <div id="basePane">
+			<p onclick="return testBinary()">test binary</p>
 			<form name=chat_input onSubmit="return atom()">
 				<input name=text value="" size="50" class="chattext">
 			</form>

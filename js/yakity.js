@@ -726,8 +726,8 @@ psyc.Client = function(url, name) {
 	this.connection = new meteor.Connection(url+"?nick="+escape(name).replace(/\+/g, "%2B"), this.incoming, errorcb);
 	this.connection.init();
 	var method = new serialization.Method();
-	var pol = psyc.default_polymorphic();
-	this.poly = new serialization.Message(method, new serialization.Vars(pol), pol);
+	this.pol = psyc.default_polymorphic();
+	this.poly = new serialization.Message(method, new serialization.Vars(this.pol), this.pol);
 	this.parser = new psyc.AtomParser();
 	this.incoming.obj = this;
 	this.icount = 0;
@@ -898,6 +898,11 @@ MESSAGES: for (var i = 0; i < data.length; i++) {
 };
 psyc.funky_text = function(m, templates) {
 	var template = templates.get(m.method);
+	if (functionp(template)) {
+		var node = template(m);
+		node.className = psyc.abbreviations(m.method).join(" ");
+		return node;
+	}
 	var reg = /\[[\w-]+\]/g;
 	var div = document.createElement("div");
 	div.className = psyc.abbreviations(m.method).join(" ");
