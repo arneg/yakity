@@ -121,22 +121,6 @@
 					}
 				});
 				chat = new CustomChat(client, templates, "YakityChat");
-
-				/*
-				error = document.createElement("div");
-				var errorh = document.createElement("div");
-				var errorc = document.createElement("div");
-				errorh.appendChild(document.createTextNode("DEBUG"));
-				errorc.appendChild(error);
-				UTIL.addClass(errorh, "header");
-				UTIL.addClass(error, "error");
-				document.getElementById("YakityChat").appendChild(errorh);
-				document.getElementById("YakityChat").appendChild(errorc);
-				chat.accordion.addSection(errorh, errorc, chat.accordion.elements.length);
-				chat.accordion.display(0);
-				error.style.overflow = "auto";
-				meteor.debug = error_fun;
-				*/
 			}
 
 			function init() {
@@ -155,15 +139,6 @@
 
 				return false;
 			};
-
-/*
-			function error_fun(str) {
-				var text = document.createTextNode(str);
-				error.appendChild(text);
-				error.appendChild(document.createElement("br"));
-				error.scrollTop = error.scrollHeight;
-			};
-			*/
 
 			function atom() {
 				var str = document.chat_input.text.value;
@@ -186,7 +161,6 @@
 				}
 				return false;
 			};
-
 		</script>
 		<style type="text/css">
 			body {
@@ -284,7 +258,6 @@
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-                        
 			div.public div.toggleInfo {
 				width: 25px;
 				height: 24px;
@@ -316,7 +289,6 @@
 				padding: 3px 5px 1px;
 			}
 
-                        
 			div.closeButton, div.leaveButton, div.enterButton {
 				display: block;
 				width: 20px;
@@ -344,16 +316,17 @@
 			div.left div.leaveButton {
 				display: none;
 			}
-			
+                        
 			div.enterButton {
 				background: url(images/yak-icon.png);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			
+                        
 			div.joined div.enterButton {
 				display: none;
 			}
+                        
 
 			span._user_realname {
 				color: #00f;
@@ -515,6 +488,7 @@
 				-moz-border-radius-bottomleft: 10px;
 				-webkit-border-bottom-left-radius: 10px;
 				border-bottom-left-radius: 10px;
+                                
 			}
                         
 			#connect {
