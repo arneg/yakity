@@ -28,7 +28,6 @@ void create(object server, object uniform, mixed user, function logout) {
 		pp->register_type("mapping", "_mapping", Mapping(pp,pp));
 		pp->register_type("array", "_list", List(pp));
 		pp->register_type(MMP.Uniform, "_uniform", Uniform());
-		pp->register_type(Serialization.Atom, "_binary", Serialization.Types.Atom());
 		message_signature = Yakity.Types.Message(Method(), Mapping(Method(), pp), UTF8String());
 		server->type_cache[Yakity.Types.Message][0] = message_signature;
 	} else {
