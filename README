@@ -1,2 +1,18 @@
 Installation
-	Instructions to install YakityChat can be found on yakitychat.com.
+	Installation instructions can be found on the homepage.
+
+	To run YakityChat, the lib/ directory needs to be in the
+	pike module path when running roxen. The file modules/yakitychat.pike
+	is the roxen module and it needs to be placed in the roxen
+	module directories. You have to restart roxen after taking care of
+	that. 
+
+	It should then be simply to add the YakityChat module to one
+	of the sites. The htdocs/ directory then needs to be made available
+	in you website using a normal filesystem module.
+
+
+	More detailed instructions are available on our website at
+	http://yakitychat.com
+
+
