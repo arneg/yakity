@@ -3,8 +3,8 @@
 inherit "module";
 
 constant module_type = MODULE_LOCATION|MODULE_TAG|MODULE_PROVIDER;
-constant module_name = "YakitiChat";
-constant module_doc = "buh!";
+constant module_name = "YakityChat";
+constant module_doc = "Streaming data, Flexible Chat Protocol, Client Side Rendering";
 
 constant unique = 1;
 //constant thread_safe = 1;

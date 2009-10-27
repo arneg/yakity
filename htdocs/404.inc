@@ -5,7 +5,7 @@
 <img src="/chat/images/yakitychat.png"/><br><br>
 <a href="/chat/"><img src="/chat/images/yak.png"/></a>
 <br><br><br><br><br><br><font face="Arial,FreeSans,Sans-serif" size="-2">YakityChat&trade; is a trademark owned by Webhaven<sup>&reg;</sup> International ApS, DK<br />
-YakityChat&trade; is open source software: </div>
+YakityChat&trade; is open source software</div>
 </font>
 </center>
 
