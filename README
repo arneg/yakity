@@ -11,6 +11,7 @@ Installation
 	of the sites. The htdocs/ directory then needs to be made available
 	in you website using a normal filesystem module.
 
+	Make sure that you also add the RXML Parser module to your site.
 
 	More detailed instructions are available on our website at
 	http://yakitychat.com
