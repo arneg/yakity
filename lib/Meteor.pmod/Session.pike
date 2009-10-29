@@ -89,7 +89,7 @@ void stream_close(Meteor.Stream s, string reason) {
 
 void stream_error(Meteor.Stream s, string reason) {
 	LOCK;
-	lid = call_out(error_cb, 0, this, sprintf("Timed out after error: %s.\n", reason));
+	lid = call_out(die, 0, sprintf("Timed out after error: %s.\n", reason));
 	// TODO: do something about this. probably remove the stream.
 	// get rid of the stream and start keeping messages in the queue and
 	// wait for a new one
@@ -179,7 +179,14 @@ void handle_id(object id) {
 			// close the current one and then use the new
 			closing = 1;
 			KEEPDEAD;
-			stream->close();
+			if (!stream->connection) {
+				werror("The stream %O is already closed but still hanging around in %O.\n", stream, this);
+				werror("That should never happen. Look out for error or close in the log.\nCleaning up manually here.\n");
+				stream = 0;
+				call_out(register_new_id, 0);
+			} else {
+				stream->close();
+			}
 		} else {
 			//werror("There is no stream, starting to use the new one.\n");
 			call_out(register_new_id, 0);

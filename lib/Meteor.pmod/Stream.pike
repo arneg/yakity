@@ -27,8 +27,12 @@ Thread.Mutex m = Thread.Mutex();
 #define LOCK object lock = m->lock();
 #define RETURN	do { destruct(lock); return; } while (0)
 // remove all references and callbacks.
-#define CLOSE(reason)	do { connection->set_close_callback(0); connection->set_write_callback(0); connection = 0; call_out(close_cb, 0, this, reason); close_cb = error_cb = 0; } while(0)
-#define ERROR(reason)	do { connection->set_close_callback(0); connection->set_write_callback(0); connection = 0; call_out(error_cb, 0, this, reason); close_cb = error_cb = 0; } while(0)
+#define CLOSE(reason)	do { connection->set_close_callback(0); connection->set_write_callback(0); \\
+							 connection = 0; call_out(close_cb, 0, this, reason); \\
+							 close_cb = error_cb = 0; } while(0)
+#define ERROR(reason)	do { connection->set_close_callback(0); connection->set_write_callback(0); \\
+							 connection = 0; call_out(error_cb, 0, this, reason); \\
+							 close_cb = error_cb = 0; } while(0)
 
 void create(Stdio.File connection, function cb, function error, int|void autoclose) {
 	this_program::connection = connection;
@@ -80,6 +84,7 @@ void _write() {
 	// maybe the connection gets removed during lock ? 
 	if (!connection->query_address()) {
 		call_out(close_cb, 0, this, strerror(connection->errno()));
+		if (close_db) CLOSE("gone.");
 		RETURN;
 	}
 
