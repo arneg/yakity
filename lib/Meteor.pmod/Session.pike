@@ -175,7 +175,7 @@ void handle_id(object id) {
 		new_id = id;
 
 		if (connection_id) {
-			werror("There still is a connection. closing first.\n");
+			werror("%O: There still is a connection %O.\nclosing first.\n", this, stream);
 			// close the current one and then use the new
 			closing = 1;
 			KEEPDEAD;
