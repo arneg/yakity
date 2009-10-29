@@ -84,7 +84,6 @@ void _write() {
 	// maybe the connection gets removed during lock ? 
 	if (!connection->query_address()) {
 		call_out(close_cb, 0, this, strerror(connection->errno()));
-		if (close_db) CLOSE("gone.");
 		RETURN;
 	}
 
