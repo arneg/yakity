@@ -65,25 +65,31 @@ void stream_data_cb(mixed id, string data) {
 	inbuf += data;	
 
 	if (length) {
-		if (sizeof(inbuf) > length) {
+		if (sizeof(inbuf) >= length + 2) {
 			read_cb(inbuf[0..(length-1)]);
-			inbuf = inbuf[length..];
+			inbuf = inbuf[length+2..];
 
 			length = 0;
-			call_out(stream_data_cb, 0);
+			if (sizeof(inbuf)) call_out(stream_data_cb, 0, 0, "");
 		}
 	
 		return;
 	}
 
-	if (2 == sscanf(inbuf, "%x%*[ ]\r\n%s", length, inbuf)) {
+	if (3 == sscanf(inbuf, "%x%*[ ]\r\n%s", length, inbuf)) {
 		if (length == 0) {
+			werror("got zero length. stream is over.\n");
 			request->con->con->set_read_callback(0);
 			request->con->request_ok(request->con, @request->con->extra_args);
+			connect_stream();
 			return;
 		}
-		call_out(stream_data_cb, 0);
+
+		call_out(stream_data_cb, 0, 0, "");
+		return;
 	}
+
+	werror("no length in '%s'\n", inbuf);
 }
 
 void stream_headers_ok(object request, object info) {
@@ -97,12 +103,14 @@ void stream_headers_ok(object request, object info) {
 	this_program::request = request;
 	request->con->con->set_read_callback(stream_data_cb);
 	inbuf = request->con->buf[request->con->datapos..];
+	stream_data_cb(0, "");
 }
 
 
 void connect_stream() {
 	stream_request = session->async_do_method_url("POST", url, ([ "id" : id]), "", 
-									 ([ "Content-Type" : "application/octet-stream" ]), 
+									 ([ "Content-type" : "application/octet-stream",
+									  	"user-agent" : "Agent Orange" ]), 
 									 stream_headers_ok, 0, stream_fail_cb, 
 									 ({ send_info(gethrtime())}));
 }
@@ -117,7 +125,7 @@ void set_close_callback() {
 void send(string data) {
 	buffer += data;
 
-	if (-1 != find_call_out(_write)) {
+	if (-1 == find_call_out(_write)) {
 		call_out(_write, 0);
 	}
 }
@@ -163,7 +171,7 @@ void _write() {
 
 	if (sizeof(buffer)) {
 		session->async_do_method_url("POST", url, ([ "id" : id]), buffer, 
-									 ([ "Content-Type" : "application/octet-stream" ]), 
+									 ([ "Content-type" : "application/octet-stream" ]), 
 									 dummy, out_ok_cb, out_fail_cb, 
 									 ({ send_info(gethrtime(), sizeof(buffer)) }));
 		buffer = "";
