@@ -202,7 +202,6 @@ void incoming(object session, Serialization.Atom atom) {
 			return;
 		}
 		// sending messages to yourself.
-		m_delete(m->misc, "session");
 	}
 
 	// TODO: could be inaccurate.
