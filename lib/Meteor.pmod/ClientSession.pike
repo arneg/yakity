@@ -1,4 +1,4 @@
-string url;
+mixed url;
 string id;
 Protocols.HTTP.Session session;
 string buffer = "";
@@ -29,14 +29,16 @@ void get_ok(object request, object info) {
 		 ]));
 	id = request->data();
 	connect_stream();
+
+	if (sizeof(buffer)) _write();
 }
 
 void create(string url, function log, mapping initial_vars) {
 	session = Protocols.HTTP.Session();
 	this_program::log = log;
-	this_program::url = url;
+	this_program::url = Standards.URI(url);
 
-	session->async_get_url(Standards.URI(url), initial_vars, 0, get_ok, get_fail, send_info(gethrtime()));
+	session->async_get_url(this_program::url, initial_vars, 0, get_ok, get_fail, send_info(gethrtime()));
 }
 
 class send_info(int start, void|int bytes) {
@@ -108,8 +110,8 @@ void stream_headers_ok(object request, object info) {
 
 
 void connect_stream() {
-	stream_request = session->async_do_method_url("POST", url, ([ "id" : id]), "", 
-									 ([ "Content-type" : "application/octet-stream",
+	stream_request = async_do_method_url("POST", url, ([ "id" : id]), "", 
+									 ([ "content-type" : "application/octet-stream",
 									  	"user-agent" : "Agent Orange" ]), 
 									 stream_headers_ok, 0, stream_fail_cb, 
 									 ({ send_info(gethrtime())}));
@@ -167,11 +169,21 @@ void out_fail_cb(object request, object info) {
 		 ]));
 }
 
+object async_do_method_url(string method, object url, void|mapping query_variables, 
+						 void|string data, void|mapping extra_headers, 
+						 function callback_headers_ok, function callback_data_ok, 
+						 function callback_fail, array callback_arguments) {
+	object p = session->Request();
+	p->set_callbacks(callback_headers_ok, callback_data_ok, callback_fail, p, @callback_arguments);
+	p->do_async(p->prepare_method(method,url,query_variables,extra_headers,data));
+	return p;
+}
+
 void _write() {
 
-	if (sizeof(buffer)) {
-		session->async_do_method_url("POST", url, ([ "id" : id]), buffer, 
-									 ([ "Content-type" : "application/octet-stream" ]), 
+	if (sizeof(buffer) && id) {
+		async_do_method_url("POST", url, ([ "id" : id]), buffer, 
+									 ([ "content-type" : "application/octet-stream" ]), 
 									 dummy, out_ok_cb, out_fail_cb, 
 									 ({ send_info(gethrtime(), sizeof(buffer)) }));
 		buffer = "";

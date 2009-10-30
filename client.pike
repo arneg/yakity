@@ -1,14 +1,22 @@
 inherit Serialization.Signature : SIG;
 inherit Serialization.BasicTypes;
 inherit Serialization.PsycTypes;
+inherit Yakity.Base;
 
 object parser = Serialization.AtomParser();
 object cs;
 object message_signature;
 
+class client_info(int start) {}
+
+mapping messages = ([]);
+
 
 void log(mapping m) {
-	werror("%O\n", m);
+	if (m->component == "user") {
+		write("%d %f\n", m->start, (m->stop - m->start)/1000.0);
+		//werror("%O\n", m);
+	}
 }
 
 
@@ -17,10 +25,24 @@ string data(string d) {
 	parser->feed(d);
 
 	while (Serialization.Atom a = parser->parse()) {
-		werror("Incoming: %O\n", a);
-
+		::msg(message_signature->decode(a));
 	}
 
+}
+
+void _echo_message_private(Yakity.Message m) {
+	if (has_index(messages, m->data)) {
+		object info = m_delete(messages, m->data);
+		log(([
+		 "component" : "user",
+         "method" : "echo",
+         "result" : "OK",
+         "start" : info->start,
+         "stop" : gethrtime(),
+		]));
+	} else {
+		werror("got unknown echo: %O\n", m);
+	}
 }
 
 void chat_to(MMP.Uniform u) {
@@ -30,9 +52,11 @@ void chat_to(MMP.Uniform u) {
 			   "_target" : u,
 			   ]);
 	m->data = random_string(random(30) + 10);
+	
+	messages[m->data] = client_info(gethrtime());
 
 	cs->send(message_signature->encode(m)->render());
-	call_out(chat_to, 10, u);
+	call_out(chat_to, 3+random(5), u);
 }
 
 void create() {
@@ -55,8 +79,6 @@ int main(int argc, array(string) argv) {
 	string nick = sprintf("user%d", number);
 	string partner = sprintf("user%d", number ^ 1);
 
-	werror("%s and my partner %s\n", nick, partner);
-
 	object pp = Serialization.Types.Polymorphic();
 	pp->register_type("string", "_method", Method());                                                                                                                   
 	pp->register_type("string", "_string", UTF8String());
@@ -73,6 +95,6 @@ int main(int argc, array(string) argv) {
 	cs->read_cb = data;
 
 	object u = get_uniform("psyc://127.0.0.4/~"+partner);
-	call_out(chat_to, 10, u);
+	call_out(chat_to, 5+random(5), u);
 	return -1;
 }
