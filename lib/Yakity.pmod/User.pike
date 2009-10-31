@@ -16,9 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 inherit Yakity.Base;
-inherit Serialization.Signature : SIG;
-inherit Serialization.BasicTypes;
-inherit Serialization.PsycTypes;
 
 array(object) sessions = ({});
 mixed user;
@@ -33,8 +30,6 @@ void create(object server, object uniform, mixed user, function logout) {
 	::create(server, uniform);
 	this_program::user = user;
 	logout_cb = logout;
-
-	SIG::create(server->type_cache);
 
 	mmps_ignature = MMPPacket(Atom());
 
@@ -204,8 +199,7 @@ int msg(MMP.Packet p) {
 	};
 
 	// minimize it, will not be needed again anyhow
-	atom->make_raw();
-	atom->set_raw(atom->type, atom->data);
+	atom->condense();
 
 	history[count] = atom;
 

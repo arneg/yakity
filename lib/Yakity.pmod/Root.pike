@@ -23,8 +23,8 @@ void create(object server, MMP.Uniform uniform) {
 	::create(server, uniform);
 }
 
-int _request_users(Yakity.Message m) {
-	MMP.Uniform source = m->source();
+int _request_users(MMP.Packet p) {
+	MMP.Uniform source = p->source();
 
 	if (users) {
 		mapping profiles = ([]);

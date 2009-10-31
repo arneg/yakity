@@ -15,6 +15,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+inherit Serialization.Signature : SIG;
+inherit Serialization.BasicTypes;
+inherit Serialization.PsycTypes;
+
 object server;
 object uniform;
 object message_signature;
@@ -23,6 +27,7 @@ object smsig;
 void create(object server, object uniform) {
 	this_program::server = server;
 	this_program::uniform = uniform;
+	SIG::create(server->type_cache);
 
 	if (!has_index(server->type_cache[Yakity.Types.Message], 0)) {
 		object pp = Serialization.Types.Polymorphic();
@@ -61,12 +66,12 @@ void send(MMP.Uniform target, Serialization.Atom|Yakity.Message m, void|MMP.Unif
 		vars["_source_relay"] = relay;
 	}
 
-	MMP.Packet p = MMP.Packet(vars, message_signature->encode(m));
+	MMP.Packet p = MMP.Packet(message_signature->encode(m), vars);
 	call_out(server->deliver, 0, p);
 }
 
 void broadcast(Yakity.Message m) {
-	MMP.Packet p = MMP.Packet(([ "_source" : uniform ]), message_signature->encode(m));
+	MMP.Packet p = MMP.Packet(message_signature->encode(m), ([ "_source" : uniform ]));
 	call_out(server->broadcast, 0, p);
 }
 

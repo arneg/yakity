@@ -20,8 +20,8 @@ mapping(string:MMP.Uniform) uniform_cache = set_weak_flag(([]), Pike.WEAK_VALUES
 Thread.Mutex ucm = Thread.Mutex();
 object type_cache;
 
-void create(object type_cache) {
-	this_program::type_cache = type_cache;
+void create(void|object type_cache) {
+	this_program::type_cache = type_cache || Serialization.TypeCache();
 }
 
 MMP.Uniform get_uniform(string s) {
