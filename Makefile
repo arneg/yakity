@@ -25,13 +25,8 @@ release:
 	rm $(NAME)/htdocs/ppp-js/psyc.js
 	cp -r ppp/lib/Serialization.pmod $(NAME)/lib/
 	cp ppp-bsd ppp/lib/Serialization.pmod/LICENSE
-	mkdir $(NAME)/lib/MMP.pmod
-	cp mmp-module.pmod	$(NAME)/lib/MMP.pmod/module.pmod
-	echo "class Uniform {" >>$(NAME)/lib/MMP.pmod/module.pmod
-	cat ppp/lib/MMP.pmod/Uniform.pike >> $(NAME)/lib/MMP.pmod/module.pmod
-	echo "}" >>$(NAME)/lib/MMP.pmod/module.pmod
-	mkdir $(NAME)/lib/MMP.pmod/Utils.pmod/
-	cp ppp/lib/MMP.pmod/Utils.pmod/module.pmod $(NAME)/lib/MMP.pmod/Utils.pmod/
+	cp -r ppp/lib/MMP.pmod/	$(NAME)/lib/
+	rm $(NAME)/lib/MMP.pmod/Parser.pike
 	cp ppp-bsd ppp/lib/MMP.pmod/LICENSE
 	cp htdocs/index.html $(NAME)/htdocs/
 	cp -r htdocs/images/ $(NAME)/htdocs/
