@@ -17,36 +17,77 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 object server;
 object uniform;
+object message_signature;
+object smsig;
 
 void create(object server, object uniform) {
 	this_program::server = server;
 	this_program::uniform = uniform;
+
+	if (!has_index(server->type_cache[Yakity.Types.Message], 0)) {
+		object pp = Serialization.Types.Polymorphic();
+		pp->register_type("string", "_method", Method());                                                                                                                   
+		pp->register_type("string", "_string", UTF8String());
+		pp->register_type(Yakity.Date, "_time", Yakity.Types.Date());
+		pp->register_type("int", "_integer", Int());
+		pp->register_type("mapping", "_mapping", Mapping(pp,pp));
+		pp->register_type("array", "_list", List(pp));
+		pp->register_type(MMP.Uniform, "_uniform", Uniform());
+		message_signature = Yakity.Types.Message(Method(), Mapping(Method(), pp), UTF8String());
+		server->type_cache[Yakity.Types.Message][0] = message_signature;
+		server->type_cache[Yakity.Types.Message][1] = Yakity.Types.Message(Method(), Atom(), Atom());
+	} else {
+		message_signature = server->type_cache[Yakity.Types.Message][0];
+		smsig = server->type_cache[Yakity.Types.Message][1];
+	}
 }
 
-void send(Yakity.Message m) {
-	if (!m->source()) {
-		m->vars["_source"] = uniform;
+Yakity.Message message_decode(Serialization.Atom a) {
+	return message_signature->decode(a);
+}
+
+Serialization.Atom message_encode(Yakity.Message a) {
+	return message_signature->encode(a);
+}
+
+void send(MMP.Uniform target, Serialization.Atom|Yakity.Message m, void|MMP.Uniform relay) {
+	if (object_program(m) == Yakity.Message) {
+		m = message_encode(m);
 	}
 
-	call_out(server->deliver, 0, m);
+	mapping vars = ([ "_source" : uniform, "_target" : target ]);
+
+	if (relay) {
+		vars["_source_relay"] = relay;
+	}
+
+	MMP.Packet p = MMP.Packet(vars, message_signature->encode(m));
+	call_out(server->deliver, 0, p);
 }
 
 void broadcast(Yakity.Message m) {
-	call_out(server->broadcast, 0, m);
+	MMP.Packet p = MMP.Packet(([ "_source" : uniform ]), message_signature->encode(m));
+	call_out(server->broadcast, 0, p);
 }
 
-void sendmsg(MMP.Uniform target, string method, string data, mapping vars, void|MMP.Uniform source) {
+void sendmsg(MMP.Uniform target, string method, string data, mapping vars) {
 	Yakity.Message m = Yakity.Message();
 	m->method = method;
 	m->data = data;
-	m->vars = vars || ([]);
-	m->vars += ([ "_target" : target ]); // copy this!
-	if (source) m->vars["_source"] = source;
-	send(m);
+	m->vars = vars;
+	send(target, m);
 }
 
-int msg(Yakity.Message m) {
-	string method = m->method;
+int msg(MMP.Packet p) {
+	string method;
+
+	if (sizeof(p->data->typed_data)) {
+		[object signature, object message] = random(p->data->typed_data);
+		method = message->method;
+	} else {
+		object message = smsig->decode(p->data);
+		method = message->method;
+	}
 
 	if (method[0] = '_') {
 		array(string) t = method/"_";
@@ -56,7 +97,7 @@ int msg(Yakity.Message m) {
 			mixed f = this[s];
 
 			if (functionp(f)) {
-				if (f(m) == Yakity.STOP) {
+				if (f(p) == Yakity.STOP) {
 					return Yakity.STOP;
 				}
 			}
@@ -64,8 +105,4 @@ int msg(Yakity.Message m) {
 	}
 
 	return Yakity.GOON;
-}
-
-object Uniform() {
-	return Serialization.Types.Uniform(server);
 }

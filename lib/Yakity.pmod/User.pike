@@ -25,7 +25,7 @@ mixed user;
 function logout_cb; // logout callback
 int count = 0; // this is a local counter. the js speaks a subset of 
 			   // what psyc should do
-object message_signature;
+object mmp_signature;
 
 mapping(int:object) history = ([]);
 
@@ -36,25 +36,11 @@ void create(object server, object uniform, mixed user, function logout) {
 
 	SIG::create(server->type_cache);
 
-	if (!has_index(server->type_cache[Yakity.Types.Message], 0)) {
-		object pp = Serialization.Types.Polymorphic();
-		pp->register_type("string", "_method", Method());                                                                                                                   
-		pp->register_type("string", "_string", UTF8String());
-		pp->register_type(Yakity.Date, "_time", Yakity.Types.Date());
-		pp->register_type("int", "_integer", Int());
-		pp->register_type("mapping", "_mapping", Mapping(pp,pp));
-		pp->register_type("array", "_list", List(pp));
-		pp->register_type(MMP.Uniform, "_uniform", Uniform());
-		message_signature = Yakity.Types.Message(Method(), Mapping(Method(), pp), UTF8String());
-		server->type_cache[Yakity.Types.Message][0] = message_signature;
-	} else {
-		message_signature = server->type_cache[Yakity.Types.Message][0];
-	}
-
+	mmps_ignature = MMPPacket(Atom());
 
 	object m = Yakity.Message();
 	m->method = "_notice_login";
-	m->vars = ([ "_source" : uniform, "_profile" : get_profile() ]);
+	m->vars = ([ "_profile" : get_profile() ]);
 	broadcast(m);
 }
 
@@ -63,7 +49,6 @@ void implicit_logout() {
 		logout_cb(this);
 		object m = Yakity.Message();
 		m->method = "_notice_logout";
-		m->vars = ([ "_source" : uniform ]);
 		broadcast(m);
 		logout_cb = 0;
 	} else {
@@ -78,12 +63,12 @@ void add_session(object session) {
 	session->error_cb = session_error;
 	object m = Yakity.Message();
 	m->vars = ([
-		"_source" : uniform,
 		"_last_id" : count,
 	]);
 	m->method = "_status_circuit";
 	m->data = "Welcome on board.";
-	session->send(message_signature->encode(m));
+	MMP.Packet p = MMP.Packet(encode_message(m), ([ "_source" : uniform ]));
+	session->send(mmp_signature->encode(p));
 
 	if (find_call_out(implicit_logout) != -1) {
 		remove_call_out(implicit_logout);
@@ -107,11 +92,12 @@ void session_error(object session, string err) {
 
 	werror("ERROR: %O %s\n", session, err);
 }
-int _request_history_delete(Yakity.Message m) {
-	if (m->vars["_source"] != uniform) {
+int _request_history_delete(MMP.Packet p) {
+	if (p->source() != uniform) {
 		return Yakity.GOON;
 	}
 
+	Yakity.Message m = message_decode(p->data);
 	array(int) list = m->vars["_messages"];
 
 	if (!arrayp(list)) {
@@ -125,15 +111,16 @@ int _request_history_delete(Yakity.Message m) {
 	return Yakity.STOP;
 }
 
-int _request_history(Yakity.Message m) {
-	if (!m->misc["session"]) {
+int _request_history(MMP.Packet p) {
+	if (!p->misc["session"]) {
 		return Yakity.STOP;
 	}
 
-	if (m->vars["_source"] != uniform) {
+	if (p->source() != uniform) {
 		return Yakity.GOON;
 	}
 
+	Yakity.Message m = message_decode(p->data);
 	array(int) list = m->vars["_messages"];
 
 	if (!arrayp(list)) {
@@ -147,24 +134,20 @@ int _request_history(Yakity.Message m) {
 	return Yakity.STOP;
 }
 
-int _request_logout(Yakity.Message m) {
-	implicit_logout();
+int _request_logout(MMP.Packet p) {
+
+	if (p->source() == uniform) {
+		implicit_logout();
+	}
 
 	return Yakity.STOP;
 }
 
-int _message_private(Yakity.Message m) {
-	object source = m->source();
+int _message_private(MMP.Packet p) {
+	MMP.Uniform source = p->source();
 
 	if (source && source != uniform) {
-		Yakity.Message reply = Yakity.Message();
-		reply->vars = copy_value(m->vars);
-		m_delete(reply->vars, "_source");
-		reply->vars["_target"] = source;
-		reply->vars["_source_relay"] = source;
-		reply->method = "_echo_message_private";
-		reply->data = m->data;
-		send(reply);
+		send(source, p->data, source);
 	}
 
 	return Yakity.GOON;
@@ -174,29 +157,28 @@ mapping get_profile() {
 	return ([ "_name_display" : user->real_name ]);
 }
 
-int _request_profile(Yakity.Message m) {
+int _request_profile(MMP.Packet p) {
 	MMP.Uniform source = m->vars["_source"];
 
 	if (source) {
 		Yakity.Message reply = Yakity.Message();
 		reply->vars = ([
 			"_profile" : get_profile(),
-			"_target" : source,
 		]);
 		reply->method = "_update_profile";
-		send(reply);
+		send(source, reply);
 	}
 
 	return Yakity.STOP;
 }
 
 void incoming(object session, Serialization.Atom atom) {
-	Yakity.Message m = message_signature->decode(atom);
+	MMP.Packet p = mmp_signature->encode(p);
 
 	//werror("%s->incoming(%O, %O)\n", this, session, m);
-	m->vars["_source"] = uniform;
+	p->vars["_source"] = uniform;
 
-	if (m->target() == uniform) {
+	if (p->target() == uniform) {
 		m->misc["session"] = session;
 		if (Yakity.STOP == ::msg(m)) {
 			return;
@@ -209,26 +191,23 @@ void incoming(object session, Serialization.Atom atom) {
 	send(m);
 }
 
-int msg(Yakity.Message m) {
+int msg(MMP.Packet p) {
 	//werror("%s->msg(%O)\n", this, m);
 
 	if (::msg(m) == Yakity.STOP) return Yakity.STOP;
 
-	Yakity.Message c = m->clone();
-	//werror("NEW MESSAGE %d -> %O\n", count+1, m);
-	c->vars["_id"] = ++count;
+	p->vars["_id"] = ++count;
 
 	Serialization.Atom atom;
 	mixed err = catch {
-		atom = message_signature->encode(c);
-	} ;
+		atom = mmp_signature->encode(p);
+	};
 
-	if (has_prefix(m->method, "_message") 
-	||  has_prefix(m->method, "_echo_message")
-	||  has_prefix(m->method, "_notice_enter")
-	||  has_prefix(m->method, "_notice_leave")) {
-		history[count] = atom;
-	}
+	// minimize it, will not be needed again anyhow
+	atom->make_raw();
+	atom->set_raw(atom->type, atom->data);
+
+	history[count] = atom;
 
 	foreach (sessions;; object s) {
 		s->send(atom);

@@ -41,26 +41,26 @@ MMP.Uniform get_uniform(string s) {
 	return u;
 }
 
-void broadcast(Yakity.Message m) {
+void broadcast(MMP.Packet p) {
 	// TODO, this is seriously not good. time to revive
 	// some psyc legacy using channels, etc. But for the
 	// small scale webchat this is alright.
 
 	foreach (entities;MMP.Uniform target;object o) {
-		Yakity.Message t = m->clone();
+		MMP.Packet t = p->clone();
 		t->vars["_target"] = target;
 		o->msg(t);
 	}
 }
 
-void deliver(Yakity.Message m) {
+void deliver(MMP.Packet p) {
 	//werror("deliver(%O)\n", m);
 	object o;
 
-	if ((o = entities[m->target()])) {
-		o->msg(m);
+	if ((o = entities[p->target()])) {
+		o->msg(p);
 	} else {
-		werror("Could not deliver %O to %O\n", m, m->target());
+		werror("Could not deliver %O to %O\n", p, p->target());
 	}
 }
 
