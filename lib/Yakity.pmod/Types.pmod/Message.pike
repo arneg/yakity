@@ -13,11 +13,10 @@ void create(object method, void|object vars, object data) {
 // dont use this
 // TODO: may not throw due to can_decode
 void raw_to_medium(Serialization.Atom atom) {
-	atom->pdata = Serialization.parse_atoms(atom->data);
+	atom->set_pdata(Serialization.parse_atoms(atom->data));
 }
 
 void medium_to_raw(Serialization.Atom atom) {
-	if (!arrayp(atom->pdata) && !sizeof(atom->pdata)) error("broken pdata: %O\n", atom->pdata);
 	String.Buffer buf = String.Buffer();
 
 	switch (sizeof(atom->pdata)) {
@@ -46,7 +45,6 @@ void medium_to_raw(Serialization.Atom atom) {
 }
 
 void medium_to_done(Serialization.Atom atom) {
-	if (!arrayp(atom->pdata) && !sizeof(atom->pdata)) error("broken pdata: %O\n", atom->pdata);
 	object m = Yakity.Message();
 
 	switch (sizeof(atom->pdata)) {
@@ -75,11 +73,10 @@ void medium_to_done(Serialization.Atom atom) {
 		error("broken pdata: %O\n", atom->pdata);
 	}
 
-	atom->typed_data[this] = m;
+	atom->set_typed_data(this, m);
 }
 
 void done_to_medium(Serialization.Atom atom) {
-	if (!objectp(atom->typed_data[this])) error("broken typed_data: %O\n", atom->typed_data[this]);
 	object m = atom->typed_data[this];
 	atom->pdata = ({});
 	if (vars && mappingp(m->vars)) 
