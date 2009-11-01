@@ -54,12 +54,12 @@
 					return div;
 				};
 
-				var timestamp = (function(type, key, value, m) {
+				var timestamp = (function(type, key, value, p) {
 					var div = document.createElement("div");
 					div.appendChild(document.createTextNode(value.render("_hours") + ":" + value.render("_minutes") + ":" + value.render("_seconds")));
 					return div;
 				});
-				var userlink = (function(type, key, value, m) {
+				var userlink = (function(type, key, value, p) {
 					if (type) return value.render(type);
 					if (value.is_person()) {
 						return ulink(value);
@@ -107,9 +107,9 @@
 							}
 						}
 						win.extend({
-							renderMessage : function(m) {
-								var div = this.base(m);
-								if (m.vars.get("_source_relay") == client.uniform) {
+							renderMessage : function(p) {
+								var div = this.base(p);
+								if (p.v("_source_relay") == client.uniform) {
 									UTIL.addClass(div, "self");	
 								}
 								return div;
@@ -146,11 +146,7 @@
 				try {
 					if (this.chat.active) {
 						var target = this.chat.active.name;
-
-						var vars = new psyc.Vars("_target", target);
-					 
-						var p = new psyc.Message( target.is_person() ? "_message_private" : "_message_public", vars, str);
-						this.client.send(p);
+						this.client.sendmsg(target, target.is_person() ? "_message_private" : "_message_public", str);
 						document.chat_input.text.value = "";
 					} else {
 						//error_fun("You cannot chat to the DEBUG!");
