@@ -10,6 +10,7 @@
         <script src="ppp-js/meteor.js" type="text/javascript"></script>
         <script src="ppp-js/table.js" type="text/javascript"></script>
         <script src="ppp-js/serialization.js" type="text/javascript"></script>
+        <script src="ppp-js/mmp.js" type="text/javascript"></script>
         <script src="js/yakity.js" type="text/javascript"></script>
         <script src="js/accChat.js" type="text/javascript"></script>
         <script src="mootools-1.2.3-core-nc.js" type="text/javascript"></script>
@@ -536,7 +537,7 @@
 			<div id="rooms">
 					<div class="roomHeader">Available Rooms</div>
 				<emit source="chat_rooms">
-					<a onclick='return chat.enterRoom(psyc.get_uniform("&_.uniform;"));'>&_.name;</a>
+					<a onclick='return chat.enterRoom(mmp.get_uniform("&_.uniform;"));'>&_.name;</a>
 				</emit>
 
 			</div>
