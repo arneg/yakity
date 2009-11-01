@@ -33,7 +33,6 @@ void create(object server, object uniform) {
 		object pp = Serialization.Types.Polymorphic();
 		pp->register_type("string", "_method", Method());                                                                                                                   
 		pp->register_type("string", "_string", UTF8String());
-		pp->register_type(Yakity.Date, "_time", Yakity.Types.Date());
 		pp->register_type("int", "_integer", Int());
 		pp->register_type("mapping", "_mapping", Mapping(pp,pp));
 		pp->register_type("array", "_list", List(pp));
@@ -75,7 +74,7 @@ void broadcast(Yakity.Message m) {
 	call_out(server->broadcast, 0, p);
 }
 
-void sendmsg(MMP.Uniform target, string method, string data, mapping vars) {
+void sendmsg(MMP.Uniform target, string method, void|string data, void|mapping vars) {
 	Yakity.Message m = Yakity.Message();
 	m->method = method;
 	m->data = data;
