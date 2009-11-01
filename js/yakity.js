@@ -78,7 +78,7 @@ psyc.Message = mmp.Packet.extend({
 		ret += "]))";
 		return ret;
 	},
-};
+});
 /**
  * Does a one-step abbreviation of a psyc method. For instance, _message_public turns into _message. Returns 0 if no further abbreviation is possible.
  * @param {String} method PSYC method
@@ -208,9 +208,9 @@ psyc.Client = function(url, name) {
 	this.connection.init();
 	var method = new serialization.Method();
 	var poly = psyc.default_polymorphic();
-	this.msig = new serialization.Message(method, new serialization.OneTypedVars(pol), pol);
+	this.msig = new serialization.Message(method, new serialization.OneTypedVars(poly), poly);
 	this.psig = new serialization.Packet(this.msig);
-	this.parser = new psyc.AtomParser();
+	this.parser = new serialization.AtomParser();
 	this.incoming.obj = this;
 	this.icount = 0;
 	this.name = name;
