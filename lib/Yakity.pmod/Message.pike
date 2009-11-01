@@ -17,15 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 mapping(string:mixed) vars;
 string method, data;
-mapping misc = set_weak_flag(([]), Pike.WEAK);
-
-MMP.Uniform source() {
-	return vars["_source"];	
-}
-
-MMP.Uniform target() {
-	return vars["_target"];
-}
 
 this_program clone() {
 	this_program o = this_program();
@@ -37,5 +28,5 @@ this_program clone() {
 }
 
 string _sprintf(int type) {
-	return sprintf("Message(%s, %s -> %s)", method||"", source()||"", target()||"");
+	return sprintf("Message(%s)", method||"");
 }
