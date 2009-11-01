@@ -31,7 +31,7 @@ void create(object server, object uniform, mixed user, function logout) {
 	this_program::user = user;
 	logout_cb = logout;
 
-	mmp_signature = MMPPacket(Atom());
+	mmp_signature = Packet(Atom());
 
 	object m = Yakity.Message();
 	m->method = "_notice_login";
