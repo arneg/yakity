@@ -40,181 +40,8 @@ objectp = function(o) { return typeof(o) == "object"; }
 /**
  * @namespace PSYC namespace.
  */
-psyc = new Object();
-psyc.uniform_cache = new Mapping();
+psyc = {};
 psyc.STOP = 1; 
-/**
- * Create a Uniform object from the uniform str. Uniform objects are cached as long as they are created using this function. Therefore two uniform objects are the same if they represent the same uniform.
- */
-psyc.get_uniform = function(str) {
-	if (psyc.uniform_cache.hasIndex(str)) {
-		return psyc.uniform_cache.get(str);
-	}
-
-	var uniform = new psyc.Uniform(str);
-	psyc.uniform_cache.set(str, uniform);
-	return uniform;
-};
-/**
- * Class representing uniforms.
- * @constructor
- * @property {String} uniform String representation of the uniform.
- * @property {String} object Path component of the uniform.
- * @property {String} name Name component of the uniform (i.e. object without type).
- * @property {String} host Host part of the uniform including the port number.
- */
-psyc.Uniform = function(str) {
-    if (str.substr(0,7) != "psyc://") {
-		throw("Invalid uniform: " + str);	
-    }
-    this.uniform = str;
-    str = str.slice(7);
-
-    var pos = str.indexOf("/");
-
-    if (pos == -1) { // root
-		this.host = str;
-		this.is_person = function() { return 0; }
-		this.is_room = function() { return 0; }
-		this.root = function() { return this; }
-    } else {
-		this.host = str.substr(0, pos);
-		str = str.slice(pos+1);
-
-		this.object = str;
-		this.type = str.charCodeAt(0);
-		this.name = str.slice(1);
-
-		if (this.type == 126) {
-			this.is_person = function() { return 1; }
-			this.is_room = function() { return 0; }
-		} else if (this.type == 64) {
-			this.is_person = function() { return 0; }
-			this.is_room = function() { return 1; }
-
-		} else {
-			throw("Invalid uniform: " + this.uniform);
-		}
-
-		// GOD, seriously. who writes code like this?
-		var root = this.uniform.substr(0, 7+pos);
-		this.root = function() { return psyc.get_uniform(root); }
-
-		pos = str.indexOf("#");
-
-		if (pos != -1) {
-			this.base = str.substr(0, pos);
-			this.channel = str.substr(pos+1, str.length-pos-1);
-		} else {
-			this.base = this.object;
-		}
-
-		
-    }
-
-};
-psyc.Uniform.prototype = {
-	render : function(type) {
-		switch (type) {
-		case "_name": return this.name;
-		case "_object": return this.object;
-		case "_host": return this.host;
-		case "_base": return this.base;
-		}
-
-		return this.uniform;
-	},
-	toString : function() {
-		return this.uniform;
-	},
-	cmp : function(a) {
-		var s1 = this.toString();
-		var s2 = a.toString();
-		return (s1 == s2) ? 0 : (s1 > s2) ? 1 : -1;
-	},
-	constructor : psyc.Uniform
-};
-/**
- * Atom parser class.
- * @constructor
- */
-psyc.AtomParser = function() {
-	this.buffer = "";
-	this.reset();
-};
-psyc.AtomParser.prototype = {
-	reset : function() {
-		this.type = 0;
-		this.length = -1;
-	},
-	/**
-	 * Parse one or more Atom objects from a string.
-	 * @returns An array of psyc#Atom objects.
-	 * @param {String} str Input string that to parse.
-	 */
-	parse : function(str) {
-		this.buffer += str;
-
-		var ret = new Array();
-		var t = 0;
-		while (t = this._parse()) {
-			ret.push(t);
-		}
-		return ret;
-	},
-	_parse : function() {
-		if (!this.type) {
-			var pos = this.buffer.indexOf(" ");
-
-			if (pos == -1) {
-			// check here for bogus data
-	//		if (re[0].search(/(_\w+)+/) != 0) {
-	//		    throw("bad atom\n");
-	//		}
-				return 0;
-			} else if (pos < 2) {
-				throw("bad atom.");
-			}
-
-			this.type = this.buffer.substr(0, pos);
-			this.buffer = this.buffer.slice(pos+1);
-		}
-
-		if (this.length == -1) {
-			var pos = this.buffer.indexOf(" ");
-
-			if (pos == -1) {
-				return 0;
-			} else if (pos == 0) {
-				throw("bad atom.");
-			}
-
-			this.length = parseInt(this.buffer.substr(0, pos));
-			if (this.length < 0 || this.length.toString() != this.buffer.substr(0, pos)) {
-				throw("bad length in atom.\n");
-			}
-			this.buffer = this.buffer.slice(pos+1);
-		}
-
-		if (this.length > this.buffer.length) {
-			// add a sanity check. we do not want superlarge data strings, i guess
-			return 0;
-		}
-
-		var a;
-
-		if (this.length == this.buffer.length) {
-			a = new psyc.Atom(this.type, this.buffer);
-			this.buffer = "";
-		} else {
-			a = new psyc.Atom(this.type, this.buffer.substr(0,this.length));
-			this.buffer = this.buffer.slice(this.length);
-		}
-		this.reset();
-		
-		return a;
-    }
-};
 psyc.find_abbrev = function(obj, key) {
     var t = key;
 
@@ -231,33 +58,6 @@ psyc.find_abbrev = function(obj, key) {
     return obj[t];
 };
 /**
- * Atom class.
- * @constructor
- * @param {String} type Atom type, e.g. _integer
- * @param {String} data String representation of the value
- * @property {String} type Atom type, e.g. _integer.
- * @property {String} data String representation of the value
- */
-psyc.Atom = function(type, data) {
-    this.type = type;
-    this.data = data;
-	
-	/**
-	 * @returns The serialized atom.
-	 */
-    this.render = function() {
-		return this.type + " " + new String(this.data.length) + " " + this.data;
-    };
-    // we don't really need this (yet), but i just wanted to!
-    this.length = function() {
-		return this.type.length + new String(this.data.length).length 
-			+ this.data.length + 2;
-    };
-	this.toString = function() {
-		return "Atom("+this.type+", "+this.data.length+")";
-	};
-};
-/**
  * PSYC message class.
  * @constructor
  * @param {String} method PSYC method
@@ -267,62 +67,17 @@ psyc.Atom = function(type, data) {
  * @property {psyc#Vars} vars variables
  * @property {String} data Payload
  */
-psyc.Message = function(method, vars, data) {
-    this.method = method;
-    if (vars) {
-		if (vars instanceof psyc.Vars) {
-			this.vars = vars;
-		} else if (objectp(vars)) {
-			this.vars = new psyc.Vars(vars);
-		}
-    } else {
-		this.vars = new psyc.Vars();
-    }
-
-    if (data) {
-		this.data = data;
-    } else {
-		this.data = "";
-    }
-};
-psyc.Message.prototype = {
+psyc.Message = mmp.Packet.extend({
+	constructor : function(method, vars, data) {
+		this.method = method;
+		this.base(data, vars);
+	},
 	toString : function() {
 		var ret = "psyc.Message("+this.method+", ([ ";
 		ret += this.vars.toString();
 		ret += "]))";
 		return ret;
 	},
-	id : function() {
-		var id;
-		if (this.vars && intp(id = this.vars.get("_id"))) {
-			return id;
-		}
-
-		return undefined;
-	},
-	source : function() {
-		return this.vars.get("_source");
-	}
-};
-// okay, the rationale of this is, that we allow templates to
-// contain arbitrary stuff, however. user supplied data is escaped
-psyc.render_template = function(t, m) {
-	var reg = /\[\w+\]/g;
-	var cb = function(result, m) {
-		s = result[0].substr(1, result[0].length-2);
-
-		if (s == "data") {
-			return XSS.html_string_encode(m.data);
-		} else if (s == "method") {
-			return XSS.html_string_encode(m.method);
-		} else if (m.vars.hasIndex(s)) {
-			return XSS.html_string_encode(m.vars.get(s).toString());
-		} else {
-			return "["+s+"]";
-		}
-	};
-
-	return UTIL.replace(reg, t, cb, m);
 };
 /**
  * Does a one-step abbreviation of a psyc method. For instance, _message_public turns into _message. Returns 0 if no further abbreviation is possible.
@@ -428,7 +183,6 @@ psyc.default_polymorphic = function() {
 	pol.register_type("_float", "float", new serialization.Float());
 	pol.register_type("_method", "string", method);
 	//pol.register_type("_message", psyc.Message, new serialization.Message(method, pol, pol));
-	pol.register_type("_mapping", psyc.Vars, new serialization.Vars(pol));
 	pol.register_type("_mapping", psyc.Mapping, new serialization.Mapping(pol, pol));
 	pol.register_type("_list", Array, new serialization.Array(pol));
 	pol.register_type("_time", psyc.Date, new serialization.Date());
@@ -453,8 +207,9 @@ psyc.Client = function(url, name) {
 	this.connection = new meteor.Connection(url+"?nick="+escape(name).replace(/\+/g, "%2B"), this.incoming, errorcb);
 	this.connection.init();
 	var method = new serialization.Method();
-	var pol = psyc.default_polymorphic();
-	this.poly = new serialization.Message(method, new serialization.Vars(pol), pol);
+	var poly = psyc.default_polymorphic();
+	this.msig = new serialization.Message(method, new serialization.OneTypedVars(pol), pol);
+	this.psig = new serialization.Packet(this.msig);
 	this.parser = new psyc.AtomParser();
 	this.incoming.obj = this;
 	this.icount = 0;
@@ -486,17 +241,22 @@ psyc.Client.prototype = {
 		this.connection.close();
 		delete this.connection;
 	},
+ 	sendmsg : function(target, method, data, vars) {
+
+		var m = psyc.Message(method, data, vars);
+		var p = mmp.Packet(m, { _target : target, _source : this.uniform });
+		this.send(p);
+	},
 	/**
-	 * Send a message. This should be of type psyc.Message.
-	 * @params {Object} message Message to send.
+	 * Send a packet. This should be of type psyc.Message.
+	 * @params {Object} packet Message to send.
 	 */
-	send : function(message) {
-		if (!(message.vars.get("_target") instanceof psyc.Uniform)) {
-			if (meteor.debug) meteor.debug("Message without _target is baaad!");
-		}
+	send : function(packet) {
+		if (!p.V("_target")) throw("Message without _target is baaad!");
+		if (!p.V("_source")) p.source(this.uniform);
 
 		try {
-			this.connection.send(this.poly.encode(message).render());
+			this.connection.send(this.psig.encode(packet).render());
 		} catch (error) {
 			if (meteor.debug) {
 				if (typeof(error) == "object") {
@@ -519,18 +279,19 @@ psyc.Client.prototype = {
 		for (var i = 0; this.icount+i+1 <= count; i++) {
 			list[i] = this.icount+i+1;
 		}
-		var message = new psyc.Message("_request_history", new psyc.Vars("_messages", list, "_target", this.uniform));
-		this.send(message);
+		this.sendmsg(this.uniform, "_request_history", 0, { _messages : list });
 	},
 	_notice_logout : function (m) {
 		this.client.reconnect = 0;	
 	},
 	incoming : function (data) {
+		var self, method, count, target, source, p, m, wrapper, i, last_id;
+
 		if (this.keepalive) {
 			window.clearTimeout(this.keepalive);
 		}
-		var self = this;
-		var wrapper = function() {
+		self = this;
+		wrapper = function() {
 			self.connection.reconnect_incoming();
 		};
 		this.keepalive = window.setTimeout(wrapper, 45*1000);
@@ -540,28 +301,27 @@ psyc.Client.prototype = {
 		} catch (error) {
 			if (meteor.debug) meteor.debug("failed to parse: "+data+"\nERROR: "+error);
 		}
-		var test = this;
-MESSAGES: for (var i = 0; i < data.length; i++) {
+MESSAGES: for (i = 0; i < data.length; i++) {
 			if (data[i].type == "_keepalive") {
 				// dont try to decode the keepalive packet
 				continue MESSAGES;
 			}
 			try {
-				var m = this.poly.decode(data[i]);
+				p = this.psig.decode(data[i]);
 			} catch (error) {
 				if (meteor.debug) meteor.debug("failed to decode: "+data[i]+"\nERROR: "+error);
 				continue;
 			}
-			if (m instanceof psyc.Message) {
-				var method = m.method;	
+			if (p instanceof mmp.Packet && (m = p.data) instanceof psyc.Message) {
+				method = m.method;
 				if (meteor.debug) meteor.debug("incoming: " + method);
-				var count = m.vars.get("_id");	
-				var target = m.vars.get("_target");
-				var source = m.source();
+				count = p.v("_id");	
+				target = p.target();
+				source = p.source();
 
 				if (method == "_status_circuit") {
-					var last_id = m.vars.get("_last_id");
-					this.uniform = m.source();
+					last_id = m.v("_last_id");
+					this.uniform = source;
 
 					if (intp(last_id) && this.icount < last_id) {
 						this.sync(last_id);
@@ -602,7 +362,7 @@ MESSAGES: for (var i = 0; i < data.length; i++) {
 
 					for (var j = 0; j < list.length; j++) {
 						try {
-							if (psyc.STOP == list[j].msg(m)) {
+							if (psyc.STOP == list[j].msg(p, m)) {
 								stop = 1;
 							}
 						} catch (error) {
@@ -623,7 +383,8 @@ MESSAGES: for (var i = 0; i < data.length; i++) {
 		}
 	}
 };
-psyc.funky_text = function(m, templates) {
+psyc.funky_text = function(p, templates) {
+	var m = p.data;
 	var template = templates.get(m.method);
 	var reg = /\[[\w-]+\]/g;
 
@@ -653,9 +414,9 @@ psyc.funky_text = function(m, templates) {
 			t = m.data;
 		} else if (s == "method") {
 			t = m.method;
-		} else if (m.vars.hasIndex(s)) {
+		} else if (p.V(s) || m.V(s)) {
 			var vtml = templates.get(s);
-			t = m.vars.get(s);
+			t = p.V(s) ? p.v(s) : m.v(s);
 
 			if (functionp(vtml)) {
 				t = vtml.call(window, type, s, t, m);
@@ -700,7 +461,7 @@ psyc.funky_text = function(m, templates) {
 	return div;
 };
 psyc.Base = Base.extend({
-	msg : function (m) {
+	msg : function (p, m) {
 		var method = m.method;
 		var none = 1;
 
@@ -712,7 +473,7 @@ psyc.Base = Base.extend({
 		for (var t = method; t; t = psyc.abbrev(t)) {
 			if (functionp(this[t])) {
 				none = 0;
-				if (psyc.STOP == this[t].call(this, m)) {
+				if (psyc.STOP == this[t].call(this, p, m)) {
 					return psyc.STOP;
 				}
 			}
@@ -723,13 +484,7 @@ psyc.Base = Base.extend({
 		}
 	},
 	sendmsg : function(target, method, vars, data) {
-		if (!vars) {
-			vars = new psyc.Vars();
-		}
-
-		vars.set("_target", target);
-		var m = new psyc.Message(method, vars, data);
-		this.client.send(m);
+		this.client.sendmsg(target, method, vars, data);
 	}
 });
 psyc.ChatWindow = psyc.Base.extend({
@@ -739,10 +494,10 @@ psyc.ChatWindow = psyc.Base.extend({
 		this.messages = document.createElement("div");
 		this.name = id;
 	},
-	_ : function(m) {
-		this.mset.set(m, this.mlist.length);
-		this.mlist.push(m);
-		this.messages.appendChild(this.renderMessage(m));
+	_ : function(p, m) {
+		this.mset.set(p, this.mlist.length);
+		this.mlist.push(p);
+		this.messages.appendChild(this.renderMessage(p, m));
 	},
 	getMessages : function() {
 		return this.mlist.concat();
@@ -758,7 +513,7 @@ psyc.ChatWindow = psyc.Base.extend({
 
 		return document.createTextNode(o.toString());
 	},
-	getMessageNode : function(m) {
+	getMessageNode : function(p, m) {
 		return this.messages.childNodes[this.mset.get(m)];
 	},
 	getMessagesNode : function() {
@@ -773,8 +528,8 @@ psyc.TemplatedWindow = psyc.ChatWindow.extend({
 	setTemplates : function(t) {
 		this.templates = t;
 	},
-	renderMessage : function(m) {
-		return psyc.funky_text(m, this.templates);
+	renderMessage : function(p, m) {
+		return psyc.funky_text(p, this.templates);
 	}
 });
 psyc.RoomWindow = psyc.TemplatedWindow.extend({
@@ -795,12 +550,12 @@ psyc.RoomWindow = psyc.TemplatedWindow.extend({
 			sort *= -1;
 		};
 	},
-	_notice_enter : function(m) {
-		var list = m.vars.get("_members");
-		var supplicant = m.vars.get("_supplicant");
-		var me = m.vars.get("_target");
+	_notice_enter : function(p, m) {
+		var list = m.v("_members");
+		var supplicant = m.v("_supplicant");
+		var me = this.client.uniform;
 
-		if (supplicant == me) {
+		if (supplicant === me) {
 			if (this.left) {
 				this.left = 0;
 				if (this.onenter) this.onenter(this);
@@ -818,11 +573,11 @@ psyc.RoomWindow = psyc.TemplatedWindow.extend({
 
 		this.addMember(supplicant);
 	},
-	_notice_leave : function(m) {
-		var supplicant = m.vars.get("_supplicant");
-		var me = m.vars.get("_target");
+	_notice_leave : function(p, m) {
+		var supplicant = m.v("_supplicant");
+		var me = this.client.uniform;
 
-		if (supplicant == me) {
+		if (supplicant === me) {
 			if (!this.left) {
 				this.left = 1;
 				if (this.onleave) this.onleave(this);
@@ -831,7 +586,7 @@ psyc.RoomWindow = psyc.TemplatedWindow.extend({
 			}
 		}
 
-		this.deleteMember(m.vars.get("_supplicant"));
+		this.deleteMember(m.v("_supplicant"));
 	},
 	getMembersNode : function() {
 		return this.members.table;
@@ -867,8 +622,8 @@ psyc.Chat = Base.extend({
 			this.client = client;
 		}
 	},
-	msg : function(m) {
-		this.getWindow(m.source()).msg(m);
+	msg : function(p, m) {
+		this.getWindow(p.source()).msg(p, m);
 		return psyc.STOP;
 	},
 	getWindow : function(uniform) {
@@ -892,16 +647,14 @@ psyc.Chat = Base.extend({
 	 * Requests membership in the given room. If the room has been entered successfully a new tab will be opened automatically.
 	 */
 	enterRoom : function(uniform) {
-		var message = new psyc.Message("_request_enter", new psyc.Vars("_target", uniform));
-		this.client.send(message);
+		this.client.sendmsg(uniform, "_request_enter");
 	},
 	/**
 	 * @param {Uniform} uniform
 	 * Leaves a room.
 	 */
 	leaveRoom : function(uniform) {
-		var message = new psyc.Message("_request_leave", new psyc.Vars("_target", uniform));
-		this.client.send(message);
+		this.client.sendmsg(uniform, "_request_leave");
 		// close window after _notice_leave is there or after double click on close button
 	}
 });
@@ -955,9 +708,9 @@ psyc.ProfileData = psyc.Base.extend({
 		this.requests.set(uniform, (new Array(callback)));
 		this.sendmsg(uniform, "_request_profile");
 	},
-	_update_profile : function(m) {
-		var source = m.source();
-		var profile = m.vars.get("_profile");
+	_update_profile : function(p, m) {
+		var source = p.source();
+		var profile = m.v("_profile");
 
 		this.cache.set(source, profile);
 
@@ -971,16 +724,16 @@ psyc.ProfileData = psyc.Base.extend({
 
 		return psyc.STOP;
 	},
-	_notice_login : function(m) {
-		if (m.vars.hasIndex("_profile")) {
-			this._update_profile(m);
+	_notice_login : function(p, m) {
+		if (m.v("_profile")) {
+			this._update_profile(p, m);
 		}
 
 		return psyc.GOON;
 	},
-	_update_users : function(m) {
-		var source = m.source();
-		var list = m.vars.get("_users");
+	_update_users : function(p, m) {
+		var source = p.source();
+		var list = m.v("_users");
 
 		if (list instanceof Mapping) list.forEach((function(key, value) {
 			this.cache.set(key, value);	
@@ -988,14 +741,14 @@ psyc.ProfileData = psyc.Base.extend({
 		
 		return psyc.STOP;
 	},
-	_request_profile : function(m) {
-		var source = m.source();
+	_request_profile : function(p) {
+		var source = p.source();
 
 		if (!this.profile) {
 			this.profile = new Mapping();
 		}
 
-		this.sendmsg(source, "_update_profile", new psyc.Vars({ _profile : this.profile }));
+		this.sendmsg(source, "_update_profile", 0, { _profile : this.profile });
 		return psyc.STOP;
 	}
 });
@@ -1010,16 +763,16 @@ psyc.UserList = psyc.Base.extend({
 		this.table.addColumn("users", "Users");
 		this.sendmsg(client.uniform.root(), "_request_users");
 	},
-	_notice_logout : function(m) {
-		var source = m.source();
+	_notice_logout : function(p) {
+		var source = p.source();
 		if (this.table.getRow(source)) {
 			this.table.deleteRow(source);
 		}
 
 		return psyc.STOP;
 	},
-	_notice_login : function(m) {
-		var source = m.source();
+	_notice_login : function(p) {
+		var source = p.source();
 		if (!this.table.getRow(source)) {
 			this.table.addRow(source);
 			this.table.addCell(source, "users", this.profiles.getDisplayNode(source));
@@ -1027,9 +780,9 @@ psyc.UserList = psyc.Base.extend({
 
 		return psyc.STOP;
 	},
-	_update_users : function(m) {
-		var source = m.source();
-		var list = m.vars.get("_users");
+	_update_users : function(p, m) {
+		var source = p.source();
+		var list = m.v("_users");
 
 		if (list instanceof Mapping) list = list.indices();
 
