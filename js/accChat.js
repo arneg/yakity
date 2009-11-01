@@ -78,14 +78,12 @@ var AccChat = psyc.Chat.extend({
 			}
 		}
 
-		var m = new psyc.Message("_request_history_delete", { _messages : messages, _target : this.client.uniform });
-		this.client.send(m);
-
+		this.client.sendmsg(this.client.uniform, "_request_history_delete", 0, { _messages : messages });
 		this.base(uniform);
 	},
-	msg : function(m) {
-		var messages = this.getWindow(m.vars.get("_source")).getMessagesNode();
-		var ret = this.base(m);	
+	msg : function(p, m) {
+		var messages = this.getWindow(p.source()).getMessagesNode();
+		var ret = this.base(p, m);	
 		messages.scrollTop = messages.scrollHeight;
 		return ret;
 	},
