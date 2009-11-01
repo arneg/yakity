@@ -31,7 +31,7 @@ void create(object server, object uniform, mixed user, function logout) {
 	this_program::user = user;
 	logout_cb = logout;
 
-	mmps_ignature = MMPPacket(Atom());
+	mmp_signature = MMPPacket(Atom());
 
 	object m = Yakity.Message();
 	m->method = "_notice_login";
@@ -62,7 +62,7 @@ void add_session(object session) {
 	]);
 	m->method = "_status_circuit";
 	m->data = "Welcome on board.";
-	MMP.Packet p = MMP.Packet(encode_message(m), ([ "_source" : uniform ]));
+	MMP.Packet p = MMP.Packet(message_encode(m), ([ "_source" : uniform ]));
 	session->send(mmp_signature->encode(p));
 
 	if (find_call_out(implicit_logout) != -1) {
@@ -71,7 +71,7 @@ void add_session(object session) {
 }
 
 void logout() {
-	sendmsg(uniform, "_notice_logout", "You are being terminated. Server restart.", ([]), uniform);
+	sendmsg(uniform, "_notice_logout", "You are being terminated. Server restart.", ([]));
 
 	call_out(logout_cb, 0, this);
 }
@@ -153,43 +153,37 @@ mapping get_profile() {
 }
 
 int _request_profile(MMP.Packet p) {
-	MMP.Uniform source = m->vars["_source"];
+	MMP.Uniform source = p->source();
 
 	if (source) {
-		Yakity.Message reply = Yakity.Message();
-		reply->vars = ([
-			"_profile" : get_profile(),
-		]);
-		reply->method = "_update_profile";
-		send(source, reply);
+		sendmsg(source, "_update_profile", 0, ([ "_profile" : get_profile() ]));
 	}
 
 	return Yakity.STOP;
 }
 
 void incoming(object session, Serialization.Atom atom) {
-	MMP.Packet p = mmp_signature->encode(p);
+	MMP.Packet p = mmp_signature->decode(atom);
 
 	//werror("%s->incoming(%O, %O)\n", this, session, m);
 	p->vars["_source"] = uniform;
 
 	if (p->target() == uniform) {
-		m->misc["session"] = session;
-		if (Yakity.STOP == ::msg(m)) {
+		p->misc["session"] = session;
+		if (Yakity.STOP == ::msg(p)) {
 			return;
 		}
 		// sending messages to yourself.
 	}
 
-	// TODO: could be inaccurate.
-	m->vars["_timestamp"] = Yakity.Date(time());
-	send(m);
+	p->vars["_timestamp"] = Calendar.now();
+	server->deliver(p);
 }
 
 int msg(MMP.Packet p) {
 	//werror("%s->msg(%O)\n", this, m);
 
-	if (::msg(m) == Yakity.STOP) return Yakity.STOP;
+	if (::msg(p) == Yakity.STOP) return Yakity.STOP;
 
 	p->vars["_id"] = ++count;
 

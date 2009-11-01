@@ -25,23 +25,15 @@ void create(object server, MMP.Uniform uniform, string name) {
 	this_program::name = name;
 }
 
-void groupcast(MMP.Packet p, Yakity.Message m) {
-	foreach (members; MMP.Uniform target;) {
-		Yakity.Message t = m->clone();
-		t->vars["_target"] = target;
-		send(t);
-	}
-}
-
 void castmsg(string mc, string data, mapping vars) {
 	foreach (members; MMP.Uniform t;) {
-		sendmsg(t, mc, data, vars, uniform);
+		sendmsg(t, mc, data, vars);
 	}
 }
 
-void cast(Yakity.Message|Serialization.Atom m, void|MMP.Uniform relay) {
+void groupcast(Yakity.Message|Serialization.Atom m, void|MMP.Uniform relay) {
 	if (object_program(m) == Yakity.Message) {
-		m = encode_message(m);
+		m = message_encode(m);
 	}
 
 	mapping vars = relay ? ([ "_source_relay" : relay, "_source" : uniform ]) : ([ "_source" : uniform ]);
@@ -53,7 +45,6 @@ void cast(Yakity.Message|Serialization.Atom m, void|MMP.Uniform relay) {
 }
 
 void stop() {
-	Yakity.Message m = Yakity.Message(
 	foreach (members; MMP.Uniform target;) {
 		sendmsg(target, "_notice_leave", "Room is being shut down.", ([ "_supplicant" : target ]));
 	}
@@ -97,9 +88,9 @@ int _request_leave(MMP.Packet p) {
 }
 
 int _request_profile(MMP.Packet p) {
-	MMP.Uniform source = m->source();
+	MMP.Uniform source = p->source();
 
-	sendmsg(source, "_update_profile", 0, ([ "_profile" : ([ "_name_display" : name ]) ]), uniform);
+	sendmsg(source, "_update_profile", 0, ([ "_profile" : ([ "_name_display" : name ]) ]));
 	return Yakity.STOP;	
 }
 
@@ -108,11 +99,11 @@ int _message_public(MMP.Packet p) {
 	MMP.Uniform source = p->source();
 
 	if (!has_index(members, source)) {
-		sendmsg(source, "_error_membership_required", "You must join the room first.", 0, uniform);
+		sendmsg(source, "_error_membership_required", "You must join the room first.");
 		return Yakity.STOP;
 	}
 
-	cast(p->data, source);
+	groupcast(p->data, source);
 
 	return Yakity.STOP;
 }
