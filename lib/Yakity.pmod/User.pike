@@ -141,7 +141,7 @@ int _request_logout(MMP.Packet p) {
 int _message_private(MMP.Packet p) {
 	MMP.Uniform source = p->source();
 
-	if (source && source != uniform) {
+	if (source && source != uniform && p->vars["_source_relay"] != uniform) {
 		send(source, p->data, source);
 	}
 
@@ -176,7 +176,6 @@ void incoming(object session, Serialization.Atom atom) {
 		// sending messages to yourself.
 	}
 
-	p->vars["_timestamp"] = Calendar.now();
 	server->deliver(p);
 }
 
