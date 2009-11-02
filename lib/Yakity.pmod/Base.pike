@@ -37,9 +37,9 @@ void create(object server, object uniform) {
 		pp->register_type("mapping", "_mapping", Mapping(pp,pp));
 		pp->register_type("array", "_list", List(pp));
 		pp->register_type(MMP.Uniform, "_uniform", Uniform());
-		message_signature = Yakity.Types.Message(Method(), Mapping(Method(), pp), UTF8String());
+		message_signature = Yakity.Types.Message(Method(), Vars(0, ([ "_" : pp ])), UTF8String());
 		server->type_cache[Yakity.Types.Message][0] = message_signature;
-		server->type_cache[Yakity.Types.Message][1] = Yakity.Types.Message(Method(), Atom(), Atom());
+		server->type_cache[Yakity.Types.Message][1] = smsig = Yakity.Types.Message(Method(), Atom(), Atom());
 	} else {
 		message_signature = server->type_cache[Yakity.Types.Message][0];
 		smsig = server->type_cache[Yakity.Types.Message][1];
@@ -65,7 +65,7 @@ void send(MMP.Uniform target, Serialization.Atom|Yakity.Message m, void|MMP.Unif
 		vars["_source_relay"] = relay;
 	}
 
-	MMP.Packet p = MMP.Packet(message_signature->encode(m), vars);
+	MMP.Packet p = MMP.Packet(m, vars);
 	call_out(server->deliver, 0, p);
 }
 
