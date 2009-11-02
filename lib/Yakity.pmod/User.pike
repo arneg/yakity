@@ -141,6 +141,8 @@ int _request_logout(MMP.Packet p) {
 int _message_private(MMP.Packet p) {
 	MMP.Uniform source = p->source();
 
+	// It might be smart to have some kind of smarter detection here.
+	// this might go really wrong if people send bad replies
 	if (source && source != uniform && p->vars["_source_relay"] != uniform) {
 		send(source, p->data, source);
 	}
