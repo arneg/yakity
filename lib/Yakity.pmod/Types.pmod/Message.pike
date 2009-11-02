@@ -86,10 +86,6 @@ void done_to_medium(Serialization.Atom atom) {
 		atom->pdata += ({ data->encode(m->data) });
 }
 
-int (0..1) low_can_encode(mixed a) {
-	return has_index(a, "method");
-}
-
-int(0..1) can_encode(mixed a) {
-	return has_index(a, "data") && has_index(a, "vars") && has_index(a, "method");
+int (0..1) can_encode(mixed a) {
+	return Program.inherits(object_program(a), Yakity.Message);
 }
