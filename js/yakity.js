@@ -68,7 +68,7 @@ psyc.find_abbrev = function(obj, key) {
  * @property {String} data Payload
  */
 psyc.Message = mmp.Packet.extend({
-	constructor : function(method, vars, data) {
+	constructor : function(method, data, vars) {
 		this.method = method;
 		this.base(data, vars);
 	},
@@ -186,7 +186,7 @@ psyc.default_polymorphic = function() {
 	pol.register_type("_mapping", psyc.Mapping, new serialization.Mapping(pol, pol));
 	pol.register_type("_list", Array, new serialization.Array(pol));
 	pol.register_type("_time", psyc.Date, new serialization.Date());
-	pol.register_type("_uniform", psyc.Uniform, new serialization.Uniform());
+	pol.register_type("_uniform", mmp.Uniform, new serialization.Uniform());
 	return pol;
 }
 /**
@@ -222,7 +222,7 @@ psyc.Client.prototype = {
 	},
 	/**
 	 * Register for certain incoming messages. This can be used to implement chat tabs or handlers for certain message types.
-	 * @params {Object} params Object containing the properties "method", "callback" and optionally "source". For all incoming messages matching "method" and "source" the callback is called. The "source" property should be of type psyc.Uniform.
+	 * @params {Object} params Object containing the properties "method", "callback" and optionally "source". For all incoming messages matching "method" and "source" the callback is called. The "source" property should be of type mmp.Uniform.
 	 * @returns A wrapper object of type meteor.CallbackWrapper. It can be used to unregister the handler.
 	 */
 	register_method : function(params) {
@@ -243,20 +243,20 @@ psyc.Client.prototype = {
 	},
  	sendmsg : function(target, method, data, vars) {
 
-		var m = psyc.Message(method, data, vars);
-		var p = mmp.Packet(m, { _target : target, _source : this.uniform });
+		var m = new psyc.Message(method, data, vars);
+		var p = new mmp.Packet(m, { _target : target, _source : this.uniform });
 		this.send(p);
 	},
 	/**
 	 * Send a packet. This should be of type psyc.Message.
 	 * @params {Object} packet Message to send.
 	 */
-	send : function(packet) {
+	send : function(p) {
 		if (!p.V("_target")) throw("Message without _target is baaad!");
 		if (!p.V("_source")) p.source(this.uniform);
 
 		try {
-			this.connection.send(this.psig.encode(packet).render());
+			this.connection.send(this.psig.encode(p).render());
 		} catch (error) {
 			if (meteor.debug) {
 				if (typeof(error) == "object") {
@@ -483,8 +483,8 @@ psyc.Base = Base.extend({
 			meteor.debug("No handler for "+method+" in "+this);	
 		}
 	},
-	sendmsg : function(target, method, vars, data) {
-		this.client.sendmsg(target, method, vars, data);
+	sendmsg : function(target, method, data, vars) {
+		this.client.sendmsg(target, method, data, vars);
 	}
 });
 psyc.ChatWindow = psyc.Base.extend({
@@ -553,7 +553,7 @@ psyc.RoomWindow = psyc.TemplatedWindow.extend({
 	_notice_enter : function(p, m) {
 		var list = m.v("_members");
 		var supplicant = m.v("_supplicant");
-		var me = this.client.uniform;
+		var me = p.target();
 
 		if (supplicant === me) {
 			if (this.left) {
@@ -575,7 +575,7 @@ psyc.RoomWindow = psyc.TemplatedWindow.extend({
 	},
 	_notice_leave : function(p, m) {
 		var supplicant = m.v("_supplicant");
-		var me = this.client.uniform;
+		var me = p.target();
 
 		if (supplicant === me) {
 			if (!this.left) {
