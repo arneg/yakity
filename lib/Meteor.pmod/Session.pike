@@ -129,7 +129,7 @@ void register_new_id() {
 	if (autoclose) headers["Connection"] = "keep-alive";
 
 	// send this first
-	stream->out_buffer = "HTTP/1.1 200 OK\r\n" + Roxen.make_http_headers(headers);
+	stream->out_buffer = "HTTP/1.1 200 OK\r\n" + connection_id->make_response_headers(headers);
 
 	while (!queue->isEmpty()) {
 		stream->write(queue->shift()->render());
@@ -162,12 +162,12 @@ void handle_id(object id) {
 
 		if (err) { // this is reason to disconnect
 			werror("%O: Peer sent malformed atom, discarding.\n", this);
-			id->send_result(Roxen.http_low_answer(500, "bad input"));
+			id->answer(500, "bad input");
 			parser = Serialization.AtomParser();
 			RETURN;
 		}
 
-		id->send_result(Roxen.http_string_answer("ok"));
+		id->answer(200, "ok");
 	} else {
 		//werror("%O: New connection from %O.\n", this, id->connection()->query_address());
 
