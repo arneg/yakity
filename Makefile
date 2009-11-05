@@ -20,6 +20,7 @@ release:
 	cp load_test.sh $(NAME)/bin/
 	cp -r js $(NAME)/htdocs/
 	mkdir $(NAME)/htdocs/ppp-js/
+	mkdir $(NAME)/stats/
 	cp ppp/js/*.js $(NAME)/htdocs/ppp-js/
 	rm $(NAME)/htdocs/ppp-js/time.js
 	rm $(NAME)/htdocs/ppp-js/psyc.js
