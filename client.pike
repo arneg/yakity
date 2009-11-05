@@ -39,7 +39,6 @@ class FakeUser {
 		string data = random_string(random(30) + 10);
 		messages[data] = client_info(gethrtime());
 		sendmsg(u, "_message_private", data);
-		call_out(chat_to, 1+random(2.0), u);
 	}
 
 	void _status_circuit(MMP.Packet p) {
@@ -59,6 +58,7 @@ class FakeUser {
 				 "start" : info->start,
 				 "stop" : gethrtime(),
 				]));
+				call_out(chat_to, random(2.0), partner);
 			} else {
 				werror("got unknown echo: %O\n", m);
 			}
