@@ -20,17 +20,21 @@ void get_fail(object request, object info) {
 		 ]));
 }
 void get_ok(object request, object info) {
-	log(([
-		 "component" : "session",
-		 "method" : "init_session",
-		 "result" : "OK",
-		 "start" : info->start,
-		 "stop" : gethrtime(),
-		 ]));
-	id = request->data();
-	connect_stream();
+	if (request->con->status == 200) {
+		log(([
+			 "component" : "session",
+			 "method" : "init_session",
+			 "result" : "OK",
+			 "start" : info->start,
+			 "stop" : gethrtime(),
+			 ]));
+		id = request->data();
+		connect_stream();
 
-	if (sizeof(buffer)) _write();
+		if (sizeof(buffer)) _write();
+	} else {
+		get_fail(request, info);
+	}
 }
 
 void create(string url, function log, mapping initial_vars) {
@@ -95,17 +99,27 @@ void stream_data_cb(mixed id, string data) {
 }
 
 void stream_headers_ok(object request, object info) {
-	log(([
-		 "component" : "session",
-		 "method" : "connect_stream",
-		 "result" : "OK",
-		 "start" : info->start,
-		 "stop" : gethrtime(),
-		 ]));
-	this_program::request = request;
-	request->con->con->set_read_callback(stream_data_cb);
-	inbuf = request->con->buf[request->con->datapos..];
-	stream_data_cb(0, "");
+	if (request->con->status != 200) {
+		log(([
+			 "component" : "session",
+			 "method" : "connect_stream",
+			 "result" : "FAIL",
+			 "start" : info->start,
+			 "stop" : gethrtime(),
+			 ]));
+	} else {
+		log(([
+			 "component" : "session",
+			 "method" : "connect_stream",
+			 "result" : "OK",
+			 "start" : info->start,
+			 "stop" : gethrtime(),
+			 ]));
+		this_program::request = request;
+		request->con->con->set_read_callback(stream_data_cb);
+		inbuf = request->con->buf[request->con->datapos..];
+		if (sizeof(inbuf)) stream_data_cb(0, "");
+	}
 }
 
 

@@ -99,7 +99,7 @@ object get_user(RequestID id) {
 }
 
 mixed find_file( string f, object id ) {
-	werror("requested: %s?%O\n", f, id->query);
+	//werror("requested: %s?%O\n", f, id->query);
 	NOCACHE();
 
 	object session;
