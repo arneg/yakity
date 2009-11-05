@@ -33,6 +33,8 @@ void stop() {
 		room->stop();
 	}
 	foreach (users;MMP.Uniform u;object o) {
+		m_delete(users, u);
+		server->unregister_entity(u);
 		o->logout();
 	}
 }
