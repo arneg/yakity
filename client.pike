@@ -1,11 +1,8 @@
 
 object parser = Serialization.AtomParser();
-object cs;
-object message_signature;
-object server;
+object cs, psig, user, server;
 object type_cache = Serialization.TypeCache();
 mapping messages = ([]);
-object user;
 
 inherit Serialization.Signature;
 inherit Serialization.BasicTypes;
@@ -15,26 +12,38 @@ class FakeUser {
 	inherit Yakity.Base;
 
 	void chat_to(MMP.Uniform u) {
-		object m = Yakity.Message();
-		m->method = "_message_private";
-		m->vars = ([
-				   "_target" : u,
-				   ]);
-		m->data = random_string(random(30) + 10);
-		
-		messages[m->data] = client_info(gethrtime());
-
-		cs->send(message_signature->encode(m)->render());
+		string data = random_string(random(30) + 10);
+		messages[data] = client_info(gethrtime());
+		sendmsg(u, "_message_private", data);
 		call_out(chat_to, 3+random(5), u);
 	}
 
+	void _message_private(MMP.Packet p) {
+		werror("%O, %O, %d\n", uniform, p->vars["_source_relay"], p->vars["_source_relay"] == uniform);
+		if (p->vars["_source_relay"] == uniform) {
+			Yakity.Message m = message_decode(p->data);
+			if (has_index(messages, m->data)) {
+				object info = m_delete(messages, m->data);
+				log(([
+				 "component" : "user",
+				 "method" : "echo",
+				 "result" : "OK",
+				 "start" : info->start,
+				 "stop" : gethrtime(),
+				]));
+			} else {
+				werror("got unknown echo: %O\n", m);
+			}
+		}
+	}
 }
 
 class client_info(int start) {}
 
 void log(mapping m) {
 	if (m->component == "user") {
-		write("%d %f\n", m->start, (m->stop - m->start)/1000.0);
+		//write("%d %f\n", m->start, (m->stop - m->start)/1000.0);
+		werror("%d %f\n", m->start, (m->stop - m->start)/1000.0);
 		//werror("%O\n", m);
 	}
 }
@@ -44,23 +53,7 @@ string data(string d) {
 	parser->feed(d);
 
 	while (Serialization.Atom a = parser->parse()) {
-		user->msg(message_signature->decode(a));
-	}
-
-}
-
-void _echo_message_private(Yakity.Message m) {
-	if (has_index(messages, m->data)) {
-		object info = m_delete(messages, m->data);
-		log(([
-		 "component" : "user",
-         "method" : "echo",
-         "result" : "OK",
-         "start" : info->start,
-         "stop" : gethrtime(),
-		]));
-	} else {
-		werror("got unknown echo: %O\n", m);
+		user->msg(psig->decode(a));
 	}
 }
 
@@ -69,8 +62,17 @@ void create() {
 	::create(type_cache);
 }
 
+mapping(string:MMP.Uniform) ucache = ([]);
 object get_uniform(string u) {
-	return MMP.Uniform(u);
+	if (!has_index(ucache, u)) {
+		ucache[u] = MMP.Uniform(u);
+	}
+	return ucache[u];
+}
+
+void deliver(MMP.Packet p) {
+	Serialization.Atom a = psig->encode(p);
+	cs->send(a->render());
 }
 
 int main(int argc, array(string) argv) {
@@ -86,15 +88,7 @@ int main(int argc, array(string) argv) {
 	string partner = sprintf("user%d", number ^ 1);
 	user = FakeUser(this, get_uniform("psyc://127.0.0.4/~"+nick));
 
-	object pp = Serialization.Types.Polymorphic();
-	pp->register_type("string", "_method", Method());                                                                                                                   
-	pp->register_type("string", "_string", UTF8String());
-	pp->register_type(Yakity.Date, "_time", Yakity.Types.Date());
-	pp->register_type("int", "_integer", Int());
-	pp->register_type("mapping", "_mapping", Mapping(pp,pp));
-	pp->register_type("array", "_list", List(pp));
-	pp->register_type(MMP.Uniform, "_uniform", Serialization.Types.Uniform(this));
-	message_signature = MMPPacket(Yakity.Types.Message(Method(), Mapping(Method(), pp), UTF8String()));
+	psig = Packet(Atom());
 
 	cs = Meteor.ClientSession(url, log, ([
 		"nick" : nick,
