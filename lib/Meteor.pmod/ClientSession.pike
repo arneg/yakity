@@ -83,7 +83,10 @@ void stream_data_cb(mixed id, string data) {
 		return;
 	}
 
-	if (3 == sscanf(inbuf, "%x%*[ ]\r\n%s", length, inbuf)) {
+	string t;
+
+	if (3 == sscanf(inbuf, "%x%*[ ]\r\n%s", length, t)) {
+		inbuf = t;
 		if (length == 0) {
 			werror("got zero length. stream is over.\n");
 			request->con->con->set_read_callback(0);
@@ -94,6 +97,8 @@ void stream_data_cb(mixed id, string data) {
 
 		call_out(stream_data_cb, 0, 0, "");
 		return;
+	} else {
+		length = 0;
 	}
 
 	werror("no length in '%s'\n", inbuf);
