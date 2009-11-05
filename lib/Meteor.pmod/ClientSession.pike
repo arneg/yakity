@@ -39,6 +39,7 @@ void get_ok(object request, object info) {
 
 void create(string url, function log, mapping initial_vars) {
 	session = Protocols.HTTP.Session();
+	session->maximum_total_connections = 2;
 	this_program::log = log;
 	this_program::url = Standards.URI(url);
 
