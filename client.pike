@@ -15,12 +15,14 @@ class FakeUser {
 	inherit Yakity.Base;
 	object meteor;
 	object parser = Serialization.AtomParser();
+	object partner;
 
-	void create(object server, string nick) {
+	void create(object server, string nick, MMP.Uniform partner) {
 		::create(server, server->get_uniform(burl+"~"+nick));
 		meteor = Meteor.ClientSession(murl, log, ([
 			"nick" : nick,
 		]));
+		this_program::partner = partner;
 		meteor->read_cb = data;
 	}
 
@@ -38,6 +40,10 @@ class FakeUser {
 		messages[data] = client_info(gethrtime());
 		sendmsg(u, "_message_private", data);
 		call_out(chat_to, 1+random(2.0), u);
+	}
+
+	void _status_circuit(MMP.Packet p) {
+		call_out(chat_to, 30+random(5.0), partner);
 	}
 
 	void _message_private(MMP.Packet p) {
@@ -91,8 +97,6 @@ class Average {
 		return sum/sizeof(values);
 	}
 }
-
-object av_interval;
 
 void log(mapping m) {
 	if (m->component == "user") {
@@ -148,13 +152,9 @@ int main(int argc, array(string) argv) {
 	for (int i = min; i <= max; i++) {
 		string nick = sprintf("user%d", i);
 		string partner = sprintf("user%d", i ^ 1);
-		user = FakeUser(this, nick);
+		user = FakeUser(this, nick, get_uniform(burl+"~"+partner));
 		users[user->uniform] = user;
-		object u = get_uniform(burl+"~"+partner);
-		call_out(user->chat_to, 5+random(5.0), u);
 	}
-
- 	av_interval = Average(3000.0);
 
 	return -1;
 }
