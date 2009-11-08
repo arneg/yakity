@@ -106,6 +106,22 @@ mixed find_file( string f, object id ) {
 
 	object session;
 
+	void answer(int code, string data) {
+		id->send_result(Roxen.http_low_answer(code, data));
+	};
+
+	void end() {
+		id->end();
+	};
+
+	string make_response_headers(mapping m) {
+		return Roxen.make_http_headers(m);
+	};
+
+	mixed connection() {
+		return id->connection();
+	};
+
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
 		string name = id->variables["nick"];
 
@@ -133,7 +149,20 @@ mixed find_file( string f, object id ) {
 
 	// we should check whether or not this is hitting a max connections limit somewhere.
 	if ((session = sessions[id->variables["id"]])) {
-		call_out(session->handle_id, 0, id);
+		mapping new_id = ([
+			"variables" : id->variables,
+			"answer" : answer,
+			"end" : end,
+			"method" : id->method,
+			"request_headers" : id->request_headers,
+			"misc" : ([ 
+				"content_type_type" : id->misc["content_type_type"],
+			]),
+			"make_response_headers" : make_response_headers,
+			"connection" : connection,
+			"data" : id->data,
+		]);
+		call_out(session->handle_id, 0, new_id);
 		return Roxen.http_pipe_in_progress();
 	}
 

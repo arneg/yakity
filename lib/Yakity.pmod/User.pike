@@ -72,7 +72,6 @@ void add_session(object session) {
 
 void logout() {
 	sendmsg(uniform, "_notice_logout", "You are being terminated. Server restart.", ([]));
-
 	call_out(logout_cb, 0, this);
 }
 
