@@ -24,7 +24,8 @@ int count = 0; // this is a local counter. the js speaks a subset of
 			   // what psyc should do
 object mmp_signature;
 
-mapping(int:object) history = ([]);
+// allowed to save 200 messages. this needs to be configurable somewhere.
+MMP.Utils.QuotaMap history = MMP.Utils.QuotaMap(200);
 
 void create(object server, object uniform, mixed user, function logout) {
 	::create(server, uniform);
