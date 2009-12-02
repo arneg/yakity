@@ -398,7 +398,7 @@ psyc.funky_text = function(p, templates) {
 	div.className = psyc.abbreviations(m.method).join(" ");
 	
 	var cb = function(result, m) {
-		s = result[0].substr(1, result[0].length-2);
+		var s = result[0].substr(1, result[0].length-2);
 		var a = s.split("-");
 		s = a[0];
 		var classes = psyc.abbreviations(s);
