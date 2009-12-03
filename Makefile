@@ -15,10 +15,7 @@ release:
 	mkdir $(NAME)/modules
 	cp modules/yakitychat.pike $(NAME)/modules/
 	mkdir $(NAME)/htdocs
-	mkdir $(NAME)/bin
-	cp client.pike $(NAME)/bin/
-	cp server.pike $(NAME)/bin/
-	cp load_test.sh $(NAME)/bin/
+	cp -r bin/ $(NAME)/
 	cp -r js $(NAME)/htdocs/
 	mkdir $(NAME)/htdocs/ppp-js/
 	mkdir $(NAME)/stats/
