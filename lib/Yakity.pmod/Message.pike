@@ -22,7 +22,7 @@ this_program clone() {
 	this_program o = this_program();
 	o->vars = copy_value(vars);
 	o->method = method;
-	o->data = data;
+	o->data = copy_value(data);
 
 	return o;
 }
