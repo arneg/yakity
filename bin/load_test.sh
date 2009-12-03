@@ -14,18 +14,22 @@ fi
 
 PID=""
 SIGTERM=15
+DIR=`dirname "$0"`
 
-for num in `seq 0 $N`
+for num in `seq 1 $N`
 do
 	echo "$num"
 	MIN=$(echo "$num * $EACH"|bc)
 	MAX=$(echo "($num + 1) * $EACH - 1"|bc)
 	WAIT=$(echo "($EACH * 0.01) + 2"|bc)
-	echo "pike -M ../lib/ client.pike $MURL $BURL $MIN $MAX > ../stats/$num.plot"
-	pike -M ../lib/ client.pike $MURL $BURL $MIN $MAX > ../stats/$num.plot &
+	echo "pike -M $DIR/../lib/ $DIR/client.pike $MURL $BURL $MIN $MAX > $DIR/../stats/$num.plot"
+	pike -M $DIR/../lib/ $DIR/client.pike $MURL $BURL $MIN $MAX > $DIR/../stats/$num.plot &
 	PID="$PID $!" 
-	echo "sleep $WAIT"
-	sleep $WAIT
+	if [ $num -ne $N ]
+	then
+		echo "sleep $WAIT"
+		sleep $WAIT
+	fi
 done
 
 echo "started processes $PID"
