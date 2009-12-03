@@ -36,16 +36,57 @@ string status() {
 			+ sprintf("<br> entities: <br><pre>%O</pre>", server->entities);
 }
 
+void print_help() {
+	werror("Usage: server.pike -p <port> -d <domain> -b <bind address> -r <rooms>\n\n");
+}
 
 int main(int argc, array(string) argv) {
-	domain = argv[2];
-	http_server = Protocols.HTTP.Server.Port(handle_request, (int)argv[1], domain);
+	array opt;
+	mapping options = ([]);
+
+    if (mixed err = catch { opt = Getopt.find_all_options(argv, ({
+		({ "domain", Getopt.HAS_ARG, ({ "-d", "--domain" }) }),
+		({ "port", Getopt.HAS_ARG, ({ "-p", "--port" }) }),
+		({ "rooms", Getopt.HAS_ARG, ({ "-r", "--rooms" }) }),
+		({ "bind", Getopt.HAS_ARG, ({ "-b", "--bind" }) }),
+					   }), 1); }) {
+		werror("error: %O\n", err);
+		print_help();
+		_exit(1);
+    } else foreach (sort(opt);;array t) {
+		options[t[0]] = t[1];
+	}
+
+	string bind;
+
+	switch (has_index(options, "bind") | has_index(options, "domain") << 1) {
+	case 3:
+		bind = options["bind"];
+		domain = options["domain"];
+		break;
+	case 2:
+		bind = domain = options["domain"];
+		break;
+	case 1:
+		bind = domain = options["bind"];
+		break;
+	default:
+		werror("You have to specify either domain or bind address.\n");
+		print_help();
+		_exit(1);
+	}
+
+	int port = (int)options["port"] || 80;
+
+	http_server = Protocols.HTTP.Server.Port(handle_request, port, bind);
+	werror("Started HTTP server on %s:%d\n", bind, port);
 
 	server = Yakity.Server(Serialization.TypeCache());
 	root = Yakity.Root(server, to_uniform());
 	root->users = users;
 	root->rooms = rooms;
 	server->register_entity(root->uniform, root);
+	werror("Ready for clients.\n");
 	return -1;
 }
 
