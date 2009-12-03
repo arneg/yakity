@@ -29,6 +29,7 @@ void create(object server, object uniform) {
 	this_program::uniform = uniform;
 	SIG::create(server->type_cache);
 
+	// race here!
 	if (!has_index(server->type_cache[Yakity.Types.Message], 0)) {
 		object pp = Serialization.Types.Polymorphic();
 		pp->register_type("string", "_method", Method());                                                                                                                   
@@ -37,7 +38,7 @@ void create(object server, object uniform) {
 		pp->register_type("mapping", "_mapping", Mapping(pp,pp));
 		pp->register_type("array", "_list", List(pp));
 		pp->register_type(MMP.Uniform, "_uniform", Uniform());
-		message_signature = Yakity.Types.Message(Method(), Vars(0, ([ "_" : pp ])), UTF8String());
+		message_signature = Yakity.Types.Message(Method(), Vars(0, ([ "_" : pp ])), pp);
 		server->type_cache[Yakity.Types.Message][0] = message_signature;
 		server->type_cache[Yakity.Types.Message][1] = smsig = Yakity.Types.Message(Method(), Atom(), Atom());
 	} else {
