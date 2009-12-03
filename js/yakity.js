@@ -77,7 +77,7 @@ psyc.Message = mmp.Packet.extend({
 		ret += this.vars.toString();
 		ret += "]))";
 		return ret;
-	},
+	}
 });
 /**
  * Does a one-step abbreviation of a psyc method. For instance, _message_public turns into _message. Returns 0 if no further abbreviation is possible.
