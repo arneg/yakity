@@ -40,7 +40,6 @@ void stop() {
 }
 
 string status() {
-
 	return sprintf("<br>sessions: <br><pre>%O</pre>", sessions)
 			+ sprintf("<br> users: <br><pre>%O\n<pre>", users) 
 			+ sprintf("<br> rooms: <br><pre>%O</pre>", rooms) 
@@ -100,27 +99,19 @@ object get_user(RequestID id) {
 	return o;
 }
 
+function combine(function f1, function f2) {
+	mixed f(mixed ...args) {
+		return f1(f2(@args));
+	};
+
+	return f;
+}
+
 mixed find_file( string f, object id ) {
 	//werror("requested: %s?%O\n", f, id->query);
 	NOCACHE();
 
 	object session;
-
-	void answer(int code, string data) {
-		id->send_result(Roxen.http_low_answer(code, data));
-	};
-
-	void end() {
-		id->end();
-	};
-
-	string make_response_headers(mapping m) {
-		return Roxen.make_http_headers(m);
-	};
-
-	mixed connection() {
-		return id->connection();
-	};
 
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
 		string name = id->variables["nick"];
@@ -151,15 +142,15 @@ mixed find_file( string f, object id ) {
 	if ((session = sessions[id->variables["id"]])) {
 		mapping new_id = ([
 			"variables" : id->variables,
-			"answer" : answer,
-			"end" : end,
+			"answer" : combine(id->send_result, Roxen.http_low_answer),
+			"end" : id->end,
 			"method" : id->method,
 			"request_headers" : id->request_headers,
 			"misc" : ([ 
 				"content_type_type" : id->misc["content_type_type"],
 			]),
-			"make_response_headers" : make_response_headers,
-			"connection" : connection,
+			"make_response_headers" : Roxen.make_http_headers,
+			"connection" : id->connection,
 			"data" : id->data,
 		]);
 		call_out(session->handle_id, 0, new_id);
