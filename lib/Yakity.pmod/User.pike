@@ -175,6 +175,7 @@ void incoming(object session, Serialization.Atom atom) {
 		if (Yakity.STOP == ::msg(p)) {
 			return;
 		}
+		m_delete(p->misc, "session");
 		// sending messages to yourself.
 	}
 
