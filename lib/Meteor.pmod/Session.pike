@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+constant keepalive_interval = 5;
+constant timeout = 5;
 string client_id;
 function cb, error_cb;
 int closing = 1;
@@ -24,7 +26,7 @@ Thread.Mutex mutex = Thread.Mutex();
 #define RETURN	destruct(lock); return
 #define LOCK	object lock = mutex->lock()
 
-#define KEEPALIVE	if (!kid) { kid = call_out(keepalive, 30); }
+#define KEEPALIVE	if (!kid) { kid = call_out(keepalive, keepalive_interval); }
 #define KEEPDEAD	if (kid) { remove_call_out(kid); kid = 0; }
 
 Serialization.AtomParser parser = Serialization.AtomParser();
@@ -57,6 +59,7 @@ void end_stream() {
 
 void die(string reason) {
 	LOCK;
+	lid = 0;
 
 	call_out(error_cb, 0, this, reason);
 	cb = 0;
@@ -81,7 +84,7 @@ void stream_close(Meteor.Stream s, string reason) {
 	if (new_id) {
 		call_out(register_new_id, 0);
 	} else {
-		lid = call_out(die, 30, reason);
+		lid = call_out(die, timeout, reason);
 		// call_out and close after a timeout
 	}
 	RETURN;
