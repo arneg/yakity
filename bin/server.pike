@@ -17,25 +17,6 @@ MMP.Uniform to_uniform(void|int type, void|string name) {
 	}
 }
 
-void stop() {
-	foreach (rooms;;object room) {
-		room->stop();
-	}
-	foreach (users;MMP.Uniform u;object o) {
-		m_delete(users, u);
-		server->unregister_entity(u);
-		o->logout();
-	}
-}
-
-string status() {
-
-	return sprintf("<br>sessions: <br><pre>%O</pre>", sessions)
-			+ sprintf("<br> users: <br><pre>%O\n<pre>", users) 
-			+ sprintf("<br> rooms: <br><pre>%O</pre>", rooms) 
-			+ sprintf("<br> entities: <br><pre>%O</pre>", server->entities);
-}
-
 void print_help() {
 	werror("Usage: server.pike -p <port> -d <domain> -b <bind address> -r <rooms>\n\n");
 }
@@ -118,35 +99,27 @@ object get_user(mixed id) {
 	return o;
 }
 
+void answer(object r, int code, string data) {
+	r->response_and_finish(([
+		"data" : data,
+		"error" : code,
+	]));
+}
+
 void handle_request(Protocols.HTTP.Server.Request r) {
 	string f = basename(r->not_query);
-	void answer(int code, string data) {
-		r->response_and_finish(([
-			"data" : data,
-			"error" : code,
-		]));
-	};
-	void end() {
-		r->finish(1);
-	};
-
-	mixed connection() {
-		return r->my_fd;
-	};
-
 	mapping id = ([
-
 		"request_headers" : r->request_headers,
 		"misc" : ([ 
 			"content_type_type" : has_index(r->request_headers, "content-type") ? (r->request_headers["content-type"]/";")[0] : "",
 		]),
 		"make_response_headers" : r->make_response_header,
-		"connection" : connection,
+		"connection" : Function.curry(`->)(r, "my_fd"),
 		"data" : r->body_raw,
-		"method" : r->request_type,				 
+		"method" : r->request_type,
 		"variables" : r->variables,
-		"answer" : answer,
-		"end" : end,
+		"answer" : Function.curry(answer)(r),
+		"end" : Function.curry(r->finish)(1),
 	]);
 	//werror("requested: %s?%O\n", f, id->query);
 
@@ -183,7 +156,6 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 		]));
 		return;
 	}
-
 
 	// we should check whether or not this is hitting a max connections limit somewhere.
 	if ((session = sessions[id->variables["id"]])) {
