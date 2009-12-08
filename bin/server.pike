@@ -1,4 +1,8 @@
+#if constant(Meteor) 
 inherit Meteor.SessionHandler;
+#else
+#error Cannot find Meteor library.
+#endif
 
 mixed configuration;
 object server;
@@ -129,12 +133,12 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 		string name = id->variables["nick"];
 
 		if (!stringp(name) || !sizeof(name)) {
-			answer(404, "You need to enter a nickname.");
+			answer(r, 404, "You need to enter a nickname.");
 			return;
 		}
 
 		if (sizeof(name) > 30) {
-			answer(404, "C'mon, that nickname is too long.");
+			answer(r, 404, "C'mon, that nickname is too long.");
 			return;
 		}
 
@@ -142,7 +146,7 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 
 		if (!user) {
 			werror("404 with love!\n");
-			answer(404, sprintf("The username %s is already in use.", id->variables["nick"]));
+			answer(r, 404, sprintf("The username %s is already in use.", id->variables["nick"]));
 			return;
 		}
 
@@ -164,5 +168,5 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	}
 
 	werror("'%s' not in sessions %O\n", id->variables["id"], sessions);
-	answer(500, "me dont know you");
+	answer(r, 500, "me dont know you");
 } 
