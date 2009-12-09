@@ -22,10 +22,18 @@ function close_cb, error_cb;
 int autoclose;
 int autoclose_after_send; 
 Stdio.File connection;
-Thread.Mutex m = Thread.Mutex();
 
-#define LOCK object lock = m->lock();
-#define RETURN	do { destruct(lock); return; } while (0)
+#if contant(Roxen)
+Thread.Mutex m = Thread.Mutex();
+# define LOCK object lock = m->lock();
+#else
+# define LOCK
+#endif
+#if constant(Roxen)
+# define RETURN	do { destruct(lock); return; } while (0)
+#else
+# define RETURN return;
+#endif
 // remove all references and callbacks.
 #define CLOSE(reason)	do { call_out(close_cb, 0, this, reason); connection->set_close_callback(0); connection->set_write_callback(0); \
 							 connection = 0;  \

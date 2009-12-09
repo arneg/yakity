@@ -15,7 +15,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 mapping(string:object) sessions = set_weak_flag(([]), Pike.WEAK);
+#if constant(Roxen)
 Thread.Mutex sessions_mutex = Thread.Mutex();
+#endif
 
 string get_new_id() {
 	return MIME.encode_base64(random_string(10));
@@ -23,12 +25,16 @@ string get_new_id() {
 
 object get_new_session() {
 	string s;
+#if constant(Roxen)
 	object lock = sessions_mutex->lock();
+#endif
 
 	while (has_index(sessions, s = get_new_id()));
 	sessions[s] = Meteor.Session(s);
 	
+#if constant(Roxen)
 	destruct(lock);
+#endif
 	return sessions[s];
 }
 

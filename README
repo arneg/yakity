@@ -7,7 +7,7 @@ Installation
 	module directories. You have to restart roxen after taking care of
 	that. 
 
-	It should then be simply to add the YakityChat module to one
+	It should then be simple to add the YakityChat module to one
 	of the sites. The htdocs/ directory then needs to be made available
 	in you website using a normal filesystem module.
 
