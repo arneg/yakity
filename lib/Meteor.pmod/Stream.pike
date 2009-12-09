@@ -89,12 +89,6 @@ void write(string data) {
 void _write() {
 	LOCK;
 
-	// maybe the connection gets removed during lock ? 
-	if (!connection->query_address()) {
-		CLOSE(strerror(connection->errno()));
-		RETURN;
-	}
-
 	if (buffer) {
 		out_buffer += sprintf("%x\r\n%s\r\n", sizeof(buffer), buffer);
 		buffer = 0;
