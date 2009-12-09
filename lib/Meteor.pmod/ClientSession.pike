@@ -63,7 +63,7 @@ void stream_fail_cb(object request, object info) {
 	request->con->con->set_read_callback(0);
 	length = 0;
 	inbuf = 0;
-	connect_stream();
+	call_out(connect_stream, 5);
 }
 
 
