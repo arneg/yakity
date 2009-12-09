@@ -22,9 +22,14 @@ function cb, error_cb;
 int closing = 1;
 MMP.Utils.Queue queue = MMP.Utils.Queue();
 
+#if constant(Roxen)
 Thread.Mutex mutex = Thread.Mutex();
-#define RETURN	destruct(lock); return
-#define LOCK	object lock = mutex->lock()
+# define RETURN	destruct(lock); return
+# define LOCK	object lock = mutex->lock()
+#else
+# define RETURN return
+# define LOCK
+#endif
 
 #define KEEPALIVE	if (!kid) { kid = call_out(keepalive, keepalive_interval); }
 #define KEEPDEAD	if (kid) { remove_call_out(kid); kid = 0; }
