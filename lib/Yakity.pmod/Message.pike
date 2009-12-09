@@ -18,6 +18,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 Serialization.Atom|mapping(string:mixed) vars;
 Serialization.Atom|string method, data;
 
+void create(void|string method, string|void data, void|mapping vars) {
+	this_program::method = method;
+	this_program::data = data;
+	this_program::vars = vars;
+}
+
 this_program clone() {
 	this_program o = this_program();
 	o->vars = copy_value(vars);
