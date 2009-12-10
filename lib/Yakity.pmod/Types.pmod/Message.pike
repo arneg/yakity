@@ -21,21 +21,21 @@ void medium_to_raw(Serialization.Atom atom) {
 
 	switch (sizeof(atom->pdata)) {
 	case 1: 
-		buf += method->render(atom->pdata[0]);
+		buf += atom->pdata[0]->render();
 		break;
 	case 2:
 		if (atom->pdata[0]->type == "_method") { // had no vars
-			buf += method->render(atom->pdata[0]);
-			buf += data->render(atom->pdata[1]);
+			buf += atom->pdata[0]->render();
+			buf += atom->pdata[1]->render();
 		} else {
-			buf += vars->render(atom->pdata[0]);
-			buf += method->render(atom->pdata[1]);
+			buf += atom->pdata[0]->render();
+			buf += atom->pdata[1]->render();
 		}
 		break;
 	case 3:
-		buf += vars->render(atom->pdata[0]);
-		buf += method->render(atom->pdata[1]);
-		buf += data->render(atom->pdata[2]);
+		buf += atom->pdata[0]->render();
+		buf += atom->pdata[1]->render();
+		buf += atom->pdata[2]->render();
 		break;
 	default:
 		error("broken pdata: %O\n", atom->pdata);
