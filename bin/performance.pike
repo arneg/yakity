@@ -25,7 +25,7 @@ int main() {
 
 #if LONG	
 	object m = MMP.Packet(Yakity.Message("_message_private", random_string(1000), ([ "_hihi" : aggregate_mapping(@map(allocate(100, 50), random_string)) ]) ),
-		([ "_source" : MMP.Uniform("psyc://example.org/~user1"), "_target" : MMP.Uniform("psyc://example.org/~user2")]));
+		([ "_source_relay" : MMP.Uniform("psyc://huhuhu.org/~dkjf"), "_source" : MMP.Uniform("psyc://example.org/~user1"), "_target" : MMP.Uniform("psyc://example.org/~user2")]));
 #else
 	object m = MMP.Packet(Yakity.Message("_message_private", "hallo", ([ "_hihi" : aggregate_mapping(@allocate(10, "huhu")) ]) ),
 		([ "_source" : MMP.Uniform("psyc://example.org/~user1"), "_target" : MMP.Uniform("psyc://example.org/~user2")]));
