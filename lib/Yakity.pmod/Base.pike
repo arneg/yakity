@@ -32,7 +32,7 @@ void create(object server, object uniform) {
 	// race here!
 	if (!has_index(server->type_cache[Yakity.Types.Message], 0)) {
 		object pp = Serialization.Types.Polymorphic();
-		pp->register_type("string", "_method", Method());                                                                                                                   
+		pp->register_type("string", "_method", Method());
 		pp->register_type("string", "_string", UTF8String());
 		pp->register_type("int", "_integer", Int());
 		pp->register_type("mapping", "_mapping", Mapping(pp,pp));
