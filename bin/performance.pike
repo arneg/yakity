@@ -37,7 +37,8 @@ int main() {
 	pp->register_type("string", "_string", UTF8String());
 	pp->register_type("int", "_integer", Int());
 #ifndef MAPPING
-	pp->register_type("mapping", "_vars", Vars(0,([ "_" : Method() ])));
+	werror("Using Vars\n");
+	pp->register_type("mapping", "_vars", Vars(0,([ "_" : pp ])));
 #else
 	pp->register_type("mapping", "_mapping", Mapping(pp,pp));
 #endif
