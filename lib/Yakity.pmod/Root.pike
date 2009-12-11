@@ -27,12 +27,20 @@ int _request_users(MMP.Packet p) {
 	MMP.Uniform source = p->source();
 
 	if (users) {
-		mapping profiles = ([]);
+		mapping profiles;
 
 		// possible race here!
+#if 0
+		profiles = ([ ]);
+
 		foreach (users; MMP.Uniform uniform; object o) {
 			profiles[uniform] = o->get_profile();
 		}
+#else
+		profiles = filter(users, lambda(object o) {
+				  return o->get_profile();
+				  });
+#endif
 
 		sendmsg(source, "_update_users", 0,  ([ "_users" : profiles ]));
 	}
