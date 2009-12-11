@@ -87,11 +87,9 @@ int msg(MMP.Packet p) {
 	string method;
 
 	if (sizeof(p->data->typed_data)) {
-		[object signature, object message] = random(p->data->typed_data);
-		method = message->method;
+		method = random(p->data->typed_data)[1]->method;
 	} else {
-		object message = smsig->decode(p->data);
-		method = message->method;
+		method = smsig->decode(p->data)->message->method;
 	}
 
 	if (method[0] = '_') {
