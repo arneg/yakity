@@ -89,7 +89,7 @@ int msg(MMP.Packet p) {
 	if (sizeof(p->data->typed_data)) {
 		method = random(p->data->typed_data)[1]->method;
 	} else {
-		method = smsig->decode(p->data)->message->method;
+		method = smsig->decode(p->data)->method;
 	}
 
 	if (method[0] = '_') {
