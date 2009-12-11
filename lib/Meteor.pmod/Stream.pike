@@ -47,7 +47,7 @@ void create(Stdio.File connection, function cb, function error, int|void autoclo
 	this_program::error_cb = error;
 	// we dont want to close right after the headers have been sent
 	if (autoclose) this_program::autoclose_after_send = autoclose;
-	connection->set_write_callback(0);
+	connection->set_write_callback(_write);
 	connection->set_close_callback(_close);
 }
 
