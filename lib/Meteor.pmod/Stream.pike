@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-string out_buffer = "", buffer;
+string|String.Buffer out_buffer = String.Buffer(), buffer = String.Buffer();
 int write_ready = 0;
 function close_cb, error_cb;
 // we dont want to close before we get the first write
@@ -79,8 +79,7 @@ void write(string data) {
 
 	if (autoclose_after_send) autoclose = 1;
 
-	if (!buffer) buffer = data;
-	else buffer += data;
+	buffer += data;
 
 	if (write_ready && !wid) wid = call_out(_write, 0);
 
@@ -91,18 +90,16 @@ void _write() {
 	LOCK;
 	wid = 0;
 
-	if (buffer) {
-		out_buffer += sprintf("%x\r\n%s\r\n", sizeof(buffer), buffer);
-		buffer = 0;
-	}
-
-	if (!sizeof(out_buffer)) {
+	if (sizeof(buffer)) {
+		out_buffer += sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer);
+		buffer = String.Buffer();
+	} else if (!sizeof(out_buffer)) {
 		write_ready = 1;
 		RETURN;
 	}
 
 	//werror("writing %d bytes to %O", sizeof(out_buffer), connection->query_address());
-	int bytes = connection->write(out_buffer);
+	int bytes = connection->write((string)out_buffer);
 	//werror(" (did %d)\n", bytes);
 
 	// maybe too harsh?
@@ -110,9 +107,9 @@ void _write() {
 		CLOSE("Could not write to socket. Connection lost.");
 		RETURN;
 	} else if (bytes < sizeof(out_buffer)) {
-		out_buffer = out_buffer[bytes..];
+		out_buffer = String.Buffer() + out_buffer[bytes..];
 	} else {
-		out_buffer = "";
+		out_buffer = String.Buffer();
 
 		if (autoclose) {
 			close_now();
