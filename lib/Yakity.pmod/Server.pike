@@ -21,6 +21,7 @@ mapping(string:MMP.Uniform) uniform_cache = set_weak_flag(([]), Pike.WEAK_VALUES
 Thread.Mutex ucm = Thread.Mutex();
 #endif
 object type_cache;
+object root;
 
 void create(void|object type_cache) {
 	this_program::type_cache = type_cache || Serialization.TypeCache();
@@ -58,7 +59,8 @@ void broadcast(MMP.Packet p) {
 	// some psyc legacy using channels, etc. But for the
 	// small scale webchat this is alright.
 
-	foreach (entities;MMP.Uniform target;object o) {
+	p->vars["_context"] = root->uniform;
+	foreach (entities;;object o) {
 #ifdef PROGRESSBAR
 		if ((++bcastcnt%1000) == 0) {
 		    int ime;
@@ -73,10 +75,7 @@ void broadcast(MMP.Packet p) {
 		    lasthrtime = hrime;
 		}
 #endif
-
-		MMP.Packet t = p->clone();
-		t->vars["_target"] = target;
-		o->msg(t);
+		o->msg(p);
 	}
 }
 

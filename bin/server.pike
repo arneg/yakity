@@ -68,6 +68,7 @@ int main(int argc, array(string) argv) {
 
 	server = Yakity.Server(Serialization.TypeCache());
 	root = Yakity.Root(server, to_uniform());
+	server->root = root;
 	root->users = users;
 	root->rooms = rooms;
 	server->register_entity(root->uniform, root);
