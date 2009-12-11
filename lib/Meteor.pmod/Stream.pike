@@ -55,7 +55,7 @@ void create(Stdio.File connection, function cb, function error, int|void autoclo
 
 void _close() {
 	LOCK;
-	if (buffer || sizeof(out_buffer)) {
+	if (buffer || out_buffer) {
 		ERROR(sprintf("Connection closed by peer. %d of data could not be sent.", sizeof(out_buffer) + stringp(buffer) ? sizeof(buffer) : 0));
 	} else {
 		CLOSE("Connection closed by peer, but probably no data has been lost.");
@@ -107,7 +107,7 @@ void _write() {
 			}
 		} else out_buffer = buffer;
 		buffer = 0;
-	} else if (!sizeof(out_buffer)) {
+	} else if (!out_buffer) {
 		write_ready = 1;
 		RETURN;
 	}
