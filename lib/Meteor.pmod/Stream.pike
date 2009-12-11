@@ -16,12 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 string|String.Buffer out_buffer, buffer;
-int write_ready = 0;
 function close_cb, error_cb;
 // we dont want to close before we get the first write
 int autoclose;
 int autoclose_after_send; 
-mixed wid;
 Stdio.File connection;
 
 #if contant(Roxen)
@@ -49,13 +47,13 @@ void create(Stdio.File connection, function cb, function error, int|void autoclo
 	this_program::error_cb = error;
 	// we dont want to close right after the headers have been sent
 	if (autoclose) this_program::autoclose_after_send = autoclose;
-	connection->set_write_callback(_write);
+	connection->set_write_callback(0);
 	connection->set_close_callback(_close);
 }
 
 void _close() {
 	LOCK;
-	if (buffer || sizeof(out_buffer)) {
+	if (buffer || out_buffer) {
 		ERROR(sprintf("Connection closed by peer. %d of data could not be sent.", sizeof(out_buffer) + stringp(buffer) ? sizeof(buffer) : 0));
 	} else {
 		CLOSE("Connection closed by peer, but probably no data has been lost.");
@@ -81,26 +79,34 @@ void write(string data) {
 
 	if (buffer) {
 		if (objectp(buffer)) buffer += data;
-		else buffer = String.Buffer()->add(buffer)->add(data);
+		else {
+			String.Buffer t = String.Buffer(sizeof(buffer) + sizeof(data));
+			t->add(buffer, data);
+			buffer = t;
+		}
 	} else buffer = data;
 
-	if (write_ready && !wid) wid = call_out(_write, 0);
+	connection->set_write_callback(_write);
 
 	RETURN;	
 }
 
 void _write() {
 	LOCK;
-	wid = 0;
 
 	if (buffer) {
 		if (out_buffer) {
+			if (objectp(buffer)) buffer = buffer->get();
 			if (objectp(out_buffer)) out_buffer += sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer);
-			else out_buffer = String.Buffer()->add(out_buffer)->add(sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer));
-		} else out_buffer = buffer;
+			else {
+				String.Buffer t = String.Buffer(sizeof(out_buffer)*2);
+				t->add(out_buffer, sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer));
+				out_buffer = t;
+			}
+		} else out_buffer = sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer);
 		buffer = 0;
-	} else if (!sizeof(out_buffer)) {
-		write_ready = 1;
+	} else if (!out_buffer) {
+		connection->set_write_callback(0);
 		RETURN;
 	}
 
@@ -120,9 +126,9 @@ void _write() {
 		if (autoclose) {
 			close_now();
 		}
+		connection->set_write_callback(0);
 	}
 
-	write_ready = 0;
 	RETURN;	
 }
 
