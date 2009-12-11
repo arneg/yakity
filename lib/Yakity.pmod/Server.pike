@@ -58,16 +58,16 @@ void broadcast(MMP.Packet p) {
 
 	foreach (entities;MMP.Uniform target;object o) {
 		if ((++bcastcnt%1000) == 0) {
-		    int time;
-		    float hrtime;
+		    int ime;
+		    float hrime;
 
-		    time = ctime(0);
-		    hrtime = ctime(time);
+		    ime = time(0);
+		    hrime = time(ime);
 
-		    werror("\rbroadcasts: %20d (%f msgs/s)", bcastcnt, 1000/(time+hrtime - (lasttime+lasthrtime)));
+		    werror("\rbroadcasts: %20d (%f msgs/s)", bcastcnt, 1000/(ime+hrime - (lasttime+lasthrtime)));
 
-		    lasttime = time;
-		    lasthrtime = hrtime;
+		    lasttime = ime;
+		    lasthrtime = hrime;
 		}
 
 		MMP.Packet t = p->clone();
