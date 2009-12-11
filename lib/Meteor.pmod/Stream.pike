@@ -113,7 +113,7 @@ void _write() {
 		CLOSE("Could not write to socket. Connection lost.");
 		RETURN;
 	} else if (bytes < sizeof(out_buffer)) {
-		out_buffer = out_buffer[bytes..];
+		out_buffer = ([string]out_buffer)[bytes..];
 	} else {
 		out_buffer = 0;
 
