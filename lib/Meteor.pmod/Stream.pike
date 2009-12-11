@@ -106,7 +106,7 @@ void _write() {
 				t->add(out_buffer, sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer));
 				out_buffer = t;
 			}
-		} else out_buffer = buffer;
+		} else out_buffer = sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer));
 		buffer = 0;
 	} else if (!out_buffer) {
 		write_ready = 1;
