@@ -59,6 +59,9 @@ void _close() {
 
 void close() {
 	LOCK;
+
+	out_buffer->add("0\r\n\r\n");
+	connection->set_write_callback(_write);
 	autoclose = 1;
 
 	RETURN;	
@@ -93,21 +96,12 @@ void _write() {
 	} else {
 
 		if (autoclose) {
-			close_now();
+			CLOSE("AutoClose");
 		}
 		connection->set_write_callback(0);
 	}
 
 	RETURN;	
-}
-
-void close_now() {
-	if (5 != connection->write("0\r\n\r\n")) {
-		ERROR(sprintf("Could not write the the closing 5 bytes to %O\n", connection->query_address()));
-	} else {
-		// we actually have to close it, if this is not a keepalive connection
-		CLOSE("AutoClose");
-	}
 }
 
 string _sprintf(int type) {
