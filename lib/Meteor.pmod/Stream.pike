@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-string|String.Buffer out_buffer, buffer;
+string|String.Buffer out_buffer = String.Buffer(), buffer = String.Buffer();
 function close_cb, error_cb;
 // we dont want to close before we get the first write
 int autoclose;
@@ -53,21 +53,13 @@ void create(Stdio.File connection, function cb, function error, int|void autoclo
 
 void _close() {
 	LOCK;
-	if (buffer || out_buffer) {
-		ERROR(sprintf("Connection closed by peer. %d of data could not be sent.", sizeof(out_buffer) + stringp(buffer) ? sizeof(buffer) : 0));
-	} else {
-		CLOSE("Connection closed by peer, but probably no data has been lost.");
-	}
+	ERROR(sprintf("Connection closed by peer. %d of data could not be sent.", sizeof(out_buffer) + sizeof(buffer)));
 	RETURN;
 }
 
 void close() {
 	LOCK;
 	autoclose = 1;
-
-	if (!buffer && !sizeof(out_buffer)) {
-		close_now();
-	}
 
 	RETURN;	
 }
@@ -77,14 +69,7 @@ void write(string data) {
 
 	if (autoclose_after_send) autoclose = 1;
 
-	if (buffer) {
-		if (objectp(buffer)) buffer += data;
-		else {
-			String.Buffer t = String.Buffer(sizeof(buffer) + sizeof(data));
-			t->add(buffer, data);
-			buffer = t;
-		}
-	} else buffer = data;
+	buffer += data;
 
 	connection->set_write_callback(_write);
 
@@ -95,33 +80,22 @@ void _write() {
 	LOCK;
 
 	if (buffer) {
-		if (out_buffer) {
-			if (objectp(buffer)) buffer = buffer->get();
-			if (objectp(out_buffer)) out_buffer += sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer);
-			else {
-				String.Buffer t = String.Buffer(sizeof(out_buffer)*2);
-				t->add(out_buffer, sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer));
-				out_buffer = t;
-			}
-		} else out_buffer = sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer);
-		buffer = 0;
-	} else if (!out_buffer) {
-		connection->set_write_callback(0);
-		RETURN;
+		string t = buffer->get();
+		out_buffer += sprintf("%x\r\n%s\r\n", sizeof(t), t);
 	}
 
+	string t = out_buffer->get();
 	//werror("writing %d bytes to %O", sizeof(out_buffer), connection->query_address());
-	int bytes = connection->write(out_buffer = (string)out_buffer);
+	int bytes = connection->write(t);
 	//werror(" (did %d)\n", bytes);
 
 	// maybe too harsh?
 	if (bytes == -1) {
 		CLOSE("Could not write to socket. Connection lost.");
 		RETURN;
-	} else if (bytes < sizeof(out_buffer)) {
-		out_buffer = ([string]out_buffer)[bytes..];
+	} else if (bytes < sizeof(t)) {
+		out_buffer->add(t[bytes..]);
 	} else {
-		out_buffer = 0;
 
 		if (autoclose) {
 			close_now();
