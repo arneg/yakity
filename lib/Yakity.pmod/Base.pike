@@ -87,24 +87,25 @@ int msg(MMP.Packet p) {
 	string method;
 
 	if (sizeof(p->data->typed_data)) {
-		[object signature, object message] = random(p->data->typed_data);
-		method = message->method;
+		method = random(p->data->typed_data)[1]->method;
 	} else {
-		object message = smsig->decode(p->data);
-		method = message->method;
+		method = smsig->decode(p->data)->method;
 	}
 
 	if (method[0] = '_') {
+		mixed f;
+		if (f = this[method] && functionp(f) && f(p) == Yakity.STOP) {
+			return Yakity.STOP;
+		} 
+	
 		array(string) t = method/"_";
 
-		for (int i = sizeof(t)-1; i >=0 ; i--) {
+		for (int i = sizeof(t)-2; i >=0 ; i--) {
 			string s = (i == 0) ? "_" : t[0..i]*"_";
-			mixed f = this[s];
+			f = this[s];
 
-			if (functionp(f)) {
-				if (f(p) == Yakity.STOP) {
-					return Yakity.STOP;
-				}
+			if (functionp(f) && f(p) == Yakity.STOP) {
+				return Yakity.STOP;
 			}
 		}
 	}
