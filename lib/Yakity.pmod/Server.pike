@@ -47,12 +47,28 @@ MMP.Uniform get_uniform(string s) {
 	return u;
 }
 
+int lasttime;
+float lasthrtime;
+
 void broadcast(MMP.Packet p) {
 	// TODO, this is seriously not good. time to revive
 	// some psyc legacy using channels, etc. But for the
 	// small scale webchat this is alright.
 
 	foreach (entities;MMP.Uniform target;object o) {
+		if ((++bcastcnt%1000) == 0) {
+		    int time;
+		    float hrtime;
+
+		    time = ctime();
+		    hrtime = ctime(time);
+
+		    werror("\rbroadcasts: %20d (%f msgs/s)", bcastcnt, 1000/(time+hrtime - (lasttime+lasthrtime)));
+
+		    lasttime = time;
+		    lasthrtime = hrtime;
+		}
+
 		MMP.Packet t = p->clone();
 		t->vars["_target"] = target;
 		o->msg(t);
