@@ -101,7 +101,7 @@ void _write() {
 		if (out_buffer) {
 			if (objectp(out_buffer)) out_buffer += sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer);
 			else {
-				String.Buffer t = String.Buffer(sizeof(out_buffer)*2));
+				String.Buffer t = String.Buffer(sizeof(out_buffer)*2);
 				t->add(out_buffer, sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer));
 				out_buffer = t;
 			}
