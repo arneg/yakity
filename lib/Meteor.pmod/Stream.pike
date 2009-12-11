@@ -93,7 +93,6 @@ void write(string data) {
 
 void _write() {
 	LOCK;
-	wid = 0;
 
 	if (buffer) {
 		if (out_buffer) {
