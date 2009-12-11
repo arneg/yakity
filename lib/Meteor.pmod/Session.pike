@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-constant keepalive_interval = 5;
+constant keepalive_interval = 30;
 constant timeout = 5;
 string client_id;
 function cb, error_cb;
@@ -51,7 +51,7 @@ void create(string client_id, void|function cb, void|function error) {
 
 // this is called in intervals
 void keepalive() {
-	call_out(send, 0, Serialization.Atom("_keepalive", ""));
+	stream->write("_keepalive 0 ");
 }
 
 void end_stream() {
