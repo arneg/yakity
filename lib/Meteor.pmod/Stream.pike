@@ -80,7 +80,7 @@ void write(string data) {
 	if (autoclose_after_send) autoclose = 1;
 
 	if (buffer) {
-		if (bjectp(buffer)) buffer += data;
+		if (objectp(buffer)) buffer += data;
 		else (buffer = String.Buffer(sizeof(buffer) + sizeof(data)))->add(buffer)->add(data);
 	} else buffer = data;
 
