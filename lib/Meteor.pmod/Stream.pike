@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-string|String.Buffer out_buffer = String.Buffer(), buffer = String.Buffer();
+String.Buffer out_buffer = String.Buffer();
 function close_cb, error_cb;
 // we dont want to close before we get the first write
 int autoclose;
@@ -53,7 +53,7 @@ void create(Stdio.File connection, function cb, function error, int|void autoclo
 
 void _close() {
 	LOCK;
-	ERROR(sprintf("Connection closed by peer. %d of data could not be sent.", sizeof(out_buffer) + sizeof(buffer)));
+	ERROR(sprintf("Connection closed by peer. %d of data could not be sent.", sizeof(out_buffer)));
 	RETURN;
 }
 
@@ -69,7 +69,7 @@ void write(string data) {
 
 	if (autoclose_after_send) autoclose = 1;
 
-	buffer += data;
+	out_buffer->add(sprintf("%x\r\n%s\r\n", sizeof(data), data));
 
 	connection->set_write_callback(_write);
 
@@ -78,11 +78,6 @@ void write(string data) {
 
 void _write() {
 	LOCK;
-
-	if (buffer) {
-		string t = buffer->get();
-		out_buffer += sprintf("%x\r\n%s\r\n", sizeof(t), t);
-	}
 
 	string t = out_buffer->get();
 	//werror("writing %d bytes to %O", sizeof(out_buffer), connection->query_address());
