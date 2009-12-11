@@ -137,7 +137,7 @@ void register_new_id() {
 	if (autoclose) headers["Connection"] = "keep-alive";
 
 	// send this first
-	stream->out_buffer = "HTTP/1.1 200 OK\r\n" + connection_id->make_response_headers(headers);
+	stream->out_buffer->add("HTTP/1.1 200 OK\r\n" + connection_id->make_response_headers(headers));
 
 	while (!queue->isEmpty()) {
 		stream->write(queue->shift()->render());
