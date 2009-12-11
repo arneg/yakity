@@ -42,7 +42,10 @@ class FakeUser {
 	}
 
 	void _status_circuit(MMP.Packet p) {
+#ifdef TUNICAST
 		call_out(chat_to, 30+random(5.0), partner);
+#endif
+
 	}
 
 	void _message_private(MMP.Packet p) {
