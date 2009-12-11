@@ -80,8 +80,8 @@ void write(string data) {
 	if (autoclose_after_send) autoclose = 1;
 
 	if (buffer) {
-		if (objectp(buffer)) buffer += data;
-		else buffer = String.Buffer(sizeof(buffer) + sizeof(data))->add(buffer)->add(data);
+		if (bjectp(buffer)) buffer += data;
+		else (buffer = String.Buffer(sizeof(buffer) + sizeof(data)))->add(buffer)->add(data);
 	} else buffer = data;
 
 	if (write_ready && !wid) wid = call_out(_write, 0);
@@ -96,7 +96,7 @@ void _write() {
 	if (buffer) {
 		if (out_buffer) {
 			if (objectp(out_buffer)) out_buffer += sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer);
-			else out_buffer = String.Buffer(sizeof(out_buffer)*2)->add(out_buffer)->add(sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer));
+			else (out_buffer = String.Buffer(sizeof(out_buffer)*2))->add(out_buffer, sprintf("%x\r\n%s\r\n", sizeof(buffer), (string)buffer));
 		} else out_buffer = buffer;
 		buffer = 0;
 	} else if (!sizeof(out_buffer)) {
