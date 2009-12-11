@@ -21,6 +21,7 @@ function close_cb, error_cb;
 // we dont want to close before we get the first write
 int autoclose;
 int autoclose_after_send; 
+mixed wid;
 Stdio.File connection;
 
 #if contant(Roxen)
@@ -81,13 +82,14 @@ void write(string data) {
 	if (!buffer) buffer = data;
 	else buffer += data;
 
-	if (write_ready && -1 == find_call_out(_write)) call_out(_write, 0);
+	if (write_ready && !wid) wid = call_out(_write, 0);
 
 	RETURN;	
 }
 
 void _write() {
 	LOCK;
+	wid = 0;
 
 	if (buffer) {
 		out_buffer += sprintf("%x\r\n%s\r\n", sizeof(buffer), buffer);
