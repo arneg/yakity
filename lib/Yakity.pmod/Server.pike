@@ -47,9 +47,11 @@ MMP.Uniform get_uniform(string s) {
 	return u;
 }
 
+#ifdef PROGRESSBAR
 int lasttime;
 float lasthrtime;
 int bcastcnt; // immanuel kant
+#endif
 
 void broadcast(MMP.Packet p) {
 	// TODO, this is seriously not good. time to revive
@@ -57,6 +59,7 @@ void broadcast(MMP.Packet p) {
 	// small scale webchat this is alright.
 
 	foreach (entities;MMP.Uniform target;object o) {
+#ifdef PROGRESSBAR
 		if ((++bcastcnt%1000) == 0) {
 		    int ime;
 		    float hrime;
@@ -69,6 +72,7 @@ void broadcast(MMP.Packet p) {
 		    lasttime = ime;
 		    lasthrtime = hrime;
 		}
+#endif
 
 		MMP.Packet t = p->clone();
 		t->vars["_target"] = target;
