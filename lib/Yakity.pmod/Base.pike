@@ -83,7 +83,7 @@ void sendmsg(MMP.Uniform target, string method, void|string data, void|mapping v
 	send(target, m);
 }
 
-int msg(MMP.Packet p) {
+int msg(Serialization.Atom|MMP.Packet p) {
 	string method;
 
 	if (sizeof(p->data->typed_data)) {

@@ -182,22 +182,21 @@ void incoming(object session, Serialization.Atom atom) {
 	server->deliver(p);
 }
 
-int msg(MMP.Packet p) {
-	//werror("%s->msg(%O)\n", this, m);
+int msg(Serialization.Atom|MMP.Packet p) {
 
 	if (::msg(p) == Yakity.STOP) return Yakity.STOP;
 
-	p->vars["_id"] = ++count;
-
 	Serialization.Atom atom;
-	mixed err = catch {
-		atom = mmp_signature->encode(p);
-	};
+	if (object_program(p) != Serialization.Atom) {
+		mixed err = catch {
+			atom = mmp_signature->encode(p);
+		};
+	} else atom = p;
 
 	// minimize it, will not be needed again anyhow
-	atom->condense();
+	//atom->condense();
 
-	history[count] = atom;
+	//history[count] = atom;
 
 	foreach (sessions;; object s) {
 		s->send(atom);
