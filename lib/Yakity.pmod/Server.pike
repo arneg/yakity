@@ -49,6 +49,7 @@ MMP.Uniform get_uniform(string s) {
 
 int lasttime;
 float lasthrtime;
+int bcastcnt; // immanuel kant
 
 void broadcast(MMP.Packet p) {
 	// TODO, this is seriously not good. time to revive
