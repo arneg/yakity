@@ -20,6 +20,7 @@ function close_cb, error_cb;
 // we dont want to close before we get the first write
 int autoclose;
 int autoclose_after_send; 
+int will_send = 1;
 Stdio.File connection;
 
 #if contant(Roxen)
@@ -74,7 +75,7 @@ void write(string data) {
 
 	out_buffer->add(sprintf("%x\r\n%s\r\n", sizeof(data), data));
 
-	connection->set_write_callback(_write);
+	if (!will_send) connection->set_write_callback(_write);
 
 	RETURN;	
 }
@@ -99,6 +100,7 @@ void _write() {
 			CLOSE("AutoClose");
 		}
 		connection->set_write_callback(0);
+		will_send = 0;
 	}
 
 	RETURN;	
