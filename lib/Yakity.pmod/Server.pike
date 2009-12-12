@@ -69,7 +69,7 @@ void broadcast(MMP.Packet p) {
 		    ime = time(0);
 		    hrime = time(ime);
 
-		    werror("\rbroadcasts: %20d (%f msgs/s)", bcastcnt, 1000/(ime+hrime - (lasttime+lasthrtime)));
+		    werror("broadcasts: %20d (%f msgs/s)\n", bcastcnt, 1000/(ime+hrime - (lasttime+lasthrtime)));
 
 		    lasttime = ime;
 		    lasthrtime = hrime;
