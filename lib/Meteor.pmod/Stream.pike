@@ -77,7 +77,7 @@ void write(string data) {
 
 	if (!will_send) {
 		will_send = 1;
-		call_out(connection->set_write_callback, 0, _write);
+		connection->set_write_callback(_write);
 	}
 
 	RETURN;	
