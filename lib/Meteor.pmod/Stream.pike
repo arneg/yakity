@@ -75,7 +75,10 @@ void write(string data) {
 
 	out_buffer->add(sprintf("%x\r\n%s\r\n", sizeof(data), data));
 
-	if (!will_send) connection->set_write_callback(_write);
+	if (!will_send) {
+		will_send = 1;
+		call_out(connection->set_write_callback, 0, _write);
+	}
 
 	RETURN;	
 }
