@@ -49,8 +49,8 @@ int main(int argc, array(string) argv) {
 	float skip = 0.0;
 	int last;
 	string tfilter;
-	object mav = Average(3E3);
-	object eav = Average(100);
+	object mav = Average(1000);
+	object eav = Average(1000);
 
 	if (argc < 3) {
 		error("missing arguments\n");
