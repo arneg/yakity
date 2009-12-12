@@ -161,7 +161,7 @@ void handle_id(object id) {
 		}
 
 		if (id->request_headers["connection"] != "keep-alive") {
-			werror("data from non keep-alive connection\n");
+			werror("data from non keep-alive connection: %O\n", id->request_headers);
 		}
 
 		Serialization.Atom a;
