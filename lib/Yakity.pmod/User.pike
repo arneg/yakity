@@ -182,16 +182,14 @@ void incoming(object session, Serialization.Atom atom) {
 	server->deliver(p);
 }
 
-int msg(Serialization.Atom|MMP.Packet p) {
+int msg(MMP.Packet p) {
 
 	if (::msg(p) == Yakity.STOP) return Yakity.STOP;
 
 	Serialization.Atom atom;
-	if (object_program(p) != Serialization.Atom) {
-		mixed err = catch {
-			atom = mmp_signature->encode(p);
-		};
-	} else atom = p;
+	mixed err = catch {
+		atom = mmp_signature->encode(p);
+	};
 
 	// minimize it, will not be needed again anyhow
 	//atom->condense();
