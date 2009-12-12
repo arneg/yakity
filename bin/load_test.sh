@@ -12,6 +12,8 @@ else
 	echo "starting $N processes with $EACH clients each." 
 fi
 
+rm $DIR/../stats/*.plot
+
 PID=""
 SIGTERM=15
 DIR=`dirname "$0"`
