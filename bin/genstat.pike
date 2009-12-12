@@ -18,11 +18,15 @@ class Average {
 	}
 
 	float average() {
+		float sum;
+
 		if (sizeof(values) == 0) {
 			return 0.0;
 		}
 
-		float sum = `+(@values);
+		for (int i = 0; i < sizeof(values); i += 1000) {
+		    sum = `+(@values[i..i + 999]);
+		}
 
 		if (maxsize) {
 			if (sizeof(values) > maxsize) {
