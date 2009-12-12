@@ -94,7 +94,7 @@ int msg(MMP.Packet p) {
 
 	if (method[0] = '_') {
 		mixed f;
-		if (f = this[method] && functionp(f) && f(p) == Yakity.STOP) {
+		if ((f = this[method]) && functionp(f) && f(p) == Yakity.STOP) {
 			return Yakity.STOP;
 		} 
 	
