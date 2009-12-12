@@ -192,7 +192,7 @@ int msg(MMP.Packet p) {
 	};
 
 	// minimize it, will not be needed again anyhow
-	//atom->condense();
+	atom->condense();
 
 	//history[count] = atom;
 
