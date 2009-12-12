@@ -101,7 +101,7 @@ void stream_data_cb(mixed id, string data) {
 		length = 0;
 	}
 
-	werror("no length in '%s'\n", inbuf);
+	//werror("no length in '%s'\n", inbuf);
 }
 
 void stream_headers_ok(object request, object info) {
