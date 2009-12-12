@@ -25,7 +25,7 @@ class Average {
 		}
 
 		for (int i = 0; i < sizeof(values); i += 1000) {
-		    sum = `+(@values[i..i + 999]);
+		    sum += `+(@values[i..i + 999]);
 		}
 
 		if (maxsize) {
