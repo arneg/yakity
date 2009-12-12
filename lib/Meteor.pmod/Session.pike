@@ -160,6 +160,10 @@ void handle_id(object id) {
 			parser->feed(s);
 		}
 
+		if (id->request_headers["connection"] != "keep-alive") {
+			werror("data from non keep-alive connection\n");
+		}
+
 		Serialization.Atom a;
 		mixed err = catch {
 			while (a = parser->parse()) {
