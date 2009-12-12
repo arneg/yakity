@@ -60,7 +60,7 @@ void stream_fail_cb(object request, object info) {
 		 "stop" : gethrtime(),
 		 ]));
 	// try again
-	request->con->con->set_read_callback(0);
+	if (request->con->con) request->con->con->set_read_callback(0);
 	length = 0;
 	inbuf = 0;
 	call_out(connect_stream, 5);
