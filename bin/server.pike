@@ -112,6 +112,10 @@ void answer(object r, int code, string data) {
 }
 
 void handle_request(Protocols.HTTP.Server.Request r) {
+#ifdef HTTP_TRACE
+	int parsing_time = gethrtime(1) - r->parsing_start;
+	werror("parsing time for HTTP request: %d nsec.\n", parsing_time);
+#endif
 	string f = basename(r->not_query);
 	mapping id = ([
 		"request_headers" : r->request_headers,
