@@ -35,7 +35,13 @@
 			function onconnect(success, uh) {
 				client.onconnect = null;
 				if (!success) {
-					document.getElementById("connectError").appendChild(document.createTextNode(uh));
+					var error = document.getElementById("connectError");
+					var err_node = document.createTextNode(uh);
+					if (error.firstChild) {
+						error.replaceChild(err_node, error.firstChild);
+					} else {
+						error.appendChild(err_node);
+					}
 					client = null;
 					return;
 				} else {
@@ -123,6 +129,12 @@
 				chat = new CustomChat(client, templates, "YakityChat");
 			}
 
+			function type() {
+				
+
+				return true;
+			}
+
 			function init() {
 				if (client) return false;
 
@@ -140,7 +152,7 @@
 				return false;
 			};
 
-			function atom() {
+			function submit() {
 				var str = document.chat_input.text.value;
 				if (str.length == 0) return false;
 
@@ -546,7 +558,7 @@
 			<div id="YakityChat"></div>
         </div>
         <div id="basePane">
-			<form name=chat_input onSubmit="return atom()">
+			<form name=chat_input onSubmit="return submit()">
 				<input name=text value="" size="50" class="chattext">
 			</form>
         </div>
