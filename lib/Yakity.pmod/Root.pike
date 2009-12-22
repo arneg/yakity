@@ -37,7 +37,7 @@ int _request_users(MMP.Packet p) {
 			profiles[uniform] = o->get_profile();
 		}
 #else
-		profiles = filter(users, lambda(object o) {
+		profiles = map(users, lambda(object o) {
 				  return o->get_profile();
 				  });
 #endif
