@@ -63,7 +63,7 @@ int start(int c, Configuration conf) {
 		root->users = users;
 		root->rooms = rooms;
 		server->register_entity(root->uniform, root);
-		
+		server->root = root;
 	}
 	if (!c) {
 		getvar("rooms")->set_changed_callback(changed);
