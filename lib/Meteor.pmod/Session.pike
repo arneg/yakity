@@ -22,7 +22,7 @@ function cb, error_cb;
 int closing = 1;
 MMP.Utils.Queue queue = MMP.Utils.Queue();
 
-#if constant(Roxen)
+#ifdef ENABLE_THREADS
 Thread.Mutex mutex = Thread.Mutex();
 # define RETURN	destruct(lock); return
 # define LOCK	object lock = mutex->lock()

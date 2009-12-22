@@ -23,17 +23,15 @@ int autoclose_after_send;
 int will_send = 1;
 Stdio.File connection;
 
-#if contant(Roxen)
+#ifdef ENABLE_THREADS
 Thread.Mutex m = Thread.Mutex();
 # define LOCK object lock = m->lock();
-#else
-# define LOCK
-#endif
-#if constant(Roxen)
 # define RETURN	do { destruct(lock); return; } while (0)
 #else
+# define LOCK
 # define RETURN return;
 #endif
+
 // remove all references and callbacks.
 #define CLOSE(reason)	do { call_out(close_cb, 0, this, reason); connection->set_close_callback(0); connection->set_write_callback(0); \
 							 connection = 0;  \
