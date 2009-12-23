@@ -99,8 +99,10 @@ void _write() {
 
 		if (autoclose) {
 			CLOSE("AutoClose");
+		} else {
+			connection->set_write_callback(0);
 		}
-		connection->set_write_callback(0);
+
 		will_send = 0;
 	}
 
