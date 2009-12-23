@@ -52,6 +52,7 @@ void create(string client_id, void|function cb, void|function error) {
 // this is called in intervals
 void keepalive() {
 	stream->write("_keepalive 0 ");
+	KEEPALIVE;
 }
 
 void end_stream() {
@@ -118,6 +119,8 @@ void register_new_id() {
 	new_id = 0;
 	// IE needs an autoclose right now
 	int autoclose = (-1 != search(connection_id->request_headers["user-agent"], "MSIE"));
+
+	if (autoclose) werror("Creating new autoclosing Stream for %O\n", connection_id);
 
 	if (connection_id->misc["content_type_type"] == "application/octet-stream") {
 		//werror("creating binary stream\n");
