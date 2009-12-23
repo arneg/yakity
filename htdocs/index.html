@@ -89,16 +89,16 @@
 					_supplicant : userlink,
 					_timestamp : timestamp
 				});
-				profiles = new psyc.ProfileData(client);
+				profiles = new yakity.ProfileData(client);
 		
-				var lprofiles = new psyc.ProfileData(client).extend({
+				var lprofiles = new yakity.ProfileData(client).extend({
 					getDisplayNode : function(uniform) {
 						return ulink(uniform);
 					}
 				});
 				
 				
-				userlist = new psyc.UserList(client, lprofiles);
+				userlist = new yakity.UserList(client, lprofiles);
 				
 				var userdiv = document.createElement("div");
                                 UTIL.addClass(userdiv, "userList");
@@ -120,7 +120,13 @@
 									UTIL.addClass(div, "self");	
 								}
 								return div;
-							}
+							},
+							_notice_presence_typing : function(p) {
+								UTIL.addClass(div, "typing");
+							},
+							_notice_presence_idle : function(p) {
+								UTIL.addClass(div, "idle");
+							},
 						});
 
 						return win;
@@ -139,7 +145,7 @@
 				if (client) return false;
 
 				var name = document.login.name.value;
-				client = new psyc.Client(METEORURL, name);
+				client = new yakity.Client(METEORURL, name);
 				client.onconnect = onconnect;
 
 				window.onunload = function() {
@@ -152,7 +158,7 @@
 				return false;
 			};
 
-			function submit() {
+			function new_input() {
 				var str = document.chat_input.text.value;
 				if (str.length == 0) return false;
 
@@ -558,7 +564,7 @@
 			<div id="YakityChat"></div>
         </div>
         <div id="basePane">
-			<form name=chat_input onSubmit="return submit()">
+			<form name=chat_input onSubmit="return new_input()">
 				<input name=text value="" size="50" class="chattext">
 			</form>
         </div>

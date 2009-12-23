@@ -41,6 +41,7 @@ objectp = function(o) { return typeof(o) == "object"; }
  * @namespace PSYC namespace.
  */
 psyc = {};
+yakity = {};
 psyc.STOP = 1; 
 psyc.find_abbrev = function(obj, key) {
     var t = key;
@@ -67,13 +68,13 @@ psyc.find_abbrev = function(obj, key) {
  * @property {psyc#Vars} vars variables
  * @property {String} data Payload
  */
-psyc.Message = mmp.Packet.extend({
+yakity.Message = mmp.Packet.extend({
 	constructor : function(method, data, vars) {
 		this.method = method;
 		this.base(data, vars);
 	},
 	toString : function() {
-		var ret = "psyc.Message("+this.method+", ([ ";
+		var ret = "yakity.Message("+this.method+", ([ ";
 		ret += this.vars.toString();
 		ret += "]))";
 		return ret;
@@ -139,7 +140,7 @@ psyc.Vars.prototype.constructor = psyc.Vars;
  * @param {String} key PSYC variable name.
  */
 // not being able to use inheritance here stinks like fish.
-psyc.Date = function(timestamp) {
+yakity.Date = function(timestamp) {
 	this.date = new Date();
 	this.date.setTime(timestamp * 1000);
 	this.render = function(type) {
@@ -173,7 +174,7 @@ psyc.Date = function(timestamp) {
 		return this.date.toLocaleString();
 	};
 };
-psyc.default_polymorphic = function() {
+yakity.default_polymorphic = function() {
 	var pol = new serialization.Polymorphic();
 	var method = new serialization.Method();
 	// integer and string come first because they should not get overwritten by 
@@ -182,10 +183,10 @@ psyc.default_polymorphic = function() {
 	pol.register_type("_integer", "number", new serialization.Integer());
 	pol.register_type("_float", "float", new serialization.Float());
 	pol.register_type("_method", "string", method);
-	//pol.register_type("_message", psyc.Message, new serialization.Message(method, pol, pol));
-	pol.register_type("_mapping", psyc.Mapping, new serialization.Mapping(pol, pol));
+	//pol.register_type("_message", yakity.Message, new serialization.Message(method, pol, pol));
+	pol.register_type("_mapping", yakity.Mapping, new serialization.Mapping(pol, pol));
 	pol.register_type("_list", Array, new serialization.Array(pol));
-	pol.register_type("_time", psyc.Date, new serialization.Date());
+	pol.register_type("_time", yakity.Date, new serialization.Date());
 	pol.register_type("_uniform", mmp.Uniform, new serialization.Uniform());
 	return pol;
 }
@@ -194,7 +195,7 @@ psyc.default_polymorphic = function() {
  * @constructor
  * @params {String} url Meteor endpoint urls.
  */
-psyc.Client = function(url, name) {
+yakity.Client = function(url, name) {
 	this.callbacks = new Mapping();
 	var self = this;
 	var errorcb = function(error) {
@@ -207,7 +208,7 @@ psyc.Client = function(url, name) {
 	this.connection = new meteor.Connection(url+"?nick="+escape(name).replace(/\+/g, "%2B"), this.incoming, errorcb);
 	this.connection.init();
 	var method = new serialization.Method();
-	var poly = psyc.default_polymorphic();
+	var poly = yakity.default_polymorphic();
 	this.msig = new serialization.Message(method, new serialization.OneTypedVars(poly), poly);
 	this.psig = new serialization.Packet(this.msig);
 	this.parser = new serialization.AtomParser();
@@ -216,9 +217,9 @@ psyc.Client = function(url, name) {
 	this.name = name;
 };
 // params = ( method : "_message", source : Uniform }
-psyc.Client.prototype = {
+yakity.Client.prototype = {
 	toString : function() {
-		return "psyc.Client("+this.connection.url+")";
+		return "yakity.Client("+this.connection.url+")";
 	},
 	/**
 	 * Register for certain incoming messages. This can be used to implement chat tabs or handlers for certain message types.
@@ -243,12 +244,12 @@ psyc.Client.prototype = {
 	},
  	sendmsg : function(target, method, data, vars) {
 
-		var m = new psyc.Message(method, data, vars);
+		var m = new yakity.Message(method, data, vars);
 		var p = new mmp.Packet(m, { _target : target, _source : this.uniform });
 		this.send(p);
 	},
 	/**
-	 * Send a packet. This should be of type psyc.Message.
+	 * Send a packet. This should be of type yakity.Message.
 	 * @params {Object} packet Message to send.
 	 */
 	send : function(p) {
@@ -312,7 +313,7 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 				if (meteor.debug) meteor.debug("failed to decode: "+data[i]+"\nERROR: "+error);
 				continue;
 			}
-			if (p instanceof mmp.Packet && (m = p.data) instanceof psyc.Message) {
+			if (p instanceof mmp.Packet && (m = p.data) instanceof yakity.Message) {
 				method = m.method;
 				if (meteor.debug) meteor.debug("incoming: " + method);
 				count = p.v("_id");	
@@ -383,7 +384,7 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 		}
 	}
 };
-psyc.funky_text = function(p, templates) {
+yakity.funky_text = function(p, templates) {
 	var m = p.data;
 	var template = templates.get(m.method);
 	var reg = /\[[\w-]+\]/g;
@@ -460,7 +461,7 @@ psyc.funky_text = function(p, templates) {
 
 	return div;
 };
-psyc.Base = Base.extend({
+yakity.Base = Base.extend({
 	msg : function (p, m) {
 		var method = m.method;
 		var none = 1;
@@ -487,7 +488,7 @@ psyc.Base = Base.extend({
 		this.client.sendmsg(target, method, data, vars);
 	}
 });
-psyc.ChatWindow = psyc.Base.extend({
+yakity.ChatWindow = yakity.Base.extend({
 	constructor : function(id) {
 		this.mlist = new Array();
 		this.mset = new Mapping();
@@ -520,7 +521,7 @@ psyc.ChatWindow = psyc.Base.extend({
 		return this.messages;
 	}
 });
-psyc.TemplatedWindow = psyc.ChatWindow.extend({
+yakity.TemplatedWindow = yakity.ChatWindow.extend({
 	constructor : function(templates, id) {
 		this.base(id);
 		if (templates) this.setTemplates(templates);
@@ -529,10 +530,10 @@ psyc.TemplatedWindow = psyc.ChatWindow.extend({
 		this.templates = t;
 	},
 	renderMessage : function(p, m) {
-		return psyc.funky_text(p, this.templates);
+		return yakity.funky_text(p, this.templates);
 	}
 });
-psyc.RoomWindow = psyc.TemplatedWindow.extend({
+yakity.RoomWindow = yakity.TemplatedWindow.extend({
 	constructor : function(templates, id) {
 		this.base(templates, id);
 		this.members = new TypedTable();
@@ -608,11 +609,11 @@ psyc.RoomWindow = psyc.TemplatedWindow.extend({
 });
 /**
  * Creates a new tabbed chat application.
- * @param {Object} client psyc.Client object to use.
+ * @param {Object} client yakity.Client object to use.
  * @param {Object} div DOM div object to put the Chat into.
  * @constructor
  */
-psyc.Chat = Base.extend({
+yakity.Chat = Base.extend({
 	constructor : function(client) {
 		this.windows = new Mapping();
 		this.active = null;
@@ -658,7 +659,7 @@ psyc.Chat = Base.extend({
 		// close window after _notice_leave is there or after double click on close button
 	}
 });
-psyc.ProfileData = psyc.Base.extend({
+yakity.ProfileData = yakity.Base.extend({
 	constructor : function(client) {
 		this.client = client;
 		this.cache = new Mapping();
@@ -752,7 +753,7 @@ psyc.ProfileData = psyc.Base.extend({
 		return psyc.STOP;
 	}
 });
-psyc.UserList = psyc.Base.extend({
+yakity.UserList = yakity.Base.extend({
 	constructor : function(client, profiles) {
 		this.client = client;
 		this.profiles = profiles;
@@ -796,4 +797,34 @@ psyc.UserList = psyc.Base.extend({
 		return psyc.STOP;
 	}
 });
-
+yakity.Presence = {};
+yakity.Presence.Typing = yakity.Base.extend({
+	constructor : function(client, input, chatwin) {
+		this.client = client;
+		this.input = input;
+		this.chatwin = chatwin;
+		this.inactive_id = null;
+		var self = this;
+		var cb = function() {
+			self.idle_event();
+		};
+		this.input.onChange = cb;
+	},
+	type_event : function() {
+		if (this.inactive_id) {
+			window.clearTimeout(this.inactive_id);
+		} else {
+			this.client.sendmsg(this.win.uniform, "_notice_presence_typing");
+		}
+		var self = this;
+		var cb = function() {
+			self.idle_event();
+		};
+		this.inactive_id = window.setTimeout(cb, 2000);
+	},
+	idle_event : function() {
+		window.clearTimeout(this.inactive_id);
+		this.inactive_id = null;
+		this.client.sendmsg(this.win.uniform, "_notice_presence_idle");
+	}
+});

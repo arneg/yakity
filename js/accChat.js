@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-var AccChat = psyc.Chat.extend({
+var AccChat = yakity.Chat.extend({
 	constructor : function (client, templates, target_id) {
 		this.target_id = target_id;
 		this.base(client, templates);
@@ -104,18 +104,18 @@ var AccChat = psyc.Chat.extend({
 		var members = document.createElement("div");
 
 		if (uniform == this.client.uniform) {
-			win = new psyc.TemplatedWindow(this.templates, uniform);
+			win = new yakity.TemplatedWindow(this.templates, uniform);
 			toggler.appendChild(document.createTextNode("Status"));
 			UTIL.addClass(header, "status");
 			UTIL.addClass(container, "status");
 		} else if (uniform.is_person()) {
-			win = new psyc.TemplatedWindow(this.templates, uniform);
+			win = new yakity.TemplatedWindow(this.templates, uniform);
 			UTIL.addClass(win.getMessagesNode(), "privatechat");
 			UTIL.addClass(header, "private");
 			UTIL.addClass(container, "private");
 			toggler.appendChild(profiles.getDisplayNode(uniform));
 		} else {
-			win = new psyc.RoomWindow(this.templates, uniform);
+			win = new yakity.RoomWindow(this.templates, uniform);
 			UTIL.addClass(header, "public");
 			UTIL.addClass(container, "public");
 			win.onenter = function() {
