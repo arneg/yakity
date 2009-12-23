@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 mapping(MMP.Uniform:object) entities = ([]); //set_weak_flag(([]), Pike.WEAK);
 mapping(string:MMP.Uniform) uniform_cache = set_weak_flag(([]), Pike.WEAK_VALUES);
-#if constant(Roxen)
+#ifdef ENABLE_THREADS
 Thread.Mutex ucm = Thread.Mutex();
 #endif
 object type_cache;
@@ -32,7 +32,7 @@ MMP.Uniform get_uniform(string s) {
 		return uniform_cache[s];
 	}
 
-#if constant(Roxen)
+#ifdef ENABLE_THREADS
 	object lock = ucm->lock();
 #endif
 
@@ -42,7 +42,7 @@ MMP.Uniform get_uniform(string s) {
 
 	object u = MMP.Uniform(s);
 	uniform_cache[(string)u] = u;
-#if constant(Roxen)
+#ifdef ENABLE_THREADS
 	destruct(lock);
 #endif
 	return u;
@@ -92,7 +92,7 @@ void deliver(MMP.Packet p) {
 
 void register_entity(MMP.Uniform u, object o) {
 	entities[u] = o;
-#if constant(Roxen)
+#ifdef ENABLE_THREADS
 	object lock = ucm->lock();
 #endif
 
@@ -101,7 +101,7 @@ void register_entity(MMP.Uniform u, object o) {
 		uniform_cache[(string)u] = u;
 	}
 
-#if constant(Roxen)
+#ifdef ENABLE_THREADS
 	destruct(lock);
 #endif
 }
