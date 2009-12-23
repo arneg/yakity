@@ -191,6 +191,11 @@ int msg(MMP.Packet p) {
 		atom = mmp_signature->encode(p);
 	};
 
+	if (err) {
+		werror("Failed to encode %O: %s\n", p, describe_error(err));
+		return Yakity.STOP;
+	}
+
 	// minimize it, will not be needed again anyhow
 	atom->condense();
 
