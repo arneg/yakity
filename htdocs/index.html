@@ -122,10 +122,12 @@
 								return div;
 							},
 							_notice_presence_typing : function(p) {
-								UTIL.addClass(div, "typing");
+								UTIL.replaceClass(this.container, "idle", "typing");
+								return psyc.STOP;
 							},
 							_notice_presence_idle : function(p) {
-								UTIL.addClass(div, "idle");
+								UTIL.replaceClass(this.container, "typing", "idle");
+								return psyc.STOP;
 							},
 						});
 
@@ -133,12 +135,7 @@
 					}
 				});
 				chat = new CustomChat(client, templates, "YakityChat");
-			}
-
-			function type() {
-				
-
-				return true;
+				chat.idle = new yakity.Presence.Typing(client, chat);
 			}
 
 			function init() {
@@ -221,12 +218,16 @@
 				overflow: auto;
 				border-bottom: 1px #ccc solid;	
 			}
-			
+
 			div.chatwindow {
 				background-color: #dddddd;
 				border-right: 1px #ccc solid;
 				border-left: 1px #ccc solid;
 				position: relative;
+			}
+			
+			div.typing {
+				background-color: #ffdddd;
 			}
 			
                         
@@ -564,7 +565,7 @@
 			<div id="YakityChat"></div>
         </div>
         <div id="basePane">
-			<form name=chat_input onSubmit="return new_input()">
+			<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.type_event()">
 				<input name=text value="" size="50" class="chattext">
 			</form>
         </div>
