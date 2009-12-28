@@ -243,7 +243,6 @@ yakity.Client.prototype = {
 		delete this.connection;
 	},
  	sendmsg : function(target, method, data, vars) {
-
 		var m = new yakity.Message(method, data, vars);
 		var p = new mmp.Packet(m, { _target : target, _source : this.uniform });
 		this.send(p);
@@ -286,7 +285,8 @@ yakity.Client.prototype = {
 		this.client.reconnect = 0;	
 	},
 	incoming : function (data) {
-		var self, method, count, target, source, p, m, wrapper, i, last_id;
+		var self, method, count, p, m, wrapper, i, last_id;
+		var source, target, context;
 
 		if (this.keepalive) {
 			window.clearTimeout(this.keepalive);
@@ -319,6 +319,7 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 				count = p.v("_id");	
 				target = p.target();
 				source = p.source();
+				context = p.v("_context");
 
 				if (method == "_status_circuit") {
 					last_id = m.v("_last_id");
@@ -331,12 +332,14 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 					if (this.onconnect) {
 						this.onconnect(1, this);
 					}
-				} else if (target != this.uniform) {
-					if (meteor.debug) meteor.debug("received message for "+target+", not for us!");
-					continue;
-				} else if (!source) {
-					if (meteor.debug) meteor.debug("received message without source.\n");
-					continue;
+				} else if (!context) {
+					if (target != this.uniform) {
+						if (meteor.debug) meteor.debug("received message for "+target+", not for us!");
+						continue;
+					} else if (!source) {
+						if (meteor.debug) meteor.debug("received message without source.\n");
+						continue;
+					}
 				}
 				
 				if (intp(count)) {
@@ -566,7 +569,7 @@ yakity.RoomWindow = yakity.TemplatedWindow.extend({
 		}
 
 
-		if (list && list instanceof Array) {
+		if (list instanceof Array) {
 			for (var i = 0; i < list.length; i++) {
 				this.addMember(list[i]);
 			}
@@ -757,9 +760,9 @@ yakity.UserList = yakity.Base.extend({
 	constructor : function(client, profiles) {
 		this.client = client;
 		this.profiles = profiles;
-		client.register_method({ method : "_update_users", source : client.uniform.root(), object : this });
-		client.register_method({ method : "_notice_login", source : null, object : this });
-		client.register_method({ method : "_notice_logout", source : null, object : this });
+		client.register_method({ method : "_update_users", source : this.client.uniform.root(), object : this });
+		client.register_method({ method : "_notice_login", context : this.client.uniform.root(), object : this });
+		client.register_method({ method : "_notice_logout", context : this.client.uniform.root(), object : this });
 		this.table = new TypedTable();
 		this.table.addColumn("users", "Users");
 		this.sendmsg(client.uniform.root(), "_request_users");
@@ -799,32 +802,30 @@ yakity.UserList = yakity.Base.extend({
 });
 yakity.Presence = {};
 yakity.Presence.Typing = yakity.Base.extend({
-	constructor : function(client, input, chatwin) {
+	constructor : function(client, chat) {
 		this.client = client;
-		this.input = input;
-		this.chatwin = chatwin;
-		this.inactive_id = null;
-		var self = this;
-		var cb = function() {
-			self.idle_event();
-		};
-		this.input.onChange = cb;
+		this.chat = chat;
+		this.ids = new Mapping();
 	},
 	type_event : function() {
-		if (this.inactive_id) {
-			window.clearTimeout(this.inactive_id);
+		if (!this.chat.active) return;
+		var uniform = this.chat.active.name;
+		if (this.ids.hasIndex(uniform)) {
+			window.clearTimeout(this.ids.get(uniform));
 		} else {
-			this.client.sendmsg(this.win.uniform, "_notice_presence_typing");
+			this.client.sendmsg(uniform, "_notice_presence_typing");
 		}
 		var self = this;
 		var cb = function() {
-			self.idle_event();
+			self.idle_event(uniform);
 		};
-		this.inactive_id = window.setTimeout(cb, 2000);
+		this.ids.set(uniform, window.setTimeout(cb, 2000));
+		return true;
 	},
-	idle_event : function() {
+	idle_event : function(uniform) {
 		window.clearTimeout(this.inactive_id);
-		this.inactive_id = null;
-		this.client.sendmsg(this.win.uniform, "_notice_presence_idle");
+		this.ids.remove(uniform);
+		this.client.sendmsg(uniform, "_notice_presence_idle");
+		return true;
 	}
 });
