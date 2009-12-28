@@ -51,9 +51,8 @@ void create(string client_id, void|function cb, void|function error) {
 
 // this is called in intervals
 void keepalive() {
-	stream->write("_keepalive 0 ");
-	werror("KEEPALIVE\n");
 	kid = 0;
+	stream->write("_keepalive 0 ");
 	KEEPALIVE;
 }
 
