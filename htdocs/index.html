@@ -21,6 +21,7 @@
 			var client; 
 			var error;
 			var chat;
+			var foo;
 			var profiles;
 			var userlist;
 			var METEORURL = "<meteorurl/>";
@@ -134,7 +135,7 @@
 						return win;
 					}
 				});
-				chat = new CustomChat(client, templates, "YakityChat");
+				chat = new CustomChat(client, templates, "YakityChat", document.chat_input.text);
 				chat.idle = new yakity.Presence.Typing(client, chat);
 			}
 
