@@ -499,9 +499,11 @@ yakity.ChatWindow = yakity.Base.extend({
 		this.name = id;
 	},
 	_ : function(p, m) {
-		this.mset.set(p, this.mlist.length);
-		this.mlist.push(p);
-		this.messages.appendChild(this.renderMessage(p, m));
+		if (m.data && m.data.length) {
+			this.mset.set(p, this.mlist.length);
+			this.mlist.push(p);
+			this.messages.appendChild(this.renderMessage(p, m));
+		}
 	},
 	getMessages : function() {
 		return this.mlist.concat();
@@ -773,7 +775,7 @@ yakity.UserList = yakity.Base.extend({
 			this.table.deleteRow(source);
 		}
 
-		return psyc.STOP;
+		return psyc.GOON;
 	},
 	_notice_login : function(p) {
 		var source = p.source();
@@ -782,7 +784,7 @@ yakity.UserList = yakity.Base.extend({
 			this.table.addCell(source, "users", this.profiles.getDisplayNode(source));
 		}
 
-		return psyc.STOP;
+		return psyc.GOON;
 	},
 	_update_users : function(p, m) {
 		var source = p.source();
