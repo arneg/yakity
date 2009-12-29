@@ -154,7 +154,7 @@ string make_response_headers(object r, mapping args) {
 }
 
 void handle_request(Protocols.HTTP.Server.Request r) {
-#ifdef HTTP_TRACE
+#ifdef 1 || HTTP_TRACE
 	int parsing_time = gethrtime(1) - r->parsing_start;
 	werror("parsing time for HTTP request: %d nsec.\n", parsing_time);
 #endif
@@ -172,7 +172,6 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 		"answer" : Function.curry(answer)(r),
 		"end" : Function.curry(r->finish)(1),
 	]);
-	werror("BODY_RAW: %O for %s\n", r->body_raw, r->not_query);
 
 	object session;
 
@@ -193,7 +192,6 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	    string fname = sprintf("%s/%s", (BASE_PATH), r->not_query);
 
 	    if (Stdio.exist(fname)) {
-		werror("reponding with %O:%O to %O\n", 200, "?", r);
 		r->response_and_finish(([ "error" : 200,
 					  "file" : Stdio.File(fname),
 					  "type" : ext2type((r->not_query / ".")[-1]),
