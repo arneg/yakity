@@ -109,6 +109,7 @@ object get_user(mixed id) {
 }
 
 void answer(object r, int code, string data) {
+	werror("reponding with %O:%O to %O\n", error, data, r);
 	r->response_and_finish(([
 		"data" : data,
 		"error" : code,
@@ -141,6 +142,10 @@ string ext2type(string ext) {
     return t;
 }
 
+string make_response_headers(object r, mapping args) {
+	return r->make_response_header(([ "error" : 200, "extra_heads" : args ]));
+}
+
 void handle_request(Protocols.HTTP.Server.Request r) {
 #ifdef HTTP_TRACE
 	int parsing_time = gethrtime(1) - r->parsing_start;
@@ -152,7 +157,7 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 		"misc" : ([ 
 			"content_type_type" : has_index(r->request_headers, "content-type") ? (r->request_headers["content-type"]/";")[0] : "",
 		]),
-		"make_response_headers" : r->make_response_header,
+		"make_response_headers" : Function.curry(make_response_headers)(r),
 		"connection" : Function.curry(`->)(r, "my_fd"),
 		"data" : r->body_raw,
 		"method" : r->request_type,
@@ -160,7 +165,7 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 		"answer" : Function.curry(answer)(r),
 		"end" : Function.curry(r->finish)(1),
 	]);
-	//werror("requested: %s?%O\n", f, id->query);
+	werror("BODY_RAW: %O for %s\n", r->body_raw, r->not_query);
 
 	object session;
 
@@ -169,6 +174,7 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	    {
 		string s = replace(Stdio.read_file(sprintf("%s/index.html", (BASE_PATH))), "<meteorurl/>", "/meteor/");
 
+		werror("reponding with %O:%O to %O\n", 200, sizeof(s), r);
 		r->response_and_finish(([ "error" : 200,
 					  "data" : s,
 					  "type" : "text/html",
@@ -181,12 +187,14 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	    string fname = sprintf("%s/%s", (BASE_PATH), r->not_query);
 
 	    if (Stdio.exist(fname)) {
+		werror("reponding with %O:%O to %O\n", 200, "?", r);
 		r->response_and_finish(([ "error" : 200,
 					  "file" : Stdio.File(fname),
 					  "type" : ext2type((r->not_query / ".")[-1]),
 					  ]));
 		return;
 	    } else {
+			werror("%O not found.\n", fname);
 		answer(r, 404, "File does not exist.");
 		return;
 	    }
