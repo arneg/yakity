@@ -143,7 +143,13 @@ string ext2type(string ext) {
 }
 
 string make_response_headers(object r, mapping args) {
-	return r->make_response_header(([ "error" : 200, "extra_heads" : args ]));
+	mapping m = ([ "error" : 200, "extra_heads" : args ]);
+	m["size"] = -1;
+	if (has_index(args, "Content-Type")) {
+		m->type = m_delete(args, "Content-Type");
+	}
+	string s = r->make_response_header(m);
+	return s;
 }
 
 void handle_request(Protocols.HTTP.Server.Request r) {
@@ -174,7 +180,6 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	    {
 		string s = replace(Stdio.read_file(sprintf("%s/index.html", (BASE_PATH))), "<meteorurl/>", "/meteor/");
 
-		werror("reponding with %O:%O to %O\n", 200, sizeof(s), r);
 		r->response_and_finish(([ "error" : 200,
 					  "data" : s,
 					  "type" : "text/html",
