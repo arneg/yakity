@@ -21,6 +21,7 @@
 			var client; 
 			var error;
 			var chat;
+			var foo;
 			var profiles;
 			var userlist;
 			var METEORURL = "<meteorurl/>";
@@ -134,7 +135,7 @@
 						return win;
 					}
 				});
-				chat = new CustomChat(client, templates, "YakityChat");
+				chat = new CustomChat(client, templates, "YakityChat", document.chat_input.text);
 				chat.idle = new yakity.Presence.Typing(client, chat);
 			}
 
@@ -565,7 +566,7 @@
 			<div id="YakityChat"></div>
         </div>
         <div id="basePane">
-			<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.type_event()">
+			<form name=chat_input onSubmit="return new_input()" onMouseDown="foo = document.chat_input.text.value;" onMouseUp="if (foo == document.chat_input.text.value) return true; return chat.idle.type_event()" onKeyDown="return chat.idle.type_event()">
 				<input name=text value="" size="50" class="chattext">
 			</form>
         </div>

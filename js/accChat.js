@@ -16,8 +16,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 var AccChat = yakity.Chat.extend({
-	constructor : function (client, templates, target_id) {
+	constructor : function (client, templates, target_id, input) {
 		this.target_id = target_id;
+		this.input = input;
 		this.base(client, templates);
 		this.DOMtoWIN = new Mapping();
 		this.templates = templates;
