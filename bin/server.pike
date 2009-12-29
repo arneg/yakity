@@ -109,7 +109,6 @@ object get_user(mixed id) {
 }
 
 void answer(object r, int code, string data) {
-	werror("reponding with %O:%O to %O\n", error, data, r);
 	r->response_and_finish(([
 		"data" : data,
 		"error" : code,
