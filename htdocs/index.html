@@ -130,6 +130,12 @@
 								UTIL.replaceClass(this.container, "typing", "idle");
 								return psyc.STOP;
 							},
+							_notice_logout : function(p) {
+								UTIL.replaceClass(this.container, "idle", "offline");
+							},
+							_notice_login : function(p) {
+								UTIL.replaceClass(this.container, "offline", "idle");
+							},
 						});
 
 						return win;
@@ -229,6 +235,10 @@
 			
 			div.typing {
 				background-color: #ffdddd;
+			}
+
+			div.offline {
+			    background-color: #999;
 			}
 			
                         
