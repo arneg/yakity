@@ -4,6 +4,10 @@ inherit Meteor.SessionHandler;
 #error Cannot find Meteor library.
 #endif
 
+#ifndef BASE_PATH
+# define BASE_PATH	"htdocs"
+#endif
+
 mixed configuration;
 object server;
 object http_server;
@@ -111,6 +115,32 @@ void answer(object r, int code, string data) {
 	]));
 }
 
+string ext2type(string ext) {
+    string t;
+
+    switch (ext) {
+	case "html":
+	    t = "text/html";
+	    break;
+	case "js":
+	    t = "application/javascript";
+	    break;
+	case "css":
+	    t = "text/stylesheet";
+	    break;
+	case "png":
+	case "jpg":
+	case "jpeg":
+	case "gif":
+	    t = "application/octet-stream";
+	    break;
+	default:
+	    t = "text/plain";
+    }
+
+    return t;
+}
+
 void handle_request(Protocols.HTTP.Server.Request r) {
 #ifdef HTTP_TRACE
 	int parsing_time = gethrtime(1) - r->parsing_start;
@@ -133,6 +163,36 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	//werror("requested: %s?%O\n", f, id->query);
 
 	object session;
+
+	switch (r->not_query) {
+	    case "/":
+	    {
+		string s = replace(Stdio.read_file(sprintf("%s/index.html", (BASE_PATH))), "<meteorurl/>", "/meteor/");
+
+		r->response_and_finish(([ "error" : 200,
+					  "data" : s,
+					  "type" : "text/html",
+					  ]));
+		return;
+	    }
+	}
+
+	if (search(r->not_query, ".") != -1) {
+	    string fname = sprintf("%s/%s", (BASE_PATH), r->not_query);
+
+	    if (Stdio.exist(fname)) {
+		r->response_and_finish(([ "error" : 200,
+					  "file" : Stdio.File(fname),
+					  "type" : ext2type((r->not_query / ".")[-1]),
+					  ]));
+		return;
+	    } else {
+		answer(r, 404, "File does not exist.");
+		return;
+	    }
+	}
+
+	write("survived tobij code\n");
 
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
 		string name = id->variables["nick"];
