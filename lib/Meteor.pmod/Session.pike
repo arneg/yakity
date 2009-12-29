@@ -129,12 +129,13 @@ void register_new_id() {
 
 	if (connection_id->misc["content_type_type"] == "application/octet-stream") {
 		werror("creating binary stream\n");
+		headers["Content-Type"] = "application/octet-stream";
 		stream = Meteor.Stream(connection_id->connection(), stream_close, stream_error, autoclose);
 	} else {
 		werror("creating utf8 stream\n");
+		headers["Content-Type"] = "text/plain; charset=utf-8";
 		stream = Meteor.UTF8Stream(connection_id->connection(), stream_close, stream_error, autoclose);
 	}
-	headers["Content-Type"] = "text/plain; charset=utf-8";
 
 	closing = 0;
 	KEEPALIVE;
@@ -147,7 +148,8 @@ void register_new_id() {
 	
 	//string t = stream->out_buffer->get();
 	//stream->out_buffer->add(t);
-	werror("request_headers: %O\nresponse_headers: %O\n", connection_id->request_headers, connection_id->make_response_headers(headers));
+	//werror("request_headers: %O\nresponse_headers: %O\n", connection_id->request_headers, connection_id->make_response_headers(headers));
+	//werror("response_headers:\n%s\n", connection_id->make_response_headers(headers));
 
 	while (!queue->isEmpty()) {
 		stream->write(queue->shift()->render());
