@@ -123,25 +123,31 @@ void register_new_id() {
 
 	if (autoclose) werror("Creating new autoclosing Stream for %O\n", connection_id);
 
+	mapping headers = ([
+		"Transfer-Encoding" : "chunked",
+	]);
+
 	if (connection_id->misc["content_type_type"] == "application/octet-stream") {
-		//werror("creating binary stream\n");
+		werror("creating binary stream\n");
 		stream = Meteor.Stream(connection_id->connection(), stream_close, stream_error, autoclose);
 	} else {
-		//werror("creating utf8 stream\n");
+		werror("creating utf8 stream\n");
 		stream = Meteor.UTF8Stream(connection_id->connection(), stream_close, stream_error, autoclose);
 	}
+	headers["Content-Type"] = "text/plain; charset=utf-8";
 
 	closing = 0;
 	KEEPALIVE;
 
-	mapping headers = ([
-		"Content-Type" : "text/plain; charset=utf-8",
-		"Transfer-Encoding" : "chunked",
-	]);
 	if (autoclose) headers["Connection"] = "keep-alive";
 
 	// send this first
-	stream->out_buffer->add("HTTP/1.1 200 OK\r\n" + connection_id->make_response_headers(headers));
+	//stream->out_buffer->add("HTTP/1.1 200 OK\r\n" + connection_id->make_response_headers(headers));
+	stream->out_buffer->add(connection_id->make_response_headers(headers));
+	
+	//string t = stream->out_buffer->get();
+	//stream->out_buffer->add(t);
+	werror("request_headers: %O\nresponse_headers: %O\n", connection_id->request_headers, connection_id->make_response_headers(headers));
 
 	while (!queue->isEmpty()) {
 		stream->write(queue->shift()->render());
@@ -153,14 +159,16 @@ void register_new_id() {
 void handle_id(object id) {
 	LOCK;
 
+	werror("%s: data: %O\n", id->method, id->data);
+
 	if (id->method == "POST" && stringp(id->data) && sizeof(id->data)) {
 
 		if (id->request_headers["content-type"] == "application/octet-stream") {
-		//	werror("Feeding %d bytes of data.\n", sizeof(id->data));
+			werror("Feeding %d bytes of data.\n", sizeof(id->data));
 			parser->feed(id->data);
 		} else {
 			string s = utf8_to_string(id->data);
-			//werror("Feeding %d bytes of data.\n", sizeof(s));
+			werror("Feeding %d bytes of data in utf8.\n", sizeof(s));
 			parser->feed(s);
 		}
 
@@ -185,7 +193,7 @@ void handle_id(object id) {
 
 		id->answer(200, "ok");
 	} else {
-		//werror("%O: New connection from %O.\n", this, id->connection()->query_address());
+		werror("%O: New connection from %O.\n", this, id->connection()->query_address());
 
 		// TODO: change internal timeout from 180 s to infinity for Request
 		new_id = id;
