@@ -128,11 +128,11 @@ void register_new_id() {
 	]);
 
 	if (connection_id->misc["content_type_type"] == "application/octet-stream") {
-		werror("creating binary stream\n");
+		//werror("creating binary stream\n");
 		headers["Content-Type"] = "application/octet-stream";
 		stream = Meteor.Stream(connection_id->connection(), stream_close, stream_error, autoclose);
 	} else {
-		werror("creating utf8 stream\n");
+		//werror("creating utf8 stream\n");
 		headers["Content-Type"] = "text/plain; charset=utf-8";
 		stream = Meteor.UTF8Stream(connection_id->connection(), stream_close, stream_error, autoclose);
 	}
@@ -161,21 +161,21 @@ void register_new_id() {
 void handle_id(object id) {
 	LOCK;
 
-	werror("%s: data: %O\n", id->method, id->data);
+	//werror("%s: data: %O\n", id->method, id->data);
 
 	if (id->method == "POST" && stringp(id->data) && sizeof(id->data)) {
 
 		if (id->request_headers["content-type"] == "application/octet-stream") {
-			werror("Feeding %d bytes of data.\n", sizeof(id->data));
+			//werror("Feeding %d bytes of data.\n", sizeof(id->data));
 			parser->feed(id->data);
 		} else {
 			string s = utf8_to_string(id->data);
-			werror("Feeding %d bytes of data in utf8.\n", sizeof(s));
+			//werror("Feeding %d bytes of data in utf8.\n", sizeof(s));
 			parser->feed(s);
 		}
 
 		if (lower_case(id->request_headers["connection"]) != "keep-alive") {
-			werror("data from non keep-alive connection: %O\n", id->request_headers);
+			//werror("data from non keep-alive connection: %O\n", id->request_headers);
 		}
 
 		Serialization.Atom a;
@@ -195,7 +195,7 @@ void handle_id(object id) {
 
 		id->answer(200, "ok");
 	} else {
-		werror("%O: New connection from %O.\n", this, id->connection()->query_address());
+		//werror("%O: New connection from %O.\n", this, id->connection()->query_address());
 
 		// TODO: change internal timeout from 180 s to infinity for Request
 		new_id = id;
