@@ -155,7 +155,7 @@ string make_response_headers(object r, mapping args) {
 void handle_request(Protocols.HTTP.Server.Request r) {
 #if 1 || defined(HTTP_TRACE)
 	int parsing_time = gethrtime(1) - r->parsing_start;
-	werror("parsing time for HTTP request: %d nsec.\n", parsing_time);
+	werror("parsing time for HTTP request: %O ms\n", parsing_time*1E-6);
 #endif
 	string f = basename(r->not_query);
 	mapping id = ([
