@@ -143,11 +143,12 @@ string ext2type(string ext) {
 }
 
 string make_response_headers(object r, mapping args) {
-	mapping m = ([ "error" : 200, "extra_heads" : args ]);
+	mapping m = ([ "error" : 200 ]);
 	m["size"] = -1;
 	if (has_index(args, "Content-Type")) {
-		m->type = m_delete(args, "Content-Type");
+		m->type = args["Content-Type"];
 	}
+	m["extra_heads"] = args - ({ "Content-Type" });
 	string s = r->make_response_header(m);
 	return s;
 }
