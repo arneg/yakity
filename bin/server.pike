@@ -153,7 +153,7 @@ string make_response_headers(object r, mapping args) {
 }
 
 void handle_request(Protocols.HTTP.Server.Request r) {
-#ifdef 1 || HTTP_TRACE
+#if 1 || defined(HTTP_TRACE)
 	int parsing_time = gethrtime(1) - r->parsing_start;
 	werror("parsing time for HTTP request: %d nsec.\n", parsing_time);
 #endif
