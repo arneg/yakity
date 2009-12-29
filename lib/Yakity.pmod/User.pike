@@ -186,6 +186,8 @@ int msg(MMP.Packet p) {
 
 	if (::msg(p) == Yakity.STOP) return Yakity.STOP;
 
+	werror("mmp lifetime without render: %O ms\n", (gethrtime(1) - p->vars["_hrtime"]) * 1E-6);
+
 	Serialization.Atom atom;
 	mixed err = catch {
 		atom = mmp_signature->encode(p);
@@ -199,6 +201,7 @@ int msg(MMP.Packet p) {
 	// minimize it, will not be needed again anyhow
 	atom->condense();
 
+	werror("mmp lifetime with render: %O ms\n", (gethrtime(1) - p->vars["_hrtime"]) * 1E-6);
 	//history[count] = atom;
 
 	foreach (sessions;; object s) {

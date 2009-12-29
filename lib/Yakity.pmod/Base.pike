@@ -83,8 +83,12 @@ void sendmsg(MMP.Uniform target, string method, void|string data, void|mapping v
 	send(target, m);
 }
 
+int pstart;
+
 int msg(MMP.Packet p) {
 	string method;
+	pstart = gethrtime(1);
+
 
 	if (sizeof(p->data->typed_data)) {
 		method = random(p->data->typed_data)[1]->method;
@@ -95,6 +99,7 @@ int msg(MMP.Packet p) {
 	if (method[0] = '_') {
 		mixed f;
 		if ((f = this[method]) && functionp(f) && f(p) == Yakity.STOP) {
+			werror("atom parsing: %O ms\n", (gethrtime(1) - pstart)*1E-6);
 			return Yakity.STOP;
 		} 
 	
@@ -105,10 +110,12 @@ int msg(MMP.Packet p) {
 			f = this[s];
 
 			if (functionp(f) && f(p) == Yakity.STOP) {
+				werror("subtype atom parsing: %O ms\n", (gethrtime(1) - pstart)*1E-6);
 				return Yakity.STOP;
 			}
 		}
 	}
 
+	werror("goon atom parsing: %O ms\n", (gethrtime(1) - pstart)*1E-6);
 	return Yakity.GOON;
 }
