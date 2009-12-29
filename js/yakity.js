@@ -822,6 +822,19 @@ yakity.Presence.Typing = yakity.Base.extend({
 		this.ids.set(uniform, window.setTimeout(cb, 2000));
 		return true;
 	},
+	probable_type_event : function() {
+	      var _foo = this.chat.input.value;
+	      var self = this;
+	      var cb = function() {
+		  if (_foo != this.chat.input.value) {
+		      self.type_event();
+		  }
+	      };
+
+	      window.setTimeout(cb, 0);
+
+	      return true;
+	},
 	idle_event : function(uniform) {
 		window.clearTimeout(this.inactive_id);
 		this.ids.remove(uniform);

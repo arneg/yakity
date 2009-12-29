@@ -565,7 +565,7 @@
 			<div id="YakityChat"></div>
         </div>
         <div id="basePane">
-			<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.type_event()">
+			<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.type_event()" onMouseUp="chat.idle.probable_type_event();">
 				<input name=text value="" size="50" class="chattext">
 			</form>
         </div>
