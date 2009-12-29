@@ -29,6 +29,22 @@ void print_help() {
 	werror("Usage: server.pike -p <port> -d <domain> -b <bind address> -r <rooms>\n\n");
 }
 
+class HTTPRequest {
+	inherit Protocols.HTTP.Server.Request;
+	int parsing_start = 0;
+
+	protected void read_cb(mixed dummy, string s) {
+		if (!parsing_start) parsing_start = gethrtime(1);
+		werror("setting parsing_start: %O\n", parsing_start);
+		::read_cb(dummy, s);
+	}
+	
+	void finish(int clean) {
+		::finish(clean);
+	}
+	
+}
+
 int main(int argc, array(string) argv) {
 	array opt;
 	mapping options = ([]);
@@ -68,6 +84,7 @@ int main(int argc, array(string) argv) {
 	int port = (int)options["port"] || 80;
 
 	http_server = Protocols.HTTP.Server.Port(handle_request, port, bind);
+	http_server->request_program = HTTPRequest;
 	werror("Started HTTP server on %s:%d\n", bind, port);
 
 	server = Yakity.Server(Serialization.TypeCache());
