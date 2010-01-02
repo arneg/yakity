@@ -186,9 +186,13 @@ int msg(MMP.Packet p) {
 
 	if (::msg(p) == Yakity.STOP) return Yakity.STOP;
 
-	werror("mmp lifetime without render: %O ms\n", (gethrtime(1) - p->vars["_hrtime"]) * 1E-6);
+#ifdef ATOM_TRACE
+	int before = gethrtime(1);
+	werror("mmp lifetime without render: %O ms\n", (before - p->vars["_hrtime"]) * 1E-6);
+#endif
 
 	Serialization.Atom atom;
+#if 0
 	mixed err = catch {
 		atom = mmp_signature->encode(p);
 	};
@@ -197,11 +201,16 @@ int msg(MMP.Packet p) {
 		werror("Failed to encode %O: %s\n", p, describe_error(err));
 		return Yakity.STOP;
 	}
+#else
+	atom = mmp_signature->encode(p);
+#endif
 
 	// minimize it, will not be needed again anyhow
 	atom->condense();
 
-	werror("mmp lifetime with render: %O ms\n", (gethrtime(1) - p->vars["_hrtime"]) * 1E-6);
+#ifdef ATOM_TRACE
+	werror("mmp render: %O ms\n", (gethrtime(1) - before) * 1E-6);
+#endif
 	//history[count] = atom;
 
 	foreach (sessions;; object s) {
