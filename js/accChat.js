@@ -94,9 +94,9 @@ var AccChat = yakity.Chat.extend({
 	},
 	createWindow : function(uniform) {
 		var win;
-		var toggler = document.createElement("div");
+		var toggler = document.createElement("a");
 		UTIL.addClass(toggler, "toggler");
-		var togglemembers = document.createElement("div");
+		var togglemembers = document.createElement("a");
 		UTIL.addClass(togglemembers, "toggleInfo");
 		toggler.appendChild(togglemembers);
 		
