@@ -152,7 +152,9 @@ void register_new_id() {
 	//werror("response_headers:\n%s\n", connection_id->make_response_headers(headers));
 
 	while (!queue->isEmpty()) {
-		stream->write(queue->shift()->render());
+		mixed o = queue->shift();
+		if (stringp(o)) stream->write(o);
+		else stream->write(o->render());
 	}
 
 	RETURN;
@@ -228,7 +230,7 @@ string _sprintf(int type) {
 	} else return "Session()";
 }
 
-void send(Serialization.Atom atom) {
+void send(string|Serialization.Atom atom) {
 	LOCK;
 	KEEPDEAD;
 	//werror("%O: send(%O)\n", this, atom);
@@ -236,7 +238,8 @@ void send(Serialization.Atom atom) {
 		queue->push(atom);	
 	} else {
 		KEEPALIVE;
-		stream->write(atom->render());
+		if (stringp(atom)) stream->write(atom);
+		else stream->write(atom->render());
 	}
 	RETURN;
 }
