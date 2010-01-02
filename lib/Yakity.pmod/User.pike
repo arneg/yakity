@@ -191,8 +191,8 @@ int msg(MMP.Packet p) {
 	werror("mmp lifetime without render: %O ms\n", (before - p->vars["_hrtime"]) * 1E-6);
 #endif
 
-	Serialization.Atom atom;
 #if 0
+	Serialization.Atom atom;
 	mixed err = catch {
 		atom = mmp_signature->encode(p);
 	};
@@ -201,12 +201,13 @@ int msg(MMP.Packet p) {
 		werror("Failed to encode %O: %s\n", p, describe_error(err));
 		return Yakity.STOP;
 	}
+
+	atom->condense();
 #else
-	atom = mmp_signature->encode(p);
+	string atom = mmp_signature->render(p, MMP.Utils.StringBuilder())->get();
 #endif
 
 	// minimize it, will not be needed again anyhow
-	atom->condense();
 
 #ifdef ATOM_TRACE
 	werror("mmp render: %O ms\n", (gethrtime(1) - before) * 1E-6);
