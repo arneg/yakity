@@ -87,7 +87,9 @@ int pstart;
 
 int msg(MMP.Packet p) {
 	string method;
+#ifdef ATOM_TRACE
 	pstart = gethrtime(1);
+#endif
 
 
 	if (sizeof(p->data->typed_data)) {
@@ -99,7 +101,9 @@ int msg(MMP.Packet p) {
 	if (method[0] = '_') {
 		mixed f;
 		if ((f = this[method]) && functionp(f) && f(p) == Yakity.STOP) {
+#ifdef ATOM_TRACE
 			werror("atom parsing: %O ms\n", (gethrtime(1) - pstart)*1E-6);
+#endif
 			return Yakity.STOP;
 		} 
 	
@@ -110,12 +114,16 @@ int msg(MMP.Packet p) {
 			f = this[s];
 
 			if (functionp(f) && f(p) == Yakity.STOP) {
+#ifdef ATOM_TRACE
 				werror("subtype atom parsing: %O ms\n", (gethrtime(1) - pstart)*1E-6);
+#endif
 				return Yakity.STOP;
 			}
 		}
 	}
 
+#ifdef ATOM_TRACE
 	werror("goon atom parsing: %O ms\n", (gethrtime(1) - pstart)*1E-6);
+#endif
 	return Yakity.GOON;
 }
