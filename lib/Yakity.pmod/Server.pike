@@ -79,11 +79,32 @@ void broadcast(MMP.Packet p) {
 	}
 }
 
+#ifdef PROGRESSBAR
+int lasttime2;
+float lasthrtime2;
+int bcastcnt2; // immanuel kant
+#endif
+
+
 void deliver(MMP.Packet p) {
 	//werror("deliver(%O)\n", m);
 	object o;
 
 	if ((o = entities[p->target()])) {
+#ifdef PROGRESSBAR
+		if ((++bcastcnt2%1000) == 0) {
+		    int ime;
+		    float hrime;
+
+		    ime = time(0);
+		    hrime = time(ime);
+
+		    werror("deliveries: %20d (%f msgs/s)\n", bcastcnt2, 1000/(ime+hrime - (lasttime2+lasthrtime2)));
+
+		    lasttime2 = ime;
+		    lasthrtime2 = hrime;
+		}
+#endif
 		o->msg(p);
 	} else {
 		werror("Could not deliver %O to %O\n", p, p->target());
