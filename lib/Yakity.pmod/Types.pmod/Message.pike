@@ -1,89 +1,75 @@
 inherit Serialization.Types.Base;
-
 object method, data, vars;
+string type = "_message";
 
 void create(object method, void|object vars, object data) {
 	this_program::method = method;
 	this_program::vars = vars;
 	this_program::data = data;
-
-	::create("_message");
 }
 
 // dont use this
 // TODO: may not throw due to can_decode
-void raw_to_medium(Serialization.Atom atom) {
-	atom->set_pdata(Serialization.parse_atoms(atom->data));
+string render_payload(Serialization.Atom atom) {
+	Yakity.Message m = atom->get_typed_data(this);
+	MMP.Utils.StringBuilder buf = MMP.Utils.StringBuilder();
+
+	if (m->vars && sizeof(m->vars)) vars->render(m->vars, buf);
+	method->render(m->method, buf);
+	if (m->data) data->render(m->data, buf);
+
+
+	return buf->get();
 }
 
-void medium_to_raw(Serialization.Atom atom) {
-	String.Buffer buf = String.Buffer();
+MMP.Utils.StringBuilder render(Yakity.Message m, MMP.Utils.StringBuilder buf) {
+	array node = buf->add();
 
-	switch (sizeof(atom->pdata)) {
-	case 1: 
-		buf += atom->pdata[0]->render();
-		break;
-	case 2:
-		if (atom->pdata[0]->type == "_method") { // had no vars
-			buf += atom->pdata[0]->render();
-			buf += atom->pdata[1]->render();
-		} else {
-			buf += atom->pdata[0]->render();
-			buf += atom->pdata[1]->render();
-		}
-		break;
-	case 3:
-		buf += atom->pdata[0]->render();
-		buf += atom->pdata[1]->render();
-		buf += atom->pdata[2]->render();
-		break;
-	default:
-		error("broken pdata: %O\n", atom->pdata);
-	}
+	if (m->vars && sizeof(m->vars)) vars->render(m->vars, buf);
+	method->render(m->method, buf);
+	if (m->data) data->render(m->data, buf);
+	node[2] = sprintf("%s %d ", type, buf->count_length(node));
 
-	atom->data = (string)buf;
+	return buf;
 }
 
-void medium_to_done(Serialization.Atom atom) {
-	object m = Yakity.Message();
+Yakity.Message decode(Serialization.Atom atom) {
+	object m = atom->get_typed_data(this);
 
-	switch (sizeof(atom->pdata)) {
+	if (m) return m;
+	
+	m = Yakity.Message();
+	array(Serialization.Atom) list = Serialization.parse_atoms(atom->data);
+
+	switch (sizeof(list)) {
 	case 1: 
-		m->method = method->decode(atom->pdata[0]);
+		m->method = method->decode(list[0]);
 		m->data = 0;
 		m->vars = ([]);
 		break;
 	case 2:
-		if (atom->pdata[0]->type == "_method") { // had no vars
-			m->method = method->decode(atom->pdata[0]);
-			m->data = data->decode(atom->pdata[1]);
+		if (list[0]->type == "_method") { // had no vars
+			m->method = method->decode(list[0]);
+			m->data = data->decode(list[1]);
 			m->vars = ([]);
 		} else {
 			m->data = 0;
-			m->vars = vars->decode(atom->pdata[0]);
-			m->method = method->decode(atom->pdata[1]);
+			m->vars = vars->decode(list[0]);
+			m->method = method->decode(list[1]);
 		}
 		break;
 	case 3:
-		m->vars = vars->decode(atom->pdata[0]);
-		m->method = method->decode(atom->pdata[1]);
-		m->data = data->decode(atom->pdata[2]);
+		m->vars = vars->decode(list[0]);
+		m->method = method->decode(list[1]);
+		m->data = data->decode(list[2]);
 		break;
 	default:
-		error("broken pdata: %O\n", atom->pdata);
+		error("broken pdata: %O\n", list);
 	}
 
 	atom->set_typed_data(this, m);
-}
 
-void done_to_medium(Serialization.Atom atom) {
-	object m = atom->typed_data[this];
-	atom->pdata = ({});
-	if (vars && mappingp(m->vars)) 
-		atom->pdata += ({ vars->encode(m->vars) });
-	atom->pdata += ({ method->encode(m->method) });
-	if (data && stringp(m->data))
-		atom->pdata += ({ data->encode(m->data) });
+	return m;
 }
 
 int (0..1) can_encode(mixed a) {
