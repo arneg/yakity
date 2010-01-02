@@ -31,17 +31,21 @@ void print_help() {
 
 class HTTPRequest {
 	inherit Protocols.HTTP.Server.Request;
-	int parsing_start = 0;
 
+#ifdef HTTP_TRACE
+	int parsing_start = 0;
 	protected void read_cb(mixed dummy, string s) {
-		if (!parsing_start) parsing_start = gethrtime(1);
-		werror("setting parsing_start: %O\n", parsing_start);
+		if (!parsing_start && sizeof(s)) {
+			parsing_start = gethrtime(1);
+		}
 		::read_cb(dummy, s);
 	}
 	
 	void finish(int clean) {
+		parsing_start = 0;
 		::finish(clean);
 	}
+#endif
 	
 }
 
@@ -170,7 +174,7 @@ string make_response_headers(object r, mapping args) {
 }
 
 void handle_request(Protocols.HTTP.Server.Request r) {
-#if 1 || defined(HTTP_TRACE)
+#if defined(HTTP_TRACE)
 	int parsing_time = gethrtime(1) - r->parsing_start;
 	werror("parsing time for HTTP request: %O ms\n", parsing_time*1E-6);
 #endif
@@ -219,8 +223,6 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 		return;
 	    }
 	}
-
-	write("survived tobij code\n");
 
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
 		string name = id->variables["nick"];
