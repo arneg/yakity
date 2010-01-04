@@ -15,7 +15,7 @@ release:
 	mkdir $(NAME)/modules
 	cp modules/yakitychat.pike $(NAME)/modules/
 	mkdir $(NAME)/htdocs
-	cp -r bin/ $(NAME)/
+	cp -r bin $(NAME)/
 	cp -r js $(NAME)/htdocs/
 	mkdir $(NAME)/htdocs/ppp-js/
 	mkdir $(NAME)/stats/
@@ -29,7 +29,7 @@ release:
 	rm $(NAME)/lib/MMP.pmod/Parser.pike
 	cp ppp-bsd ppp/lib/MMP.pmod/LICENSE
 	cp htdocs/index.html $(NAME)/htdocs/
-	cp -r htdocs/images/ $(NAME)/htdocs/
+	cp -r htdocs/images $(NAME)/htdocs/
 	cp htdocs/mootools-1.2.3-core-nc.js $(NAME)/htdocs/
 	cp htdocs/mootools-1-1.2.3.1-more.js $(NAME)/htdocs/
 	tar cfzvp $(NAME).tar.gz $(NAME)
