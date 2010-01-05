@@ -27,12 +27,12 @@ Stdio.File connection;
 Thread.Mutex m = Thread.Mutex();
 # define LOCK object lock = m->lock();
 # define RETURN	do { destruct(lock); return; } while (0)
-#ifndef PESSIMISTIC_WRITE
+#ifdef OPTIMISTIC_WRITE
 # define UNLOCK destruct(lock);
 #endif
 #else
 # define LOCK
-#ifndef PESSIMISTIC_WRITE
+#ifdef OPTIMISTIC_WRITE
 # define UNLOCK 
 #endif
 # define RETURN return;
@@ -79,7 +79,7 @@ void write(string data) {
 
 	out_buffer->add(sprintf("%x\r\n%s\r\n", sizeof(data), data));
 
-#ifndef PESSIMISTIC_WRITE
+#ifdef OPTIMISTIC_WRITE
 	UNLOCK;	
 	if (!will_send) {
 		_write();
@@ -108,7 +108,7 @@ void _write() {
 		RETURN;
 	} else if (bytes < sizeof(t)) {
 		out_buffer->add(t[bytes..]);
-#ifndef PESSIMISTIC_WRITE
+#ifdef OPTIMISTIC_WRITE
 
 		if (!will_send) {
 			will_send = 1;
