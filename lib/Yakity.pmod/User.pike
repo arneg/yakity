@@ -200,6 +200,7 @@ int msg(MMP.Packet p) {
 				a->condense();
 		} else {
 			atom = mmp_signature->render(p);
+			p->set_atom(0);
 		}
 	};
 
