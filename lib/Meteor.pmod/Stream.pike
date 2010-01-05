@@ -20,7 +20,7 @@ function close_cb, error_cb;
 // we dont want to close before we get the first write
 int autoclose;
 int autoclose_after_send; 
-int will_send = 1;
+int will_send = 0;
 Stdio.File connection;
 
 #ifdef ENABLE_THREADS
@@ -81,7 +81,9 @@ void write(string data) {
 
 #ifndef PESSIMISTIC_WRITE
 	UNLOCK;	
-	if (!will_send) _write();
+	if (!will_send) {
+		_write();
+	}
 #else
 	if (!will_send) {
 		will_send = 1;
