@@ -191,10 +191,16 @@ int msg(MMP.Packet p) {
 	werror("mmp lifetime without render: %O ms\n", (before - p->vars["_hrtime"]) * 1E-6);
 #endif
 
-#if 0
-	Serialization.Atom atom;
+	string atom;
+
 	mixed err = catch {
-		atom = mmp_signature->encode(p);
+		if (has_index(p->vars, "_context")) {
+				Serialization.Atom a = mmp_signature->encode(p);
+				atom = a->render();
+				a->condense();
+		} else {
+			atom = mmp_signature->render(p);
+		}
 	};
 
 	if (err) {
@@ -202,15 +208,9 @@ int msg(MMP.Packet p) {
 		return Yakity.STOP;
 	}
 
-	atom->condense();
-#else
-	string atom = mmp_signature->render(p, MMP.Utils.StringBuilder())->get();
-#endif
-
-	// minimize it, will not be needed again anyhow
-
 #ifdef ATOM_TRACE
-	werror("mmp render: %O ms\n", (gethrtime(1) - before) * 1E-6);
+	int stamp = gethrtime(1);
+	werror("mmp render: %O ms\n", (stamp - before - stamp + gethrtime(1)) * 1E-6);
 #endif
 	//history[count] = atom;
 
