@@ -31,6 +31,9 @@ void print_help() {
 
 class HTTPRequest {
 	inherit Protocols.HTTP.Server.Request;
+#ifdef TRACE_SOFT_MEMLEAKS
+	inherit MMP.Utils.Screamer;
+#endif
 
 #ifdef HTTP_TRACE
 	int parsing_start = 0;
@@ -191,6 +194,9 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 		"variables" : r->variables,
 		"answer" : Function.curry(answer)(r),
 		"end" : Function.curry(r->finish)(1),
+#ifdef TRACE_SOFT_MEMLEAKS
+		"screamer" : MMP.Utils.Screamer(),
+#endif
 	]);
 
 	object session;
