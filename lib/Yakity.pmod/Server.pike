@@ -62,17 +62,10 @@ void broadcast(MMP.Packet p) {
 	p->vars["_context"] = root->uniform;
 	foreach (entities;;object o) {
 #ifdef PROGRESSBAR
-		if ((++bcastcnt%1000) == 0) {
-		    int ime;
-		    float hrime;
+		if ((++bcastcnt%9048) == 0) {
+		    werror("broadcasts: %20d (%f msgs/s)\n", bcastcnt, 9048/(1E-9* (gethrtime(1) - lasttime)));
 
-		    ime = time(0);
-		    hrime = time(ime);
-
-		    werror("broadcasts: %20d (%f msgs/s)\n", bcastcnt, 1000/(ime+hrime - (lasttime+lasthrtime)));
-
-		    lasttime = ime;
-		    lasthrtime = hrime;
+		    lasttime = gethrtime(1);
 		}
 #endif
 		o->msg(p);
@@ -93,16 +86,10 @@ void deliver(MMP.Packet p) {
 	if ((o = entities[p->target()])) {
 #ifdef PROGRESSBAR
 		if ((++bcastcnt2%1000) == 0) {
-		    int ime;
-		    float hrime;
 
-		    ime = time(0);
-		    hrime = time(ime);
+		    werror("deliveries: %20d (%f msgs/s)\n", bcastcnt2, 1E12/(gethrtime(1) - lasttime2));
 
-		    werror("deliveries: %20d (%f msgs/s)\n", bcastcnt2, 1000/(ime+hrime - (lasttime2+lasthrtime2)));
-
-		    lasttime2 = ime;
-		    lasthrtime2 = hrime;
+		    lasttime2 = gethrtime(1);
 		}
 #endif
 		o->msg(p);
