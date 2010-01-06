@@ -187,7 +187,7 @@ int msg(MMP.Packet p) {
 	if (::msg(p) == Yakity.STOP) return Yakity.STOP;
 
 #ifdef ATOM_TRACE
-	int before = gethrtime(1);
+	int before = gethrvtime(1);
 #endif
 
 	string atom;
@@ -209,7 +209,7 @@ int msg(MMP.Packet p) {
 	}
 
 #ifdef ATOM_TRACE
-	int stamp = gethrtime(1);
+	int stamp = gethrvtime(1);
 	werror("render: %2.3f ms\t\tlifetime: %2.3f ms\n", (stamp - before) * 1E-6, (before - p->vars["_hrtime"]) * 1E-6);
 #endif
 	//history[count] = atom;

@@ -86,7 +86,7 @@ void sendmsg(MMP.Uniform target, string method, void|string data, void|mapping v
 int msg(MMP.Packet p) {
 	string method;
 #ifdef ATOM_TRACE
-	int pstart = gethrtime(1);
+	int pstart = gethrvtime(1);
 #endif
 
 	if (sizeof(p->data->typed_data)) {
@@ -99,7 +99,7 @@ int msg(MMP.Packet p) {
 		mixed f;
 		if ((f = this[method]) && functionp(f) && f(p) == Yakity.STOP) {
 #ifdef ATOM_TRACE
-			werror("parsing: %2.3f ms\t", (gethrtime(1) - pstart)*1E-6);
+			werror("parsing: %2.3f ms\t", (gethrvtime(1) - pstart)*1E-6);
 #endif
 			return Yakity.STOP;
 		} 
@@ -112,7 +112,7 @@ int msg(MMP.Packet p) {
 
 			if (functionp(f) && f(p) == Yakity.STOP) {
 #ifdef ATOM_TRACE
-				werror("atom parsing: %2.3f ms\t", (gethrtime(1) - pstart)*1E-6);
+				werror("atom parsing: %2.3f ms\t", (gethrvtime(1) - pstart)*1E-6);
 #endif
 				return Yakity.STOP;
 			}
@@ -120,7 +120,7 @@ int msg(MMP.Packet p) {
 	}
 
 #ifdef ATOM_TRACE
-	werror("atom parsing: %2.3f ms\t", (gethrtime(1) - pstart)*1E-6);
+	werror("atom parsing: %2.3f ms\t", (gethrvtime(1) - pstart)*1E-6);
 #endif
 	return Yakity.GOON;
 }
