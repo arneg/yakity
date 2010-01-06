@@ -188,7 +188,6 @@ int msg(MMP.Packet p) {
 
 #ifdef ATOM_TRACE
 	int before = gethrtime(1);
-	werror("mmp lifetime without render: %O ms\n", (before - p->vars["_hrtime"]) * 1E-6);
 #endif
 
 	string atom;
@@ -211,7 +210,7 @@ int msg(MMP.Packet p) {
 
 #ifdef ATOM_TRACE
 	int stamp = gethrtime(1);
-	werror("mmp render: %O ms\n", (stamp - before - stamp + gethrtime(1)) * 1E-6);
+	werror("render: %2.3f ms\t\tlifetime: %2.3f ms\n", (stamp - before) * 1E-6, (before - p->vars["_hrtime"]) * 1E-6);
 #endif
 	//history[count] = atom;
 
