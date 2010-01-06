@@ -83,17 +83,14 @@ void sendmsg(MMP.Uniform target, string method, void|string data, void|mapping v
 	send(target, m);
 }
 
-int pstart;
-
 int msg(MMP.Packet p) {
 	string method;
 #ifdef ATOM_TRACE
-	pstart = gethrtime(1);
+	int pstart = gethrtime(1);
 #endif
 
-
 	if (sizeof(p->data->typed_data)) {
-		method = random(p->data->typed_data)[1]->method;
+		method = p->data->typed_data[p->data->signature]->method;
 	} else {
 		method = smsig->decode(p->data)->method;
 	}
@@ -102,7 +99,7 @@ int msg(MMP.Packet p) {
 		mixed f;
 		if ((f = this[method]) && functionp(f) && f(p) == Yakity.STOP) {
 #ifdef ATOM_TRACE
-			werror("atom parsing: %O ms\n", (gethrtime(1) - pstart)*1E-6);
+			werror("parsing: %2.3f ms\t", (gethrtime(1) - pstart)*1E-6);
 #endif
 			return Yakity.STOP;
 		} 
@@ -115,7 +112,7 @@ int msg(MMP.Packet p) {
 
 			if (functionp(f) && f(p) == Yakity.STOP) {
 #ifdef ATOM_TRACE
-				werror("subtype atom parsing: %O ms\n", (gethrtime(1) - pstart)*1E-6);
+				werror("atom parsing: %2.3f ms\t", (gethrtime(1) - pstart)*1E-6);
 #endif
 				return Yakity.STOP;
 			}
@@ -123,7 +120,7 @@ int msg(MMP.Packet p) {
 	}
 
 #ifdef ATOM_TRACE
-	werror("goon atom parsing: %O ms\n", (gethrtime(1) - pstart)*1E-6);
+	werror("atom parsing: %2.3f ms\t", (gethrtime(1) - pstart)*1E-6);
 #endif
 	return Yakity.GOON;
 }
