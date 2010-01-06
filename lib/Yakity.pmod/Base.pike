@@ -31,13 +31,22 @@ void create(object server, object uniform) {
 
 	// race here!
 	if (!has_index(server->type_cache[Yakity.Types.Message], 0)) {
+
 		object pp = Serialization.Types.Polymorphic();
-		pp->register_type("string", "_method", Method());
-		pp->register_type("string", "_string", UTF8String());
-		pp->register_type("int", "_integer", Int());
-		pp->register_type("mapping", "_mapping", Mapping(pp,pp));
-		pp->register_type("array", "_list", List(pp));
-		pp->register_type(MMP.Uniform, "_uniform", Uniform());
+		pp->register_type("string", "_method");
+		pp->register_type("string", "_string");
+		pp->register_type("int", "_integer");
+		pp->register_type("mapping", "_mapping");
+		pp->register_type("array", "_list");
+		pp->register_type(MMP.Uniform, "_uniform");
+		pp = pp->optimize();
+		pp->t0 = Method();
+		pp->t1 = UTF8String();
+		pp->t2 = Int();
+		pp->t3 = Mapping(pp,pp);
+		pp->t4 = List(pp);
+		pp->t5 = Uniform();
+
 		message_signature = Yakity.Types.Message(Method(), Vars(0, ([ "_" : pp ])), pp);
 		server->type_cache[Yakity.Types.Message][0] = message_signature;
 		server->type_cache[Yakity.Types.Message][1] = smsig = Yakity.Types.Message(Method(), Atom(), Atom());
