@@ -39,7 +39,7 @@ class HTTPRequest {
 	int parsing_start = 0;
 	protected void read_cb(mixed dummy, string s) {
 		if (!parsing_start && sizeof(s)) {
-			parsing_start = gethrtime(1);
+			parsing_start = gethrvtime(1);
 		}
 		::read_cb(dummy, s);
 	}
@@ -178,7 +178,7 @@ string make_response_headers(object r, mapping args) {
 
 void handle_request(Protocols.HTTP.Server.Request r) {
 #if defined(HTTP_TRACE)
-	int parsing_time = gethrtime(1) - r->parsing_start;
+	int parsing_time = gethrvtime(1) - r->parsing_start;
 	werror("parsing time for HTTP request: %O ms\n", parsing_time*1E-6);
 #endif
 	string f = basename(r->not_query);
