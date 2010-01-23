@@ -16,4 +16,6 @@ Installation
 	More detailed instructions are available on our website at
 	http://yakitychat.com
 
-
+Standalone server
+	Usage: server.pike -p <port> -d <domain> -b <bind address> -r <rooms>
+	ie. pike -M lib -M ppp/lib bin/server.pike  -d 127.0.0.1 -p9995
