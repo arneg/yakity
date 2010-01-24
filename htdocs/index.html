@@ -15,8 +15,10 @@
         <script src="js/accChat.js" type="text/javascript"></script>
         <script src="mootools-1.2.3-core-nc.js" type="text/javascript"></script>
         <script src="mootools-1-1.2.3.1-more.js" type="text/javascript"></script>
-        
-        
+
+		<link rel="shortcut icon" href="favicon.gif" type="image/gif">
+		<link rel="icon" href="favicon.gif" type="image/gif">
+
 		<script type="text/javascript">
 			var client; 
 			var error;
@@ -123,20 +125,25 @@
 								return div;
 							},
 							_notice_presence_typing : function(p) {
+								UTIL.replaceClass(this.header, "idle", "typing");
 								UTIL.replaceClass(this.container, "idle", "typing");
 								return psyc.STOP;
 							},
 							_notice_presence_idle : function(p) {
 								UTIL.replaceClass(this.container, "typing", "idle");
+								UTIL.replaceClass(this.header, "typing", "idle");
 								return psyc.STOP;
 							},
 							_notice_logout : function(p) {
 								UTIL.replaceClass(this.container, "idle", "offline");
+								UTIL.replaceClass(this.header, "idle", "offline");
 								UTIL.replaceClass(this.container, "typing", "offline");
+								UTIL.replaceClass(this.header, "typing", "offline");
 							},
 							_notice_login : function(p) {
 								UTIL.replaceClass(this.container, "offline", "idle");
-							},
+								UTIL.replaceClass(this.header, "offline", "idle");
+							}
 						});
 
 						return win;
@@ -192,14 +199,6 @@
 
 			div.header a {
 				text-align: right;
-			}
-
-			a.toggler {
-				font-size: 9pt;
-				font-family: 'Andale-Mono', sans-serif;
-				display: block;
-				width: 340px;
-				height: 24px;
 			}
 
 			div.error {
@@ -276,20 +275,37 @@
 				color: #528CE0;
 			}
 			
-			div.private a.toggleInfo {
+			a.toggleInfo {
 				width: 25px;
 				height: 24px;
 				line-height: 24px;
 				float:left;
+			}
+
+			a.toggler {
+				font-size: 9pt;
+				font-family: 'Andale-Mono', sans-serif;
+				display: block;
+				width: 340px;
+				height: 24px;
+			}
+
+			div.offline a.toggleInfo {
+				background: url(images/member-icon-left.gif);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+			div.idle a.toggleInfo {
 				background: url(images/member-icon.png);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
+			div.typing a.toggleInfo {
+				background: url(images/member-typer.gif);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
 			div.public a.toggleInfo {
-				width: 25px;
-				height: 24px;
-				line-height: 24px;
-				float:left;
 				background: url(images/group-icon.png);
 				background-position: center center;
 				background-repeat: no-repeat;
