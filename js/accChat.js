@@ -31,6 +31,7 @@ var AccChat = yakity.Chat.extend({
 					toggler.setStyle('color', '#41464D');
 					
 					self.active = chatwin;
+					chatwin.trigger("focus");
 					window.setTimeout((function(node) {
 											chatwin.getMessagesNode().scrollTop = chatwin.getMessagesNode().scrollHeight;
 											chatwin.getMessagesNode().style.overflow="auto";
@@ -43,7 +44,10 @@ var AccChat = yakity.Chat.extend({
 			onBackground: function(toggler, element){
 				toggler.setStyle('color', '#528CE0');
 				var chatwin = self.DOMtoWIN.get(toggler);
-				if (chatwin) chatwin.getMessagesNode().style.overflow="hidden";
+				if (chatwin) {
+					chatwin.trigger("blur");
+					chatwin.getMessagesNode().style.overflow="hidden";
+				}
 			}
 			//opacity : false
 		});
@@ -139,6 +143,8 @@ var AccChat = yakity.Chat.extend({
 			UTIL.addClass(win.getMessagesNode(), "roomchat");
 			toggler.appendChild(profiles.getDisplayNode(uniform));
 		}
+		UTIL.addClass(header, "idle");
+		UTIL.addClass(container, "idle");
 		UTIL.addClass(header, "header");
 		this.DOMtoWIN.set(toggler, win);
 
