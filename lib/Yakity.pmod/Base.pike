@@ -95,11 +95,11 @@ int msg(MMP.Packet p) {
 		method = smsig->decode(p->data)->method;
 	}
 
-	if (method[0] = '_') {
+	if (method[0] == '_') {
 		mixed f;
 		if ((f = this[method]) && functionp(f) && f(p) == Yakity.STOP) {
 #ifdef ATOM_TRACE
-			werror("parsing: %2.3f ms\t", (gethrvtime(1) - pstart)*1E-6);
+			werror("atom parsing: %2.3f ms\t", (gethrvtime(1) - pstart)*1E-6);
 #endif
 			return Yakity.STOP;
 		} 
