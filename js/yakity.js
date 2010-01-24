@@ -465,6 +465,10 @@ yakity.funky_text = function(p, templates) {
 	return div;
 };
 yakity.Base = Base.extend({
+	constructor : function() {
+		this.plugins = [];
+		this.events = new HigherDMapping();
+	},
 	msg : function (p, m) {
 		var method = m.method;
 		var none = 1;
@@ -483,16 +487,47 @@ yakity.Base = Base.extend({
 			}
 		}
 
+		if (this.plugins.length) for (var i = 0; i < this.plugins; i++) {
+			if (psyc.STOP == this.plugins[i].msg(p, m)) return psyc.STOP;
+		}
+
 		if (none && meteor.debug) {
 			meteor.debug("No handler for "+method+" in "+this);	
 		}
+
+		return psyc.GOON;
 	},
 	sendmsg : function(target, method, data, vars) {
 		this.client.sendmsg(target, method, data, vars);
+	},
+	register_plugin : function(o) {
+		this.plugins.push(o);
+	},
+	unregister_plugin : function(o) {
+		for (var i = 0; i < this.plugins.length; i++) {
+			if (this.plugins[i] == o) {
+				this.plugins.splice(i, 1);
+				return;
+			}
+		}
+	},
+	register_event : function(name, o, fun) {
+		return this.events.set(name, [o, fun]);	
+	},
+	unregister_event : function(id) {
+		return this.events.remove(id);
+	},
+	trigger : function(name) {
+		var list = this.events.get(name);
+		
+		for (var i = 0; i < list.length; i++) {
+			list[i][1].call(list[i][0]);
+		}
 	}
 });
 yakity.ChatWindow = yakity.Base.extend({
 	constructor : function(id) {
+		this.base();
 		this.mlist = new Array();
 		this.mset = new Mapping();
 		this.messages = document.createElement("div");
@@ -666,6 +701,7 @@ yakity.Chat = Base.extend({
 });
 yakity.ProfileData = yakity.Base.extend({
 	constructor : function(client) {
+		this.base();
 		this.client = client;
 		this.cache = new Mapping();
 		this.requests = new Mapping();
@@ -760,6 +796,7 @@ yakity.ProfileData = yakity.Base.extend({
 });
 yakity.UserList = yakity.Base.extend({
 	constructor : function(client, profiles) {
+		this.base();
 		this.client = client;
 		this.profiles = profiles;
 		client.register_method({ method : "_update_users", source : this.client.uniform.root(), object : this });
@@ -805,6 +842,7 @@ yakity.UserList = yakity.Base.extend({
 yakity.Presence = {};
 yakity.Presence.Typing = yakity.Base.extend({
 	constructor : function(client, chat) {
+		this.base();
 		this.client = client;
 		this.chat = chat;
 		this.ids = new Mapping();
