@@ -79,13 +79,13 @@
 						return span;
 					}
 				});
-				var templates = new psyc.Vars({
+				var templates = new mmp.Vars({
 					_ : "[_source] says: [data]",
 					_status_circuit : "Welcome to the chat at [_source-_host].",
 					_notice_enter : "[_supplicant] enters [_source].",
 					_notice_leave : "[_supplicant] leaves [_source].",
 					_message_public : "[_timestamp] [_source_relay] [data]",
-					_message_private : "[_timestamp] [_source] [data]",
+					_message_private : "[_timestamp] [_source_relay] [data]",
 					_echo_message_public : "[_timestamp] [_source_relay] [data]",
 					_echo_message_private : "[_timestamp] [_source_relay] [data]",
 					_source : userlink,
@@ -480,6 +480,10 @@
 				cursor: pointer;
 				cursor: hand;
 				color: #528CE0;
+			}
+
+			#rooms a:hover {
+				color: #999;
 			}
 			
 			div.userList
