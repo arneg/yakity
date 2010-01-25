@@ -56,7 +56,7 @@ int main(int argc, array(string) argv) {
 	array opt;
 	mapping options = ([]);
 
-    if (mixed err = catch { opt = Getopt.find_all_options(argv, ({
+	if (mixed err = catch { opt = Getopt.find_all_options(argv, ({
 		({ "domain", Getopt.HAS_ARG, ({ "-d", "--domain" }) }),
 		({ "port", Getopt.HAS_ARG, ({ "-p", "--port" }) }),
 		({ "rooms", Getopt.HAS_ARG, ({ "-r", "--rooms" }) }),
@@ -65,7 +65,7 @@ int main(int argc, array(string) argv) {
 		werror("error: %O\n", err);
 		print_help();
 		_exit(1);
-    } else foreach (sort(opt);;array t) {
+	} else foreach (sort(opt);;array t) {
 		options[t[0]] = t[1];
 	}
 
@@ -95,10 +95,23 @@ int main(int argc, array(string) argv) {
 	werror("Started HTTP server on %s:%d\n", bind, port);
 
 	server = Yakity.Server(Serialization.TypeCache());
+
+	if (has_index(options, "rooms")) {
+	    foreach (options["rooms"]/",";; string name) {
+		name = String.trim_all_whites(name);
+		MMP.Uniform u = to_uniform('@', name);
+		object r = Yakity.Room(server, u, name);
+		rooms[u] = r;
+		server->register_entity(u, r);
+	    }
+	}
+
+	werror("Created %d Rooms:\t%s\n", sizeof(rooms), (array(string))indices(rooms) * "\n\t\t\t" );
+
 	root = Yakity.Root(server, to_uniform());
-	server->root = root;
 	root->users = users;
 	root->rooms = rooms;
+	server->root = root;
 	server->register_entity(root->uniform, root);
 	werror("Ready for clients.\n");
 	return -1;
@@ -176,6 +189,10 @@ string make_response_headers(object r, mapping args) {
 	return s;
 }
 
+// caching index.html with replacements
+string index;
+int ctime;
+
 void handle_request(Protocols.HTTP.Server.Request r) {
 #if defined(HTTP_TRACE)
 	int parsing_time = gethrvtime(1) - r->parsing_start;
@@ -204,10 +221,31 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	switch (r->not_query) {
 	    case "/":
 	    {
-		string s = replace(Stdio.read_file(sprintf("%s/index.html", (BASE_PATH))), "<meteorurl/>", "/meteor/");
+		string fname = sprintf("%s/index.html", (BASE_PATH));
+		if (!index || file_stat(fname)->ctime > ctime) {
+		    index = replace(Stdio.read_file(fname), "<meteorurl/>", "/meteor/");
+		    mixed emitcb(Parser.HTML parser, mapping args, string content) {
+			if (args["source"] == "chat_rooms") {
+			    array(string) ret = allocate(sizeof(rooms));
+			    int i = 0;
+			    foreach (rooms; MMP.Uniform u; object o) {
+				string t = replace(content, "&_.uniform;", (string)u);
+				t = replace(t, "&_.name;", o->name);
+				ret[i++] = t;	
+			    }
+			    return ret;
+			}
+			return 0;
+		    };
+		    object p = Parser.HTML();
+		    p->add_container("emit", emitcb);
+		    index = p->feed(index)->finish()->read();
+		} 
+		
+		// handle the room names.
 
 		r->response_and_finish(([ "error" : 200,
-					  "data" : s,
+					  "data" : index,
 					  "type" : "text/html",
 					  ]));
 		return;
