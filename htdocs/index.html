@@ -162,7 +162,7 @@
 
 				window.onunload = function() {
 					if (client) {
-						client.close();
+						client.logout();
 						client = null;
 					}
 				};
