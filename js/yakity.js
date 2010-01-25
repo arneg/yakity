@@ -29,7 +29,7 @@ functionp = function(f) { return (typeof(f) == "function" || f instanceof Functi
 objectp = function(o) { return typeof(o) == "object"; }
 /**
  * Set this to a mapping of templates that should be used automatically when displaying messages inside Chat tabs. PSYC method inheritance is used when accessing the templates. Hence a template for "_message" will also be used for "_message_public" if there is no template for it. Therefore setting a template for "_" effectively sets a default template for all methods.
- * @type psyc#Vars
+ * @type mmp#Vars
  * @name psyc.templates
  * @field
  * @example
@@ -37,35 +37,19 @@ objectp = function(o) { return typeof(o) == "object"; }
  * "[_source_relay] says in [_source]: [data]", 
  * "_", "[_source] sends [method]: [data]");
  */
-/**
- * @namespace PSYC namespace.
- */
-psyc = {};
-yakity = {};
-psyc.STOP = 1; 
-psyc.find_abbrev = function(obj, key) {
-    var t = key;
-
-    while (t.length && obj[t] == undefined) {
-	var i = t.lastIndexOf("_");
-
-	if (i == -1) {
-	    return undefined;
-	} else {
-	    t = t.substr(0, i);
-	}
-    }
-
-    return obj[t];
+psyc = {
+	STOP : 1,
+	GOON : 0	
 };
+yakity = {};
 /**
  * PSYC message class.
  * @constructor
  * @param {String} method PSYC method
- * @param {psyc#Vars} vars variables
+ * @param {mmp#Vars} vars variables
  * @param {String} data Payload
  * @property {String} method PSYC method
- * @property {psyc#Vars} vars variables
+ * @property {mmp#Vars} vars variables
  * @property {String} data Payload
  */
 yakity.Message = mmp.Packet.extend({
@@ -80,100 +64,6 @@ yakity.Message = mmp.Packet.extend({
 		return ret;
 	}
 });
-/**
- * Does a one-step abbreviation of a psyc method. For instance, _message_public turns into _message. Returns 0 if no further abbreviation is possible.
- * @param {String} method PSYC method
- */
-psyc.abbrev = function(method) {
-	var i = method.lastIndexOf("_");
-	if (i == -1) {
-		return 0;
-	} else if (i == 0) {
-		if (method.length == 1) return 0;
-		return "_";
-	} else {
-		return method.substr(0, i);
-	}
-}
-psyc.abbreviations = function(method) {
-	var ret = new Array();
-	do { ret.push(method); } while( (method = psyc.abbrev(method)) );
-
-	return ret;
-}
-/**
- * Generic PSYC Variable class. This should be used to represent PSYC message variables. 
- * @constructor
- * @augments Mapping
- */
-psyc.Vars = function() {
-	this.get = function(key) {
-		do {
-			if (this.hasIndex(key)) {
-				return psyc.Vars.prototype.get.call(this, key);
-			}
-		} while (key = psyc.abbrev(key));
-
-		return undefined;
-	};
-
-	Mapping.call(this);
-
-	if (arguments.length == 1) {
-		var vars = arguments[0];
-
-		for (var i in vars) {
-			if (vars.hasOwnProperty(i)) {
-				this.set(i, vars[i]);
-			}
-		}
-	} else if (arguments.length & 1) {
-		throw("odd number of mapping members.");
-	} else for (var i = 0; i < arguments.length; i += 2) {
-        this.set(arguments[i], arguments[i+1]);
-    }
-};
-psyc.Vars.prototype = new Mapping();
-psyc.Vars.prototype.constructor = psyc.Vars;
-/**
- * Returns the value associated with key or an abbreviation of key.
- * @param {String} key PSYC variable name.
- */
-// not being able to use inheritance here stinks like fish.
-yakity.Date = function(timestamp) {
-	this.date = new Date();
-	this.date.setTime(timestamp * 1000);
-	this.render = function(type) {
-		var fill = function(n, length) {
-			var ret = n.toString();
-			for (var i = length - ret.length; i > 0; i--) {
-				ret = "0"+ret;	
-			}
-
-			return ret;
-		}
-		switch (type) {
-		case "_month": return this.date.getMonth();
-		case "_month_utc": return this.date.getUTCMonth();
-		case "_weekday": return this.date.getDay();
-		case "_monthday": return this.date.getDate();
-		case "_monthday_utc": return this.date.getUTCDate();
-		case "_minutes": return fill(this.date.getMinutes(), 2);
-		case "_minutes_utc": return fill(this.date.getUTCMinutes(), 2);
-		case "_seconds": return fill(this.date.getSeconds(), 2);
-		case "_seconds_utc": return fill(this.date.getUTCSeconds(), 2);
-		case "_timezone_offset": return this.date.getTimezoneOffset();
-		case "_year": return fill(this.date.getFullYear(), 4);
-		case "_year_utc": return fill(this.date.getUTCFullYear(), 4);
-		case "_hours": return this.date.getHours();
-		case "_hours_utc": return this.date.getUTCHours();
-		}
-		return this.date.toLocaleString();
-	};
-	this.toString = function() {
-		return this.date.toLocaleString();
-	};
-};
 yakity.default_polymorphic = function() {
 	var pol = new serialization.Polymorphic();
 	var method = new serialization.Method();
@@ -354,7 +244,7 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 
 				var none = 1;
 
-				for (var t = method; t; t = psyc.abbrev(t)) {
+				for (var t = method; t; t = mmp.abbrev(t)) {
 					if (this.hasOwnProperty(t) && functionp(this[t])) {
 						this[t].call(this, m);
 					}
@@ -394,18 +284,18 @@ yakity.funky_text = function(p, templates) {
 
 	if (functionp(template)) {
 		var node = template(m);
-		node.className = psyc.abbreviations(m.method).join(" ");
+		node.className = mmp.abbreviations(m.method).join(" ");
 		return node;
 	}
 
 	var div = document.createElement("div");
-	div.className = psyc.abbreviations(m.method).join(" ");
+	div.className = mmp.abbreviations(m.method).join(" ");
 	
 	var cb = function(result, m) {
 		var s = result[0].substr(1, result[0].length-2);
 		var a = s.split("-");
 		s = a[0];
-		var classes = psyc.abbreviations(s);
+		var classes = mmp.abbreviations(s);
 		var type;
 		if (a.length > 1) {
 			type = a[1];
@@ -478,7 +368,7 @@ yakity.Base = Base.extend({
 			return psyc.STOP;
 		}
 
-		for (var t = method; t; t = psyc.abbrev(t)) {
+		for (var t = method; t; t = mmp.abbrev(t)) {
 			if (functionp(this[t])) {
 				none = 0;
 				if (psyc.STOP == this[t].call(this, p, m)) {
