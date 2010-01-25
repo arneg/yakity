@@ -191,8 +191,7 @@
 		<style type="text/css">
 			body {
 				font-family: 'Andale Mono', FreeSans, sans-serif;
-				margin: 0;
-				margin-top: 10px;
+				margin: 5px 5px 5px 5px;
 				background-color: #007fc2;
 			}
                         
@@ -286,7 +285,6 @@
 				font-size: 9pt;
 				font-family: 'Andale-Mono', sans-serif;
 				display: block;
-				width: 340px;
 				height: 24px;
 			}
 
@@ -296,7 +294,7 @@
 				background-repeat: no-repeat;
 			}
 			div.idle a.toggleInfo {
-				background: url(images/member-icon.png);
+				background: url(images/member-icon.gif);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
@@ -429,12 +427,25 @@
 				clear:both;
 			}
 			
-			input.chattext {
-				width: 100%;
+			div#inputChats {
+			        position: relative;
+			}
+			
+			#inputChats input.chatText { 
+				position: absolute;
+				height: 26px; 
+				width: 90%; 
+				font-size: 14pt; 
+				left: 5px;
+			}
+			
+			#inputChats input.chatSubmit { 
+				position: absolute;
+				right: 5px;
 			}
                         
 			#container {
-				width: 780px;
+				min-width: 450px;
 				position: relative;
 				margin: 0px auto 0px auto;
 				background: #fff;
@@ -442,30 +453,32 @@
 				-moz-border-radius-topleft: 10px;
 				-webkit-border-top-left-radius: 10px;
 				border-top-left-radius: 10px;
+				white-space: nowrap;
 			}
 			
 			#leftPane {
 				min-height: 155px;
-				width: 50%;
+				width: 200px;
+				max-width: 300px;
 				position: relative;
 				float:left;
-				background-image: url(images/yakitychat.png);
+				background-image: url(images/yakitychat_icon.png);
 				background-repeat: no-repeat;
-				background-position: 10px 10px;
+				background-position: 2px 2px;
 			}
 			
-			#rightPane {
-				width: 50%;
+			#rightPane
+			{
 				position: relative;
-				float:right;
+				float: right;
+				width: auto;
 			}
 			
 			#rooms {
 				height: 80px;
-				width: 200px;
+				width: 100%
 				overflow: auto;
-				float: right;
-				padding: 20px;
+				padding-top: 65px;
 				padding-right: 5px;
 			}
 			
@@ -481,17 +494,12 @@
 				cursor: hand;
 				color: #528CE0;
 			}
-
-			#rooms a:hover {
-				color: #999;
-			}
 			
 			div.userList
 			{
 				height: 120px;
-				width: 200px;
+                                width: 100%
 				overflow: auto;
-				float: right;
 			}
 			
 			div.userList table
@@ -540,7 +548,7 @@
                         
 			#connect {
 				position: relative;
-				width: 500px;
+				width: 400px;
 				padding: 10px;
 				margin-left: auto;
 				margin-right: auto;
@@ -553,14 +561,14 @@
 			}
 			
 			
-			#connect input {
+			input.inputSubmit {
 				float:right; 
 				margin-top: 55px;
 			}
 			
 			#connect .textInput {
 				height: 26px; 
-				width: 300px; 
+				width: 200px; 
 				font-size: 16pt; 
 				margin-right: 10px;
 			}
@@ -586,11 +594,10 @@
 <div id="container" style="display:none;">
         <div id="leftPane">
 			<div id="rooms">
-					<div class="roomHeader">Available Rooms</div>
+			        <div class="roomHeader">Available Rooms</div>
 				<emit source="chat_rooms">
 					<a onclick='return chat.enterRoom(mmp.get_uniform("&_.uniform;"));'>&_.name;</a>
 				</emit>
-
 			</div>
         </div>
         <div id="rightPane">
@@ -598,7 +605,10 @@
         </div>
         <div id="basePane">
 			<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.type_event()" onMouseUp="chat.idle.probable_type_event();">
-				<input name=text value="" size="50" class="chattext">
+                        <div id="inputChats">        
+                                <input type="image" src="images/yak.png" name="submit" tabindex="2" class="chatSubmit">
+				<input name=text value="" size="50" class="chatText">
+			</div>
 			</form>
         </div>
         <div class="basePane" style="float:right;"></div>
