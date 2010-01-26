@@ -56,6 +56,8 @@ yakity.Message = mmp.Packet.extend({
 	constructor : function(method, data, vars) {
 		this.method = method;
 		this.base(data, vars);
+		// TODO: this is a hack
+		this.vars.remove("_timestamp");
 	},
 	toString : function() {
 		var ret = "yakity.Message("+this.method+", ([ ";
@@ -128,7 +130,12 @@ yakity.Client.prototype = {
 
 		return wrapper;
 	},
-	close : function () {
+	logout : function() {
+		this.connection.set_blocking();
+		this.connection.connect_outgoing();
+		this.sendmsg(this.uniform, "_request_logout");	
+	},
+	close : function() {
 		this.connection.close();
 		delete this.connection;
 	},
