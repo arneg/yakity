@@ -165,6 +165,8 @@ string ext2type(string ext) {
 	case "css":
 	    t = "text/stylesheet";
 	    break;
+	case "ico":
+	    t = "image/vnd.microsoft.icon";
 	case "png":
 	case "jpg":
 	case "jpeg":
