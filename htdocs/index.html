@@ -71,16 +71,11 @@
 				});
 				var userlink = (function(type, key, value, p) {
 					if (type) return value.render(type);
-					if (value.is_person()) {
-						return ulink(value);
-					} else {
-						var span = document.createElement("span");
-						span.appendChild(profiles.getDisplayNode(value));
-						return span;
-					}
+					var span = document.createElement("span");
+					span.appendChild(profiles.getDisplayNode(value));
+					return span;
 				});
 				var templates = new mmp.Vars({
-					_ : "[_source] says: [data]",
 					_status_circuit : "Welcome to the chat at [_source-_host].",
 					_notice_enter : "[_supplicant] enters [_source].",
 					_notice_leave : "[_supplicant] leaves [_source].",
@@ -119,7 +114,8 @@
 						win.extend({
 							renderMessage : function(p) {
 								var div = this.base(p);
-								if (p.v("_source_relay") == client.uniform) {
+
+								if (div && p.v("_source_relay") == client.uniform) {
 									UTIL.addClass(div, "self");	
 								}
 								return div;
@@ -208,7 +204,7 @@
 				overflow:auto;
 			}
 
-			div._notice_enter div._supplicant, div._notice_leave div._supplicant {
+			div._notice_enter span._supplicant, div._notice_leave span._supplicant {
 				float: left;
 				margin-right: 3px;
 			}
@@ -226,10 +222,12 @@
 			}
 
 			div.chatwindow {
-				background-color: #dddddd;
 				border-right: 1px #ccc solid;
 				border-left: 1px #ccc solid;
 				position: relative;
+			}
+			div.idle {
+				background-color: #dddddd;
 			}
 			
 			div.typing {
@@ -237,7 +235,7 @@
 			}
 
 			div.offline {
-			    background-color: #999;
+			    background-color: #bbbbbb;
 			}
 			
                         
@@ -416,7 +414,7 @@
 				cursor: hand;
 			}
 			
-			div.self div._source_relay {
+			div.self span._source_relay {
 				color: #000;
 				font-weight: bold;
 				text-decoration: none;
