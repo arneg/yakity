@@ -212,7 +212,7 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 			}
 			if (p instanceof mmp.Packet && (m = p.data) instanceof yakity.Message) {
 				method = m.method;
-				if (meteor.debug) meteor.debug("incoming: " + method);
+				if (meteor.debug) meteor.debug("incoming: %o", p);
 				count = p.v("_id");	
 				target = p.target();
 				source = p.source();
@@ -287,6 +287,9 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 yakity.funky_text = function(p, templates) {
 	var m = p.data;
 	var template = templates.get(m.method);
+
+	if (!template) return;
+
 	var reg = /\[[\w-]+\]/g;
 
 	if (functionp(template)) {
@@ -431,10 +434,11 @@ yakity.ChatWindow = yakity.Base.extend({
 		this.name = id;
 	},
 	_ : function(p, m) {
-		if (m.data && m.data.length) {
-			this.mset.set(p, this.mlist.length);
-			this.mlist.push(p);
-			this.messages.appendChild(this.renderMessage(p, m));
+		var node = this.renderMessage(p, m);
+		if (node) {
+		    this.mset.set(p, this.mlist.length);
+		    this.mlist.push(p);
+		    this.messages.appendChild(node);
 		}
 	},
 	getMessages : function() {
@@ -561,7 +565,9 @@ yakity.Chat = Base.extend({
 		}
 	},
 	msg : function(p, m) {
-		this.getWindow(p.source()).msg(p, m);
+		if (!p.vars.hasIndex("_context") || this.windows.hasIndex(p.source())) {
+		    this.getWindow(p.source()).msg(p, m);
+		}
 		return psyc.STOP;
 	},
 	getWindow : function(uniform) {
