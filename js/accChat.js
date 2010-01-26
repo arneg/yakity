@@ -87,10 +87,12 @@ var AccChat = yakity.Chat.extend({
 		this.base(uniform);
 	},
 	msg : function(p, m) {
-		var messages = this.getWindow(p.source()).getMessagesNode();
-		var ret = this.base(p, m);	
-		messages.scrollTop = messages.scrollHeight;
-		return ret;
+		if (!p.vars.hasIndex("_context") || this.windows.hasIndex(p.source())) {
+		    var messages = this.getWindow(p.source()).getMessagesNode();
+		    var ret = this.base(p, m);	
+		    messages.scrollTop = messages.scrollHeight;
+		    return ret;
+		}
 	},
 	enterRoom : function(uniform) {
 		this.base(uniform);
