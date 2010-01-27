@@ -193,7 +193,7 @@
                         
 
 			div.header a {
-				text-align: right;
+				text-align: left;
 			}
 
 			div.error {
@@ -209,19 +209,13 @@
 				margin-right: 3px;
 			}
                         
-			div.status div.messages, div.public div.messages {
+			div.status div.messages, div.public div.messages, div.private div.messages {
 				height: 250px;
 				overflow: auto;
-				border-bottom: 1px #ccc solid;	
-			}
-
-			div.private div.messages {
-				height: 250px;
-				overflow: auto;
-				border-bottom: 1px #ccc solid;	
 			}
 
 			div.chatwindow {
+				background-color: #dddddd;
 				border-right: 1px #ccc solid;
 				border-left: 1px #ccc solid;
 				position: relative;
@@ -231,7 +225,7 @@
 			}
 			
 			div.typing {
-				background-color: #ffdddd;
+				background-color: #eedddd;
 			}
 
 			div.offline {
@@ -447,7 +441,7 @@
 			#inputChats input.chatText { 
 				position: absolute;
 				height: 26px; 
-				width: 90%; 
+				width: 89%; 
 				font-size: 14pt; 
 				left: 5px;
 			}
@@ -455,10 +449,13 @@
 			#inputChats input.chatSubmit { 
 				position: absolute;
 				right: 5px;
+				margin-left: 5px;
+				padding-left: 5px;
 			}
                         
 			#container {
 				min-width: 450px;
+				max-width: 780px;
 				position: relative;
 				margin: 0px auto 0px auto;
 				background: #fff;
@@ -470,10 +467,9 @@
 			}
 			
 			#leftPane {
-				height: 250px;
 				background-image: url(images/yakitychat_icon.png);
 				background-repeat: no-repeat;
-				background-position: 2px 2px;				
+				background-position: 5px 5px;				
                                 position: absolute;
                                 left: 5px;        
                                 width: 29%;
@@ -482,14 +478,20 @@
 			
 			#rightPane
 			{
+                                background-color: #ddd; 
+				min-height: 250px;
 				margin: 0 0px 0 34%;
 			}
 			
+			#YakityChat {
+			        min-height: 250px;
+			}
+			
 			#rooms {
-				height: 80px;
+				height: 65px;
 				width: 100%
 				overflow: auto;
-				padding-top: 65px;
+				padding-top: 55px;
 				padding-right: 5px;
 			}
 			
@@ -508,14 +510,13 @@
 			
 			div.userList
 			{
-				height: 120px;
-                                width: 100%
+				height: 150px;
+				width: 100%;
 				overflow: auto;
 			}
 			
 			div.userList table
 			{
-				background-color: #fff;
 				width: 100%;
 			}
 			
@@ -547,15 +548,6 @@
                                 
 			}
 			
-			.basePane {
-				-moz-border-radius-bottomright: 10px;
-				-webkit-border-bottom-right-radius: 10px;
-				border-bottom-right-radius: 10px;
-				-moz-border-radius-bottomleft: 10px;
-				-webkit-border-bottom-left-radius: 10px;
-				border-bottom-left-radius: 10px;
-                                
-			}
                         
 			#connect {
 				position: relative;
@@ -563,7 +555,7 @@
 				padding: 10px;
 				margin-left: auto;
 				margin-right: auto;
-				margin-top: 150px;
+				margin-top: 100px;
 				background: #fff;
 				border: 2px solid #555;
 				-moz-border-radius: 10px;
@@ -595,9 +587,11 @@
 			}
 			
 			.terms {
+			        margin-top: 10px;
 				font-size: 6.5pt;
 				text-align: center;
 				font-family: 'Andale Mono', FreeSans, sans-serif;
+				color: white;
 			}
 		</style>
 </head>
@@ -618,7 +612,7 @@
 			<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.type_event()" onMouseUp="chat.idle.probable_type_event();">
                         <div id="inputChats">        
                                 <input type="image" src="images/yak.png" name="submit" tabindex="2" class="chatSubmit">
-				<input name=text value="" size="50" class="chatText">
+				<input name=text value="" size="50" class="chatText" autocomplete="off">
 			</div>
 			</form>
         </div>
@@ -633,7 +627,7 @@
                         <input name="name" value="Enter Nickname..." onfocus="this.value=''" size="25" max-length="45" tabindex="1" class="textInput"> 
                 </form>
        </div> 
-       <div class="terms">YakityChat&trade; is a trademark owned by Webhaven<sup>&reg;</sup> International ApS, DK<br />
-YakityChat&trade; is open source software: <a href="http://yakitychat.com/aboutyakitychat.html?mode=display&amp;section_id=&amp;parent_id=0&amp;content_id=279&amp;id=279">License</a></div>
 </div>
+<div class="terms">YakityChat&trade; is a trademark owned by Webhaven<sup>&reg;</sup> International ApS, DK<br />
+YakityChat&trade; is open source software: <a href="http://yakitychat.com/aboutyakitychat.html?mode=display&amp;section_id=&amp;parent_id=0&amp;content_id=279&amp;id=279" target="_blank">License</a></div>
 </body>
