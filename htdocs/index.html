@@ -286,23 +286,38 @@
 				height: 24px;
 			}
 
-			div.offline a.toggleInfo {
+			div.public a.toggleInfo {
+				background: url(images/group-icon.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+			div.unread[class~="public"] a.toggleInfo {
+				background: url(images/yakgroup-waiting.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+			div.left[class~="private"] a.toggleInfo {
 				background: url(images/member-icon-left.gif);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			div.idle a.toggleInfo {
+			div.private a.toggleInfo {
 				background: url(images/member-icon.gif);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			div.typing a.toggleInfo {
-				background: url(images/member-typer.gif);
+			div.offline[class~="private"] a.toggleInfo {
+				background: url(images/member-icon-left.gif);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			div.public a.toggleInfo {
-				background: url(images/group-icon.png);
+			div.unread[class~="private"] a.toggleInfo {
+				background: url(images/member-icon-waiting.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+			div.typing[class~="private"] a.toggleInfo {
+				background: url(images/member-typer.gif);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
