@@ -33,8 +33,8 @@ var AccChat = yakity.Chat.extend({
 					self.active = chatwin;
 					chatwin.trigger("focus", chatwin);
 					window.setTimeout((function(node) {
-											chatwin.getMessagesNode().scrollTop = chatwin.getMessagesNode().scrollHeight;
 											chatwin.getMessagesNode().style.overflow="auto";
+											chatwin.getMessagesNode().scrollTop = chatwin.getMessagesNode().scrollHeight;
 									  }), 700);
 				} else if (!chatwin) {
 					self.active = null;
