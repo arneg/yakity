@@ -220,17 +220,6 @@
 				border-left: 1px #ccc solid;
 				position: relative;
 			}
-			div.idle {
-				background-color: #dddddd;
-			}
-			
-			div.typing {
-				background-color: #eedddd;
-			}
-
-			div.offline {
-			    background-color: #bbbbbb;
-			}
 			
                         
 			div.membersList
@@ -290,18 +279,13 @@
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			div.left[class~="private"] a.toggleInfo {
-				background: url(images/member-icon-left.gif);
+			div.left[class~="public"] a.toggleInfo {
+				background: url(images/yakgroup-left.png);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
 			div.private a.toggleInfo {
 				background: url(images/member-icon.gif);
-				background-position: center center;
-				background-repeat: no-repeat;
-			}
-			div.offline[class~="private"] a.toggleInfo {
-				background: url(images/member-icon-left.gif);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
@@ -311,14 +295,26 @@
 				background-repeat: no-repeat;
 			}
 			div.typing[class~="private"] a.toggleInfo {
-				background: url(images/member-typer.gif);
+				background: url(images/member-icon-typing.gif);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			
+			div.offline[class~="private"] a.toggleInfo {
+				background: url(images/member-icon-left.gif);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
 
-			div.left div.roomchat {
-				background-color: #aaa;
+			div.messages {
+				background-color: #dddddd;
+			}
+			
+			div.typing div.messages {
+				background-color: #eedddd;
+			}
+
+			div.offline div.messages, div.left div.messages {
+			    background-color: #bbbbbb;
 			}
 
 			div.header {
