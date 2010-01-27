@@ -419,9 +419,15 @@ yakity.Base = Base.extend({
 	},
 	trigger : function(name) {
 		var list = this.events.get(name);
+		var arg;
+		if (arguments.length > 1) {
+		    arg = Array.slice.call(arguments, 1);
+		} else {
+		    arg = [];
+		}
 		
 		for (var i = 0; i < list.length; i++) {
-			list[i][1].call(list[i][0]);
+			list[i][1].apply(list[i][0], arg);
 		}
 	}
 });
@@ -436,6 +442,7 @@ yakity.ChatWindow = yakity.Base.extend({
 	_ : function(p, m) {
 		var node = this.renderMessage(p, m);
 		if (node) {
+		    this.trigger("new_message", this, p, node);
 		    this.mset.set(p, this.mlist.length);
 		    this.mlist.push(p);
 		    this.messages.appendChild(node);
@@ -500,7 +507,7 @@ yakity.RoomWindow = yakity.TemplatedWindow.extend({
 		if (supplicant === me) {
 			if (this.left) {
 				this.left = 0;
-				if (this.onenter) this.onenter(this);
+				this.trigger("onenter", this);
 			} else {
 				return psyc.STOP;
 			}
@@ -522,7 +529,7 @@ yakity.RoomWindow = yakity.TemplatedWindow.extend({
 		if (supplicant === me) {
 			if (!this.left) {
 				this.left = 1;
-				if (this.onleave) this.onleave(this);
+				this.trigger("onleave", this);
 			} else {
 				return psyc.STOP;
 			}
