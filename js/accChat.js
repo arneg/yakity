@@ -31,7 +31,7 @@ var AccChat = yakity.Chat.extend({
 					toggler.setStyle('color', '#41464D');
 					
 					self.active = chatwin;
-					chatwin.trigger("focus");
+					chatwin.trigger("focus", chatwin);
 					window.setTimeout((function(node) {
 											chatwin.getMessagesNode().scrollTop = chatwin.getMessagesNode().scrollHeight;
 											chatwin.getMessagesNode().style.overflow="auto";
@@ -45,7 +45,7 @@ var AccChat = yakity.Chat.extend({
 				toggler.setStyle('color', '#528CE0');
 				var chatwin = self.DOMtoWIN.get(toggler);
 				if (chatwin) {
-					chatwin.trigger("blur");
+					chatwin.trigger("blur", chatwin);
 					chatwin.getMessagesNode().style.overflow="hidden";
 				}
 			}
@@ -125,14 +125,14 @@ var AccChat = yakity.Chat.extend({
 			win = new yakity.RoomWindow(this.templates, uniform);
 			UTIL.addClass(header, "public");
 			UTIL.addClass(container, "public");
-			win.onenter = function() {
+			win.register_event("onenter", this, function() {
 				UTIL.replaceClass(container, "left", "joined");
 				UTIL.replaceClass(header, "left", "joined");
-			};
-			win.onleave = function() {
+			});
+			win.register_event("onleave", this, function() {
 				UTIL.replaceClass(container, "joined", "left");
 				UTIL.replaceClass(header, "joined", "left");
-			};
+			});
 			
 			togglemembers.onclick = function() {
 				if (members.style.display=="none") {
@@ -145,6 +145,17 @@ var AccChat = yakity.Chat.extend({
 			UTIL.addClass(win.getMessagesNode(), "roomchat");
 			toggler.appendChild(profiles.getDisplayNode(uniform));
 		}
+		win.register_event("new_message", this, function(win, p, node) {
+			if (this.active != win) {
+				UTIL.addClass(header, "unread");
+				UTIL.addClass(container, "unread");
+			}
+		});
+		win.register_event("focus", this, function(win) {
+			UTIL.removeClass(header, "unread");
+			UTIL.removeClass(container, "unread");
+		});
+
 		UTIL.addClass(header, "idle");
 		UTIL.addClass(container, "idle");
 		UTIL.addClass(header, "header");
