@@ -760,6 +760,7 @@ yakity.Presence.Typing = yakity.Base.extend({
 	type_event : function() {
 		if (!this.chat.active) return;
 		var uniform = this.chat.active.name;
+		if (!uniform.is_person()) return;
 		if (this.ids.hasIndex(uniform)) {
 			window.clearTimeout(this.ids.get(uniform));
 		} else {
