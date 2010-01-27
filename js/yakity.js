@@ -421,7 +421,7 @@ yakity.Base = Base.extend({
 		var list = this.events.get(name);
 		var arg;
 		if (arguments.length > 1) {
-		    arg = Array.slice.call(arguments, 1);
+		    arg = Array.prototype.slice.call(arguments, 1);
 		} else {
 		    arg = [];
 		}
