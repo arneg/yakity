@@ -57,6 +57,7 @@ void keepalive() {
 }
 
 void end_stream() {
+    	werror("ending http stream.\n");
 	connection_id->end();
 	connection_id = 0;
 	closing = 1;
@@ -66,6 +67,7 @@ void end_stream() {
 
 void die(string reason) {
 	LOCK;
+	werror("DIE\n");
 	lid = 0;
 
 	call_out(error_cb, 0, this, reason);
@@ -77,7 +79,7 @@ void die(string reason) {
 
 void stream_close(Meteor.Stream s, string reason) {
 	LOCK;
-	//werror("%O: Proper close (%s)\n", this, reason);
+	werror("%O: Proper close (%s)\n", this, reason);
 
 	if (stream != s) {
 		werror("an old stream got closed again: %O\n", s);
@@ -91,6 +93,7 @@ void stream_close(Meteor.Stream s, string reason) {
 	if (new_id) {
 		call_out(register_new_id, 0);
 	} else {
+	    	werror("Calling die in %d seconds.\n", timeout);
 		lid = call_out(die, timeout, reason);
 		// call_out and close after a timeout
 	}
@@ -121,7 +124,7 @@ void register_new_id() {
 	// IE needs an autoclose right now
 	int autoclose = (-1 != search(connection_id->request_headers["user-agent"], "MSIE"));
 
-	if (autoclose) werror("Creating new autoclosing Stream for %O\n", connection_id);
+	//if (autoclose) werror("Creating new autoclosing Stream for %O\n", connection_id);
 
 	mapping headers = ([
 		"Transfer-Encoding" : "chunked",
