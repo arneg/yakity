@@ -75,9 +75,12 @@ void close() {
 void write(string data) {
 	LOCK;
 
-	if (autoclose_after_send) autoclose = 1;
 
 	out_buffer->add(sprintf("%x\r\n%s\r\n", sizeof(data), data));
+	if (autoclose_after_send) {
+	    autoclose = 1;
+	    out_buffer->add("0\r\n\r\n");
+	}
 
 #ifdef OPTIMISTIC_WRITE
 	UNLOCK;	
