@@ -6,30 +6,18 @@
 <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
 <title>Music Test</title>
 <script language="javascript">
-function playMusic(nm) {
-	obj = document.embeds[nm];
-	if(obj.Play) obj.Play();
-	return true;
-}
-function stopMusic(nm) {
-	obj = document.embeds[nm];
-	if(obj.Stop) obj.Stop();
-	return true;
-}
-function rewMusic(nm) {
-	obj = document.embeds[nm];
-	if(obj.Rewind) obj.Rewind();
+function play(file) {
+    	var div = document.getElementById('soundbox');
+	div.innerHTML = "<embed src=\""+file+"\" type=\"application/x-mplayer2\" autostart=\"1\" loop=\"false\" height=\"0\" width=\"0\">";
 	return true;
 }
 </script>
 </head>
 
 <body>
-<button type="button" onclick="return document.embeds['bip'].Play();">Play Music</button>
-<button type="button" onclick="return stopMusic('myMusic');">Stop Music</button>
-<button type="button" onclick="return rewMusic('myMusic');">Rewind Music</button>
-
-<embed src="sounds/bip.wav" type="application/x-mplayer2" autostart="0" loop="true" height="0" width="0" name="bip" mute="false">
+    <div id="soundbox" style="display:block;">
+    </div>
+<button type="button" onclick="return play('sounds/bip.wav');">Play Music</button>
 
 </body>
 </html>
