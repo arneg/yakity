@@ -145,6 +145,8 @@
 								&& p.v("_source_relay") != this.client.uniform 
 								&& currentIcon == "on") {
 							    div.innerHTML = "<embed src=\"sounds/bip.wav\" type=\"application/x-mplayer2\" autostart=\"true\" loop=\"false\" height=\"0\" width=\"0\">";
+							    
+							    setTimeout(function() { document.getElementById('chatText').focus(); }, 10);
 							}
 						});
 
@@ -648,7 +650,7 @@
 			<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.type_event()" onMouseUp="chat.idle.probable_type_event();">
                         <div id="inputChats">        
                                 <input type="image" src="images/yak.png" name="submit" tabindex="2" class="chatSubmit">
-				<input name=text value="" size="50" class="chatText" autocomplete="off">
+				<input name=text value="" size="50" class="chatText" id="chatText" autocomplete="off">
 			</div>
 			</form>
         </div>
