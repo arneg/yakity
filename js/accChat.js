@@ -54,13 +54,33 @@ var AccChat = yakity.Chat.extend({
 	},
 	removeWindow : function(uniform) {
 		var win = this.getWindow(uniform);
+
 		this.accordion.togglers.splice(win.pos, 1);
 		this.accordion.elements.splice(win.pos, 1);
+
+		var i;
+		for (i = win.pos; this.accordion.from.hasOwnProperty(i+1); i++) {
+		    this.accordion.from[i] = this.accordion.from[i+1];
+		    this.accordion.to[i] = this.accordion.to[i+1];
+		}
+		delete this.accordion.from[i];
+		delete this.accordion.to[i];
+
+		for (i = 0; i < this.accordion.togglers.length; i++) {
+		    this.DOMtoWIN.get(this.accordion.togglers[i]).pos = i;
+		}
+
 		document.getElementById(this.target_id).removeChild(win.header);
 		document.getElementById(this.target_id).removeChild(win.container);
 		this.DOMtoWIN.remove(win.header.firstChild);
 
+		if (win.pos < this.accordion.previous) {
+		    this.accordion.previous--;
+		}
+
 		if (this.active == win) {
+		    	this.accordion.previous = -1;
+
 			if (win.pos < this.accordion.elements.length) {
 				this.active = this.DOMtoWIN.get(this.accordion.togglers[win.pos]);
 				this.accordion.display(win.pos, false);
@@ -72,7 +92,7 @@ var AccChat = yakity.Chat.extend({
 
 		var messages = win.getMessages();
 
-		for (var i = 0; i < messages.length; i++) {
+		for (i = 0; i < messages.length; i++) {
 			var id = messages[i].id();
 
 			if (id != undefined) {
