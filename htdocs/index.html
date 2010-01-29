@@ -144,7 +144,7 @@
 							if (div && p.source() != this.client.uniform 
 								&& p.v("_source_relay") != this.client.uniform 
 								&& currentIcon == "on") {
-							    div.innerHTML = "<embed src=\"sounds/bip.wav\" type=\"audio/wav\" autostart=\"true\" loop=\"false\" height=\"0\" width=\"0\">";
+							    div.innerHTML = "<embed src=\"sounds/bip.wav\" type=\"application/x-mplayer2\" autostart=\"true\" loop=\"false\" height=\"0\" width=\"0\">";
 							}
 						});
 
@@ -626,7 +626,7 @@
 </head>
 <body>
 <div id="bip" style="width:0px;height:0px;">
-	<embed src="sounds/bip.wav" type="audio/wav" autostart="false" loop="false" height="0" width="0">
+	<embed src="sounds/bip.wav" type="application/x-mplayer2" autostart="false" loop="false" height="0" width="0">
 </div>
 <div id="container" style="display:none;">
         <div id="leftPane">
