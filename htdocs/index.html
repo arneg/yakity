@@ -139,10 +139,11 @@
 							}
 						});
 						win.register_event("new_message", this, function(win, p, node) {
+                                                        var currentIcon = document.getElementById('soundCheck').value;
 							var div = document.getElementById('bip');
 							if (div && p.source() != this.client.uniform 
 								&& p.v("_source_relay") != this.client.uniform 
-								&& document.getElementById('soundcheck').checked) {
+								&& currentIcon == "on") {
 							    div.innerHTML = "<embed src=\"sounds/bip.wav\" type=\"audio/wav\" autostart=\"true\" loop=\"false\" height=\"0\" width=\"0\">";
 							}
 						});
@@ -188,6 +189,25 @@
 				}
 				return false;
 			};
+			
+			function soundManager() {
+			
+			        var currentIcon = document.getElementById('soundCheck').value;
+
+
+			        if (currentIcon == "on")
+			        {
+			        document.getElementById('soundIcon').src = 'images/sound-off.png';
+			        document.getElementById('soundCheck').value = 'off';
+			        }
+			        else
+			        {
+			        document.getElementById('soundIcon').src = 'images/sound-on.png';
+                                document.getElementById('soundCheck').value = 'on';
+			        }
+			}
+			
+			
 		</script>
 		<style type="text/css">
 			body {
@@ -509,6 +529,14 @@
 				color: #528CE0;
 			}
 			
+			div.soundIcon {
+			        width: 16px;
+			        height: 16px;
+			        position: absolute;
+			        right: 0px;
+			        top: 10px;
+			}
+			
 			div.userList
 			{
 				height: 150px;
@@ -602,7 +630,10 @@
 </div>
 <div id="container" style="display:none;">
         <div id="leftPane">
-			<INPUT id="soundcheck" type="checkbox" name="soundcheck"><LABEL for="soundcheck"> Sound</LABEL><BR>
+			<div class="soundIcon">
+                                <input id="soundCheck" type="hidden" name="soundcheck" value="on">
+                                <img src="images/sound-on.png" border="0" id="soundIcon" onclick="soundManager()">
+			</div>			
 			<div id="rooms">
 			        <div class="roomHeader">Available Rooms</div>
 				<emit source="chat_rooms">
