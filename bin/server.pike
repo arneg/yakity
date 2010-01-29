@@ -298,6 +298,9 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 			"data" : session->client_id, 
 			"type" : "text/atom",
 			"error" : 200,
+			"extra_heads" : ([
+				"Cache-Control" : "no-cache",
+			]),
 		]));
 		return;
 	}
