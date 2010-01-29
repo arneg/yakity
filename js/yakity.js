@@ -131,9 +131,12 @@ yakity.Client.prototype = {
 		return wrapper;
 	},
 	logout : function() {
-		this.connection.set_blocking();
-		this.connection.connect_outgoing();
-		this.sendmsg(this.uniform, "_request_logout");	
+		if (this.uniform) {
+		    // not connected yet.
+		    this.connection.set_blocking();
+		    this.connection.connect_outgoing();
+		    this.sendmsg(this.uniform, "_request_logout");	
+		}
 	},
 	close : function() {
 		this.connection.close();
