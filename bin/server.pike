@@ -157,27 +157,23 @@ string ext2type(string ext) {
 
     switch (ext) {
 	case "html":
-	    t = "text/html";
-	    break;
+	    return "text/html";
 	case "js":
-	    t = "application/javascript";
-	    break;
+	    return "application/javascript";
 	case "css":
-	    t = "text/stylesheet";
-	    break;
+	    return "text/stylesheet";
 	case "ico":
-	    t = "image/vnd.microsoft.icon";
+	    return "image/vnd.microsoft.icon";
+	case "wav":
+	    return "application/x-mplayer2";
 	case "png":
 	case "jpg":
 	case "jpeg":
 	case "gif":
-	    t = "application/octet-stream";
-	    break;
+	    return "application/octet-stream";
 	default:
-	    t = "text/plain";
+	    return "text/plain";
     }
-
-    return t;
 }
 
 string make_response_headers(object r, mapping args) {
