@@ -140,13 +140,10 @@
 						});
 						win.register_event("new_message", this, function(win, p, node) {
                                                         var currentIcon = document.getElementById('soundCheck').value;
-							var div = document.getElementById('bip');
-							if (div && p.source() != this.client.uniform 
+							if (p.source() != this.client.uniform 
 								&& p.v("_source_relay") != this.client.uniform 
 								&& currentIcon == "on") {
-							    div.innerHTML = "<embed src=\"sounds/bip.wav\" type=\"application/x-mplayer2\" autostart=\"true\" loop=\"false\" height=\"0\" width=\"0\">";
-							    
-							    setTimeout(function() { document.getElementById('chatText').focus(); }, 10);
+							 	play_bip();
 							}
 						});
 
@@ -155,6 +152,29 @@
 				});
 				chat = new CustomChat(client, templates, "YakityChat", document.chat_input.text);
 				chat.idle = new yakity.Presence.Typing(client, chat);
+			}
+
+			function play_bip() {
+				var div
+				if (window.opera) {
+				    if (navigator.appVersion.indexOf("Linux")) {
+					document.getElementById('bip').innerHTML = "<embed src=\"sounds/bip.wav\" type=\"application/x-mplayer2\" autostart=true height=0 width=0 hidden=true>";
+				    } else {
+					document.getElementById('bip').innerHTML = "<embed src=\"sounds/bip.wav\" type=\"audio/wav\" autostart=true height=0 width=0 hidden=true cache=true>";
+				    }
+				} else if (document.all && window.XMLHttpRequest) { // IE
+				    document.all.sound.src = "sounds/bip.wav";
+				} else {
+				    if (!document.embeds["bip"]) {
+					//document.getElementById('bip').innerHTML = "<embed name=\"bip\" src=\"sounds/bip.wav\" autostart=false height=0 width=0 controller=false enablejavascript=true hidden>";
+					//document.getElementById('bip').innerHTML = "<embed src=\"sounds/bip.wav\" name=\"bip\" autostart=false width=0 height=0 enablejavascript=\"true\">";
+
+				    }
+
+				    if (document.embeds["bip"].Play) document.embeds["bip"].Play();
+				    else if (document.embeds["bip"].DoPlay) document.embeds["bip"].DoPlay();
+				}
+				//setTimeout(function() { document.getElementById('chatText').focus(); }, 10);
 			}
 
 			function init() {
@@ -627,8 +647,9 @@
 		</style>
 </head>
 <body>
-<div id="bip" style="width:0px;height:0px;">
-	<embed src="sounds/bip.wav" type="application/x-mplayer2" autostart="false" loop="false" height="0" width="0">
+<bgsound id="sound">
+<div id="bip" style="width:0px;height:0px;"> 
+    <embed src="sounds/bip.wav" type="application/x-mplayer2" name=bip autostart=false width=0 height=0 enablejavascript=true cache=true>
 </div>
 <div id="container" style="display:none;">
         <div id="leftPane">
@@ -647,7 +668,7 @@
 			<div id="YakityChat"></div>
         </div>
         <div id="basePane">
-			<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.type_event()" onMouseUp="chat.idle.probable_type_event();">
+			<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.probable_type_event()" onMouseUp="chat.idle.probable_type_event();">
                         <div id="inputChats">        
                                 <input type="image" src="images/yak.png" name="submit" tabindex="2" class="chatSubmit">
 				<input name=text value="" size="50" class="chatText" id="chatText" autocomplete="off">
