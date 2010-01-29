@@ -30,7 +30,7 @@ release:
 	cp ppp-bsd ppp/lib/MMP.pmod/LICENSE
 	cp htdocs/index.html $(NAME)/htdocs/
 	cp -r htdocs/images $(NAME)/htdocs/
-	cp -r htdocs/sounds $(NAME)/sounds/
+	cp -r htdocs/sounds $(NAME)/htdocs/
 	cp htdocs/mootools-1.2.3-core-nc.js $(NAME)/htdocs/
 	cp htdocs/mootools-1-1.2.3.1-more.js $(NAME)/htdocs/
 	tar cfzvp $(NAME).tar.gz $(NAME)

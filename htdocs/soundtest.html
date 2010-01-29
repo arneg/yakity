@@ -8,7 +8,7 @@
 <script language="javascript">
 function play(file) {
     	var div = document.getElementById('soundbox');
-	div.innerHTML = "<embed src=\""+file+"\" type=\"application/x-mplayer2\" autostart=\"1\" loop=\"false\" height=\"0\" width=\"0\">";
+	div.innerHTML = "<embed src=\""+file+"\" type=\"audio/wav\" hidden=\"true\" autoplay=\"true\" autostart=\"true\" loop=\"false\" height=\"150\" width=\"50\">";
 	return true;
 }
 </script>
@@ -19,5 +19,6 @@ function play(file) {
     </div>
 <button type="button" onclick="return play('sounds/bip.wav');">Play Music</button>
 
+<object width="100" height="100" hidden="true" autoplay="true" autostart="true" type="audio/wav" data="token.wav"><param name="src" value="sounds/bip.wav"></object>
 </body>
 </html>
