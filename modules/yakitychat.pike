@@ -4,7 +4,7 @@ inherit "module";
 
 constant module_type = MODULE_LOCATION|MODULE_TAG|MODULE_PROVIDER;
 constant module_name = "YakityChat";
-constant module_doc = "Streaming data, Flexible Chat Protocol, Client Side Rendering";
+constant module_doc = "Webchat module. Check out the docs on the <a href=\"http://yakitychat.com/\" alt=\"Look for documentation here.\">YakityChat homepage</a>.";
 
 constant unique = 1;
 //constant thread_safe = 1;
@@ -107,6 +107,10 @@ function combine(function f1, function f2) {
 	return f;
 }
 
+string make_response_headers(mapping headers) {
+	return "HTTP/1.1 200 OK\r\n" + Roxen.make_http_headers(headers);
+}
+
 mixed find_file( string f, object id ) {
 	//werror("requested: %s?%O\n", f, id->query);
 	NOCACHE();
@@ -149,7 +153,7 @@ mixed find_file( string f, object id ) {
 			"misc" : ([ 
 				"content_type_type" : id->misc["content_type_type"],
 			]),
-			"make_response_headers" : Roxen.make_http_headers,
+			"make_response_headers" : make_response_headers,
 			"connection" : id->connection,
 			"data" : id->data,
 		]);
