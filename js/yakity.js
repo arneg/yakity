@@ -828,13 +828,16 @@ yakity.InputHistory = Base.extend({
 		this.pos = -1;
 	},
 	add : function(s) {
-		if (s.length > 0) this.history.push(s);
+		if (s.length > 0) {
+		    this.history.push(s);
+		    this.pos = -1;
+		}
 	},
 	get_prev : function(s) {
 		if (this.pos != -1) {
 			this.pos = this.history.length-1;
 		} else {
-			if (this.pos <= 0) {
+			if (--this.pos < 0) {
 				this.pos = 0;
 				return undefined;
 			}
