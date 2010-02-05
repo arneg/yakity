@@ -287,6 +287,32 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 		}
 	}
 };
+yakity.linky_text = function(text) {
+    //var reg = /(https?|ftp|imap|irc|ldap|nfs|nntp|sips?|telnet|xmpp):\/\/(\w+(:\w+)?@)?[\w\.\-]+(:\d+)?(\/[\w\$\-_.\+!\*'\(\),]+|\/?)?/g;
+    var reg = /(https?|ftp|imap|irc|ldap|nfs|nntp|sips?|telnet|xmpp):\/\/([-;:&=\+\$,\w]+@{1})?([-A-Za-z0-9\.]+)+:?(\d+)?((\/[-\+~%\/\.\w]+)?\??([-\+=&;%@\.\w]+)?#?([\w]+)?)?/g;
+    var div = document.createElement("div");
+    
+    var cb = function(result) {
+	var a = document.createElement("a");
+	a.href = result[0];
+	a.target = "_blank";
+	a.appendChild(document.createTextNode(result[0]));
+	return a;
+    };
+
+    var a = UTIL.split_replace(reg, text, cb);
+
+    for (var i = 0; i < a.length; i++) {
+	    var t = a[i];
+	    if (stringp(t)) {
+		    if (t.length > 0) div.appendChild(document.createTextNode(t));
+	    } else {
+		    div.appendChild(t);
+	    }
+    }
+
+    return div;
+};
 yakity.funky_text = function(p, templates) {
 	var m = p.data;
 	var template = templates.get(m.method);
@@ -318,7 +344,7 @@ yakity.funky_text = function(p, templates) {
 		var t;
 
 		if (s == "data") {
-			t = m.data;
+			t = yakity.linky_text(m.data);
 		} else if (s == "method") {
 			t = m.method;
 		} else if (p.V(s) || m.V(s)) {
