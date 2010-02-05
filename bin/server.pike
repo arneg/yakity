@@ -27,6 +27,7 @@ MMP.Uniform to_uniform(void|int type, void|string name) {
 
 void print_help() {
 	werror("Usage: server.pike -p <port> -d <domain> -b <bind address> -r <rooms>\n\n");
+	werror("\tThe bind address is optional. If not given, the domain is used as the bind address instead.\n");
 }
 
 class HTTPRequest {
@@ -153,8 +154,6 @@ void answer(object r, int code, string data) {
 }
 
 string ext2type(string ext) {
-    string t;
-
     switch (ext) {
 	case "html":
 	    return "text/html";
