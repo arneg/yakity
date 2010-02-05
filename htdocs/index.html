@@ -25,13 +25,6 @@
 			var userlist;
 			var METEORURL = "<meteorurl/>";
 
-			function elink(name) {
-				var a = document.createElement("a");
-				a.href = "javascript:void(null)";
-				a.appendChild((typeof(name) == "string") ? document.createTextNode(name) : name);
-				return a;
-			}
-
 			function onconnect(success, uh) {
 				client.onconnect = null;
 				if (!success) {

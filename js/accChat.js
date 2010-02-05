@@ -15,6 +15,15 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+
+function elink(name,fun,title) {
+	var a = document.createElement("a");
+	a.href = "javascript:void(null)";
+	a.appendChild((typeof(name) == "string") ? document.createTextNode(name) : name);
+	if (fun) a.onclick = fun;
+	if (title) a.title = title;
+	return a;
+}
 var AccChat = yakity.Chat.extend({
 	constructor : function (client, templates, target_id, input) {
 		this.target_id = target_id;
@@ -121,8 +130,10 @@ var AccChat = yakity.Chat.extend({
 	createWindow : function(uniform) {
 		var win;
 		var toggler = document.createElement("a");
+		toggler.title = "toggle pane";
 		UTIL.addClass(toggler, "toggler");
 		var togglemembers = document.createElement("a");
+		togglemembers.title = "toggle members list";
 		UTIL.addClass(togglemembers, "toggleInfo");
 		toggler.appendChild(togglemembers);
 		
@@ -188,9 +199,11 @@ var AccChat = yakity.Chat.extend({
 			if (uniform.is_person()) {
 				a = document.createElement("div");
 				UTIL.addClass(a, "closeButton");
-				a.onclick = function() {
+				// We need some dictionary here.
+				a = elink(a, function() {
 					chat.removeWindow(uniform);
-				};
+				}, "close window");
+				
 				header.appendChild(a);
 			} else {
 				a = document.createElement("div");
@@ -200,15 +213,15 @@ var AccChat = yakity.Chat.extend({
 				var c = document.createElement("div");
 				UTIL.addClass(c, "enterButton");
 				
-				b.onclick = function() {
+				b = elink(b, function() {
 					chat.removeWindow(uniform);
-				};
-				a.onclick = function() {
+				}, "close window");
+				a = elink(a, function() {
 					chat.leaveRoom(uniform);
-				};
-				c.onclick = function() {
+				}, "leave room");
+				c = elink(c, function() {
 					chat.enterRoom(uniform);
-				};
+				}, "enter room");
 				
 				header.appendChild(b);
 				header.appendChild(a);
