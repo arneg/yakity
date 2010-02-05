@@ -1,0 +1,18 @@
+Changes since 0.1rc1
+ Bugfixes
+  - Cleaned up the code to not make any cyclic references which 
+    would make the garbage colector run often and long in high
+    load environments. Also disconnected sessions are now cleaned
+    immediately.
+  - Fixed a bug in the code using the mootools accordion. Removing
+    panes now actually works properly.
+  - 
+
+ Features
+  - Some more presence notices. Includes a notice for typing,
+    offline and idle users.
+  - New messages now trigger a sound, if not deactivated.
+  - Standalone server which does not require one to run roxen.
+
+ Other
+  - Parser and renderer performance optimizations.
