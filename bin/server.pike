@@ -165,7 +165,7 @@ string ext2type(string ext) {
 	case "ico":
 	    return "image/vnd.microsoft.icon";
 	case "wav":
-	    return "application/x-mplayer2";
+	    return "audio/wav";
 	case "png":
 	case "jpg":
 	case "jpeg":
