@@ -1,11 +1,4 @@
-IE js memory leaks. this needs testing
-	http://javascript.crockford.com/memory/leak.html
-
 TODO for 0.1
-* do css styling for classes 'typing', 'offline', 'idle' (default)
-* 'yak' icon
-* display new messages in collapsed windows
-* "htdocs//favicon.ico" not found.
 * NOTIFICATIOn
 	* new message (beep)
 	* sound on/off
