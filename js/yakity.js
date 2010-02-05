@@ -822,3 +822,29 @@ yakity.Presence.Typing = yakity.Base.extend({
 		return true;
 	}
 });
+yakity.InputHistory = Base.extend({
+	constructor : function() {
+		this.history = [];
+		this.pos = -1;
+	},
+	add : function(s) {
+		if (s.length > 0) this.history.push(s);
+	},
+	get_prev : function(s) {
+		if (this.pos != -1) {
+			this.pos = this.history.length-1;
+		} else {
+			if (this.pos <= 0) {
+				this.pos = 0;
+				return undefined;
+			}
+		}
+		if (s) this.add(s);
+		return this.history[this.pos];
+	},
+	get_next : function() {
+		if (this.pos < this.history.length-1) {
+		    return this.history[++this.pos];
+		} else return undefined;
+	}
+});
