@@ -313,6 +313,53 @@ yakity.linky_text = function(text) {
 
     return div;
 };
+yakity.replace_vars = function(p, template, templates) {
+	var m = p.data;
+
+	var reg = /\[[\w-]+\]/g;
+
+	var cb = function(result, m) {
+		var s = result[0].substr(1, result[0].length-2);
+		var a = s.split("-");
+		s = a[0];
+		var type;
+		if (a.length > 1) {
+			type = a[1];
+		}
+		var t;
+
+		if (s == "data") {
+			t = yakity.linky_text(m.data);
+		} else if (s == "method") {
+			t = m.method;
+		} else if (p.V(s) || m.V(s)) {
+			var vtml = templates.get(s);
+			t = p.V(s) ? p.v(s) : m.v(s);
+
+			if (functionp(vtml)) {
+				t = vtml.call(window, type, s, t, m);
+			} else if (objectp(t)) {
+				if (functionp(t.render)) {
+					t = t.render(type);
+				} else {
+					t = t.toString();
+				}
+			}
+		} else {
+			t = "["+s+"]";
+		}
+
+		if (objectp(t)) {
+		    t = t.innerHTML;
+		}
+
+		return t;
+	};
+
+	var a = UTIL.split_replace(reg, template, cb, m);
+
+	return a.join("");
+};
 yakity.funky_text = function(p, templates) {
 	var m = p.data;
 	var template = templates.get(m.method);
@@ -322,7 +369,7 @@ yakity.funky_text = function(p, templates) {
 	var reg = /\[[\w-]+\]/g;
 
 	if (functionp(template)) {
-		var node = template(m);
+		var node = template(p, templates);
 		node.className = mmp.abbreviations(m.method).join(" ");
 		return node;
 	}
@@ -851,3 +898,10 @@ yakity.InputHistory = Base.extend({
 		} else return undefined;
 	}
 });
+yakity.HtmlTemplate = function(html) {
+	return (function(packet, templates) {
+		var div = document.createElement("div");
+		div.innerHTML = yakity.replace_vars(packet, html, templates);
+		return div;
+	});
+};
