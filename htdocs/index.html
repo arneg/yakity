@@ -66,7 +66,7 @@
 					return span;
 				});
 				var templates = new mmp.Vars({
-					_status_circuit : "Welcome to the chat at [_source-_host].",
+					_status_circuit :  yakity.HtmlTemplate("<h1>Instructions</h1><div class='introDiv'><img src='images/yakgroup.png' align='left'> Room chat icon, click to toggle the room members list.</div><div class='introDiv'><img src='images/yakgroup-waiting.png' align='left'> Group chat, unread message waiting.</div><div class='introDiv'><img src='images/member-icon.png' align='left'> Private chat icon.</div><div class='introDiv'><img src='images/member-icon-waiting.png' align='left'> Private chat, unread message.</div><div class='introDiv'><img src='images/sound-on.png' align='left'> Message notification, click to toggle sound on/off.</div>"),
 					_notice_enter : "[_supplicant] enters [_source].",
 					_notice_leave : "[_supplicant] leaves [_source].",
 					_message_public : "[_timestamp] [_source_relay] [data]",
@@ -326,7 +326,7 @@
 				background-repeat: no-repeat;
 			}
 			div.private a.toggleInfo {
-				background: url(images/member-icon.gif);
+				background: url(images/member-icon.png);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
@@ -637,6 +637,19 @@
 				text-align: center;
 				font-family: 'Andale Mono', FreeSans, sans-serif;
 				color: white;
+			}
+			
+			.introDiv {
+			        padding: 10px;
+			}
+			
+			.introDiv img {
+			        margin-right: 10px;
+			}
+			
+			h1 {
+			        font-size: 14px;
+			        padding: 10px;
 			}
 		</style>
 </head>
