@@ -143,7 +143,7 @@ var AccChat = yakity.Chat.extend({
 
 		if (uniform == this.client.uniform) {
 			win = new yakity.TemplatedWindow(this.templates, uniform);
-			toggler.appendChild(document.createTextNode("Status"));
+			toggler.appendChild(document.createTextNode("Welcome to YakityChat"));
 			UTIL.addClass(header, "status");
 			UTIL.addClass(container, "status");
 		} else if (uniform.is_person()) {
