@@ -30,6 +30,7 @@ release:
 	cp ppp-bsd ppp/lib/MMP.pmod/LICENSE
 	cp htdocs/favicon.ico $(NAME)/htdocs/
 	cp htdocs/index.html $(NAME)/htdocs/
+	cp htdocs/favicon.ico $(NAME)/htdocs/
 	cp -r htdocs/images $(NAME)/htdocs/
 	cp -r htdocs/sounds $(NAME)/htdocs/
 	cp htdocs/mootools-1.2.3-core-nc.js $(NAME)/htdocs/
