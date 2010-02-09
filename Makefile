@@ -28,6 +28,7 @@ release:
 	cp -r ppp/lib/MMP.pmod $(NAME)/lib/
 	rm $(NAME)/lib/MMP.pmod/Parser.pike
 	cp ppp-bsd ppp/lib/MMP.pmod/LICENSE
+	cp htdocs/favicon.ico $(NAME)/htdocs/
 	cp htdocs/index.html $(NAME)/htdocs/
 	cp -r htdocs/images $(NAME)/htdocs/
 	cp -r htdocs/sounds $(NAME)/htdocs/
