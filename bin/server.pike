@@ -91,6 +91,13 @@ int main(int argc, array(string) argv) {
 
 	int port = (int)options["port"] || 80;
 
+	mixed err = catch {
+	    array(int) nofile = System.getrlimit("nofile");
+	    if (arrayp(nofile) && sizeof(nofile) == 2 && nofile[1] > -1 && nofile[1] < 10000) {
+		werror("Warning: The number of file descriptors is limited to %d. This will limit the amount of users you can serve.\n", nofile[1]);
+	    }
+	};
+
 	http_server = Protocols.HTTP.Server.Port(handle_request, port, bind);
 	http_server->request_program = HTTPRequest;
 	werror("Started HTTP server on %s:%d\n", bind, port);
