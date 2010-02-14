@@ -104,12 +104,18 @@ int msg(MMP.Packet p) {
 		method = smsig->decode(p->data)->method;
 	}
 
+#ifdef ATOM_TRACE
+	int pstop = gethrvtime(1);
+	int sstop;
+# define REPORT	do { sstop = gethrvtime(1); werror("parsing: %2.3f\thandling: %2.3f \t", (pstop - pstart)*1E-6, (sstop - pstop)*1E-6); } while (0);
+#else
+# define REPORT	
+#endif
+
 	if (method[0] == '_') {
 		mixed f;
 		if ((f = this[method]) && functionp(f) && f(p) == Yakity.STOP) {
-#ifdef ATOM_TRACE
-			werror("atom parsing: %2.3f ms\t", (gethrvtime(1) - pstart)*1E-6);
-#endif
+		    	REPORT;
 			return Yakity.STOP;
 		} 
 	
@@ -120,16 +126,12 @@ int msg(MMP.Packet p) {
 			f = this[s];
 
 			if (functionp(f) && f(p) == Yakity.STOP) {
-#ifdef ATOM_TRACE
-				werror("atom parsing: %2.3f ms\t", (gethrvtime(1) - pstart)*1E-6);
-#endif
+				REPORT;
 				return Yakity.STOP;
 			}
 		}
 	}
 
-#ifdef ATOM_TRACE
-	werror("atom parsing: %2.3f ms\t", (gethrvtime(1) - pstart)*1E-6);
-#endif
+	REPORT;
 	return Yakity.GOON;
 }
