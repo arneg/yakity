@@ -194,13 +194,10 @@ int msg(MMP.Packet p) {
 
 	mixed err = catch {
 		if (has_index(p->vars, "_context")) {
-				Serialization.Atom a = mmp_signature->encode(p);
-				atom = a->render();
-				a->condense();
-		} else {
-			atom = mmp_signature->render(p);
-			p->set_atom(0);
+			mmp_signature->encode(p);
 		}
+
+	    	atom = mmp_signature->render(p);
 	};
 
 	if (err) {
@@ -214,8 +211,8 @@ int msg(MMP.Packet p) {
 #endif
 	//history[count] = atom;
 
-	foreach (sessions;; object s) {
-		s->send(atom);
+	foreach (sessions;; object s) { 
+	    s->send(atom); 
 	}
 }
 
