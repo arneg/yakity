@@ -53,6 +53,29 @@ class HTTPRequest {
 	
 }
 
+void print_profiling_info(array|program a) {
+    if (!arrayp(a)) a = ({ a });
+    foreach (a;;program p) {
+	mapping(string:array(int)) m = get_profiling_info(p)[1];
+
+	werror("\n");
+	
+	foreach (m;string fun;array(int) times) {
+	    if (fun != "__INIT")
+		werror("%O->%-20s %10f %10f micro s %8d calls\n", p, fun, (float)times[2]*1000/times[0], (float)times[1]*1000/times[0], times[0]);
+	}
+    }
+}
+
+void onexit(int signal) {
+#ifdef TRACE
+# if constant(get_profiling_info)
+	catch { print_profiling_info(TRACE); };
+# endif
+#endif
+	exit(0);
+}
+
 int main(int argc, array(string) argv) {
 	array opt;
 	mapping options = ([]);
@@ -122,6 +145,12 @@ int main(int argc, array(string) argv) {
 	server->root = root;
 	server->register_entity(root->uniform, root);
 	werror("Ready for clients.\n");
+#if defined(TRACE) && !constant(get_profiling_info)
+	werror("Warning: TRACE can only be used if pike has been compile --with-profiling.\n");
+#endif
+#ifdef TRACE
+	signal(signum("SIGINT"), onexit);
+#endif
 	return -1;
 }
 
