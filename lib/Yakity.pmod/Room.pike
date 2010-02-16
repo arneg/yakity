@@ -19,6 +19,7 @@ inherit Yakity.Base;
 
 string name;
 multiset(MMP.Uniform) members = (<>);
+ADT.CircularList history = ADT.CircularList(10);
 
 void create(object server, MMP.Uniform uniform, string name) {
 	::create(server, uniform);
@@ -31,6 +32,8 @@ void castmsg(string mc, string data, mapping vars) {
 	}
 }
 
+// TODO: We want to use a real psyc multicast here, but we dont have stuff properly
+// 	 set up. This will go when PPP is integrated.
 void groupcast(Yakity.Message|Serialization.Atom m, void|MMP.Uniform relay) {
 	if (object_program(m) == Yakity.Message) {
 		m = message_encode(m);
@@ -59,6 +62,16 @@ int _request_enter(MMP.Packet p) {
 	if (!has_index(members, source)) {
 		castmsg("_notice_enter", 0,  ([ "_supplicant" : source ]));
 		members[source] = 1;
+
+	}
+
+	return Yakity.STOP;
+}
+
+int _request_history(MMP.Packet p) {
+	foreach (history;;MMP.Packet p) {
+		MMP.Packet tp = MMP.Packet(p->data, p->vars + ([ "_source" : uniform, "_source_relay" : p->source(), "_target" : source ]));
+		server->deliver(tp);
 	}
 
 	return Yakity.STOP;
@@ -103,6 +116,11 @@ int _message_public(MMP.Packet p) {
 		return Yakity.STOP;
 	}
 
+	if (sizeof(history) == history->max_size()) {
+	    history->pop_front();
+	}
+
+	history->push_back(p);
 	groupcast(p->data, source);
 
 	return Yakity.STOP;
