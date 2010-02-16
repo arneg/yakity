@@ -118,8 +118,9 @@ var AccChat = yakity.Chat.extend({
 	msg : function(p, m) {
 		if (!p.vars.hasIndex("_context") || this.windows.hasIndex(p.source())) {
 		    var messages = this.getWindow(p.source()).getMessagesNode();
+		    var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
 		    var ret = this.base(p, m);	
-		    messages.scrollTop = messages.scrollHeight;
+		    if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
 		    return ret;
 		}
 	},
