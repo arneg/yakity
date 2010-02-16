@@ -76,7 +76,7 @@ void send(MMP.Uniform target, Serialization.Atom|Yakity.Message m, void|MMP.Unif
 	}
 
 	MMP.Packet p = MMP.Packet(m, vars);
-	call_out(server->deliver, 0, p);
+	server->deliver(p);
 }
 
 void broadcast(Yakity.Message m) {
