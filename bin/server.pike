@@ -60,7 +60,8 @@ void print_profiling_info(array|program a) {
 
 	werror("\n");
 	
-	foreach (m;string fun;array(int) times) {
+	foreach (sort(indices(m));;string fun) {
+	    array(int) times = m[fun];
 	    if (fun != "__INIT")
 		werror("%O->%-20s %10f %10f micro s %8d calls\n", p, fun, (float)times[2]*1000/times[0], (float)times[1]*1000/times[0], times[0]);
 	}
