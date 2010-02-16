@@ -673,8 +673,11 @@ yakity.Chat = Base.extend({
 	 * @param {Uniform} uniform
 	 * Requests membership in the given room. If the room has been entered successfully a new tab will be opened automatically.
 	 */
-	enterRoom : function(uniform) {
+	enterRoom : function(uniform, history) {
 		this.client.sendmsg(uniform, "_request_enter");
+		if (history) {
+		    this.client.sendmsg(uniform, "_request_history");
+		}
 	},
 	/**
 	 * @param {Uniform} uniform

@@ -123,8 +123,8 @@ var AccChat = yakity.Chat.extend({
 		    return ret;
 		}
 	},
-	enterRoom : function(uniform) {
-		this.base(uniform);
+	enterRoom : function(uniform, history) {
+		this.base(uniform, history);
 		this.accordion.display(this.getWindow(uniform).pos);
 	},
 	createWindow : function(uniform) {
