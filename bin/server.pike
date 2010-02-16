@@ -53,6 +53,7 @@ class HTTPRequest {
 	
 }
 
+#if constant(get_profiling_info)
 void print_profiling_info(array|program a) {
     if (!arrayp(a)) a = ({ a });
     foreach (a;;program p) {
@@ -67,6 +68,7 @@ void print_profiling_info(array|program a) {
 	}
     }
 }
+#endif
 
 void onexit(int signal) {
 #ifdef TRACE
