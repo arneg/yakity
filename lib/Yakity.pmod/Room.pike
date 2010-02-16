@@ -69,6 +69,13 @@ int _request_enter(MMP.Packet p) {
 }
 
 int _request_history(MMP.Packet p) {
+	MMP.Uniform source = p->source();
+
+	if (!has_index(members, source)) {
+		sendmsg(source, "_error_membership_required", "You must join the room first.");
+		return Yakity.STOP;
+	}
+
 	foreach (history;;MMP.Packet p) {
 		MMP.Packet tp = MMP.Packet(p->data, p->vars + ([ "_source" : uniform, "_source_relay" : p->source(), "_target" : source ]));
 		server->deliver(tp);
