@@ -148,8 +148,13 @@
 				chat.idle = new yakity.Presence.Typing(client, chat);
 			}
 
+			var lastbip;
 			function play_bip() {
-			    	var t1 = new Date();
+				var t = new Date();
+                                if (lastbip && (t.getTime() - lastbip.getTime() < 6660)) {
+                                    return;
+                                }
+                                lastbip = t;
 				if (window.opera || navigator.appVersion.indexOf("Mac") != -1) {
 				    if (navigator.appVersion.indexOf("Linux") != -1) {
 					document.getElementById('bip').innerHTML = "<embed src=\"sounds/bip.wav\" type=\"application/x-mplayer2\" autostart=true height=0 width=0 hidden=true>";
@@ -159,18 +164,9 @@
 				} else if (document.all && window.XMLHttpRequest) { // IE
 				    document.all.sound.src = "sounds/bip.wav";
 				} else {
-				    if (!document.embeds["bip"]) {
-					//document.getElementById('bip').innerHTML = "<embed name=\"bip\" src=\"sounds/bip.wav\" autostart=false height=0 width=0 controller=false enablejavascript=true hidden>";
-					//document.getElementById('bip').innerHTML = "<embed src=\"sounds/bip.wav\" name=\"bip\" autostart=false width=0 height=0 enablejavascript=\"true\">";
-
-				    }
-
 				    if (document.embeds["bip"].Play) document.embeds["bip"].Play();
 				    else if (document.embeds["bip"].DoPlay) document.embeds["bip"].DoPlay();
 				}
-				var t2 = new Date();
-				meteor.debug("bip playback took "+(t2.getTime()-t1.getTime())" ms");
-				//setTimeout(function() { document.getElementById('chatText').focus(); }, 10);
 			}
 
 			function init() {
