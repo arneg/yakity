@@ -64,6 +64,9 @@ yakity.Message = mmp.Packet.extend({
 		ret += this.vars.toString();
 		ret += "]))";
 		return ret;
+	},
+	isMethod : function(method) {
+		return this.method.indexOf(method) == 0;
 	}
 });
 yakity.default_polymorphic = function() {
