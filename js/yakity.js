@@ -78,7 +78,7 @@ yakity.default_polymorphic = function() {
 	//pol.register_type("_message", yakity.Message, new serialization.Message(method, pol, pol));
 	pol.register_type("_mapping", yakity.Mapping, new serialization.Mapping(pol, pol));
 	pol.register_type("_list", Array, new serialization.Array(pol));
-	pol.register_type("_time", yakity.Date, new serialization.Date());
+	pol.register_type("_time", mmp.Date, new serialization.Date());
 	pol.register_type("_uniform", mmp.Uniform, new serialization.Uniform());
 	return pol;
 }
