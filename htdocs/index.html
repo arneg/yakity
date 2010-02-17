@@ -149,8 +149,8 @@
 			}
 
 			function play_bip() {
-				var div
-					if (window.opera || navigator.appVersion.indexOf("Mac") != -1) {
+			    	var t1 = new Date();
+				if (window.opera || navigator.appVersion.indexOf("Mac") != -1) {
 				    if (navigator.appVersion.indexOf("Linux") != -1) {
 					document.getElementById('bip').innerHTML = "<embed src=\"sounds/bip.wav\" type=\"application/x-mplayer2\" autostart=true height=0 width=0 hidden=true>";
 				    } else {
@@ -168,6 +168,8 @@
 				    if (document.embeds["bip"].Play) document.embeds["bip"].Play();
 				    else if (document.embeds["bip"].DoPlay) document.embeds["bip"].DoPlay();
 				}
+				var t2 = new Date();
+				meteor.debug("bip playback took "+(t2.getTime()-t1.getTime())" ms");
 				//setTimeout(function() { document.getElementById('chatText').focus(); }, 10);
 			}
 
@@ -221,7 +223,7 @@
 			        document.getElementById('soundIcon').src = 'images/sound-on.png';
                                 document.getElementById('soundCheck').value = 'on';
 			        }
-			}
+			};
 			
 			
 		</script>
