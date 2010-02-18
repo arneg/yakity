@@ -134,12 +134,15 @@
 						});
 						win.register_event("new_message", this, function(win, p, node) {
                                                         var currentIcon = document.getElementById('soundCheck').value;
-							if (p.source() != this.client.uniform 
-							    && p.v("_source_relay") != this.client.uniform 
-							    && (p.data.isMethod("_notice_enter") && p.data.v("_supplicant") != this.client.uniform)
-							    && currentIcon == "on") {
-							 	window.setTimeout(play_bip, 0);
+
+							if (p.source() == this.client.uniform 
+							    || p.v("_source_relay") == this.client.uniform 
+							    || ((p.data.isMethod("_notice_enter") || p.data.isMethod("_notice_leave")) && p.data.v("_supplicant") == this.client.uniform)
+							    || currentIcon != "on") {
+								return;
 							}
+
+							window.setTimeout(play_bip, 0);
 						});
 
 						return win;
