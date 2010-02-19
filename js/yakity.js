@@ -100,7 +100,7 @@ yakity.Client = function(url, name) {
 
 		if (meteor.debug) meteor.debug(error);
 	};
-	this.connection = new meteor.Connection(url+"?nick="+escape(name).replace(/\+/g, "%2B"), this.incoming, errorcb);
+	this.connection = new meteor.Connection(url, { nick : name }, this.incoming, errorcb);
 	this.connection.init();
 	var method = new serialization.Method();
 	var poly = yakity.default_polymorphic();
