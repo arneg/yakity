@@ -113,6 +113,16 @@ yakity.Client = function(url, name) {
 };
 // params = ( method : "_message", source : Uniform }
 yakity.Client.prototype = {
+    	abort : function() {
+		if (this.connection) {
+		    this.connection.close();
+		    delete this.connection;
+		}
+		if (this.incoming) {
+		    delete this.incoming.obj;
+		    delete this.incoming;
+		}
+	},
 	toString : function() {
 		return "yakity.Client("+this.connection.url+")";
 	},
