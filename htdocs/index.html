@@ -35,6 +35,7 @@
 					} else {
 						error.appendChild(err_node);
 					}
+					client.abort();
 					client = null;
 					return;
 				} else {
@@ -183,6 +184,7 @@
 				window.onunload = function() {
 					if (client) {
 						client.logout();
+						client.abort();
 						client = null;
 					}
 				};
