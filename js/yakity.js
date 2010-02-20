@@ -100,14 +100,13 @@ yakity.Client = function(url, name) {
 
 		if (meteor.debug) meteor.debug(error);
 	};
-	this.connection = new meteor.Connection(url, { nick : name }, this.incoming, errorcb);
+	this.connection = new meteor.Connection(url, { nick : name }, UTIL.make_method(this, this.incoming), errorcb);
 	this.connection.init();
 	var method = new serialization.Method();
 	var poly = yakity.default_polymorphic();
 	this.msig = new serialization.Message(method, new serialization.OneTypedVars(poly), poly);
 	this.psig = new serialization.Packet(this.msig);
 	this.parser = new serialization.AtomParser();
-	this.incoming.obj = this;
 	this.icount = 0;
 	this.name = name;
 };
@@ -119,7 +118,6 @@ yakity.Client.prototype = {
 		    delete this.connection;
 		}
 		if (this.incoming) {
-		    delete this.incoming.obj;
 		    delete this.incoming;
 		}
 	},
@@ -200,6 +198,8 @@ yakity.Client.prototype = {
 	incoming : function (data) {
 		var self, method, count, p, m, wrapper, i, last_id;
 		var source, target, context;
+
+		meteor.debug(data.length+" bytes of incoming data.");
 
 		if (this.keepalive) {
 			window.clearTimeout(this.keepalive);
