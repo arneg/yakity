@@ -47,6 +47,8 @@ void create(string client_id, void|function cb, void|function error) {
 	this_program::client_id = client_id;
 	this_program::cb = cb;
 	this_program::error_cb = error;
+
+	lid = call_out(die, timeout, "No Stream connected.");
 }
 
 // this is called in intervals
