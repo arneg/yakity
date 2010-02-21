@@ -126,9 +126,9 @@ var AccChat = yakity.Chat.extend({
 	},
 	enterRoom : function(uniform, history) {
 		var win = this.getWindow(uniform);
-		history = history && win.left; // request history only on first join
+		this.accordion.display(win.pos);
+		if (!win.left) return;
 		this.base(uniform, history);
-		this.accordion.display(this.getWindow(uniform).pos);
 	},
 	createWindow : function(uniform) {
 		var win;
