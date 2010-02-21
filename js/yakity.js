@@ -147,6 +147,7 @@ yakity.Client.prototype = {
 		    this.connection.set_blocking();
 		    this.connection.reconnect = 0;
 		    this.sendmsg(this.uniform, "_request_logout");	
+		    this.connection.close();
 		}
 	},
 	close : function() {
