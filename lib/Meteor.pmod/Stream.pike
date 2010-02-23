@@ -50,9 +50,15 @@ void create(Stdio.File connection, function cb, function error, int|void autoclo
 	this_program::connection = connection;
 	this_program::close_cb = cb;
 	this_program::error_cb = error;
+
 	// we dont want to close right after the headers have been sent
-	if (autoclose) this_program::autoclose_after_send = autoclose;
-	connection->set_write_callback(_write);
+	if (autoclose) {
+	    this_program::autoclose_after_send = autoclose;
+	} else {
+	    will_send = 1;
+	    connection->set_write_callback(_write);
+	}
+
 	connection->set_close_callback(_close);
 }
 
@@ -78,19 +84,13 @@ void write(string data) {
 	if (autoclose) error("stream->write() should not be called in autoclose state as data would be lost.");
 
 	out_buffer->add(sprintf("%x\r\n%s\r\n", sizeof(data), data));
-#ifdef OPTIMISTIC_WRITE
-	UNLOCK;	
-	if (!will_send) {
-		_write();
-	}
-#else
+
 	if (!will_send) {
 		will_send = 1;
 		connection->set_write_callback(_write);
 	}
 
 	RETURN;	
-#endif
 }
 
 void _write() {
@@ -112,13 +112,6 @@ void _write() {
 		RETURN;
 	} else if (bytes < sizeof(t)) {
 		out_buffer->add(t[bytes..]);
-#ifdef OPTIMISTIC_WRITE
-
-		if (!will_send) {
-			will_send = 1;
-			connection->set_write_callback(_write);
-		}
-#endif
 	} else {
 
 		if (autoclose) {
