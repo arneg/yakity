@@ -167,13 +167,13 @@
                                     return;
                                 }
                                 lastbip = t;
-				if (window.opera || navigator.appVersion.indexOf("Mac") != -1) {
+				if (UTIL.is_opera || navigator.appVersion.indexOf("Mac") != -1) {
 				    if (navigator.appVersion.indexOf("Linux") != -1) {
 					document.getElementById('bip').innerHTML = "<embed src=\"sounds/bip.wav\" type=\"application/x-mplayer2\" autostart=true height=0 width=0 hidden=true>";
 				    } else {
 					document.getElementById('bip').innerHTML = "<embed src=\"sounds/bip.wav\" type=\"audio/wav\" autostart=true height=0 width=0 hidden=true cache=true>";
 				    }
-				} else if (document.all && window.XMLHttpRequest) { // IE
+				} else if (UTIL.is_ie) { // IE
 				    document.all.sound.src = "sounds/bip.wav";
 				} else {
 				    if (document.embeds["bip"].Play) document.embeds["bip"].Play();
