@@ -239,7 +239,7 @@ void send(string|Serialization.Atom atom) {
 	LOCK;
 	KEEPDEAD;
 	//werror("%O: send(%O)\n", this, atom);
-	if (closing) {
+	if (closing || stream->autoclose) {
 		queue->push(atom);	
 	} else {
 		KEEPALIVE;

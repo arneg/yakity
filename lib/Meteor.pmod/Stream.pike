@@ -18,8 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 String.Buffer out_buffer = String.Buffer();
 function close_cb, error_cb;
 // we dont want to close before we get the first write
-int autoclose;
-int autoclose_after_send; 
+int autoclose = 0;
+int autoclose_after_send = 0; 
 int will_send = 0;
 Stdio.File connection;
 
@@ -39,10 +39,10 @@ Thread.Mutex m = Thread.Mutex();
 #endif
 
 // remove all references and callbacks.
-#define CLOSE(reason)	do { call_out(close_cb, 0, this, reason); connection->set_close_callback(0); connection->set_write_callback(0); \
+#define CLOSE(reason)	do { close_cb(this, reason); connection->set_close_callback(0); connection->set_write_callback(0); \
 							 connection = 0;  \
 							 close_cb = error_cb = 0; } while(0)
-#define ERROR(reason)	do { call_out(error_cb, 0, this, reason); connection->set_close_callback(0); connection->set_write_callback(0);\
+#define ERROR(reason)	do { error_cb(this, reason); connection->set_close_callback(0); connection->set_write_callback(0);\
 							 connection = 0;\
 							 close_cb = error_cb = 0; } while(0)
 
@@ -75,13 +75,9 @@ void close() {
 void write(string data) {
 	LOCK;
 
+	if (autoclose) error("stream->write() should not be called in autoclose state as data would be lost.");
 
 	out_buffer->add(sprintf("%x\r\n%s\r\n", sizeof(data), data));
-	if (autoclose_after_send) {
-	    autoclose = 1;
-	    out_buffer->add("0\r\n\r\n");
-	}
-
 #ifdef OPTIMISTIC_WRITE
 	UNLOCK;	
 	if (!will_send) {
@@ -99,6 +95,11 @@ void write(string data) {
 
 void _write() {
 	LOCK;
+
+	if (autoclose_after_send && !autoclose) {
+	    autoclose = 1;
+	    out_buffer->add("0\r\n\r\n");
+	}
 
 	string t = out_buffer->get();
 	//werror("writing %d bytes to %O", sizeof(out_buffer), connection->query_address());
