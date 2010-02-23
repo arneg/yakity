@@ -263,7 +263,7 @@
                         
 			div.status div.messages, div.public div.messages, div.private div.messages {
 				height: 250px;
-				overflow: auto;
+				overflow: none;
 			}
 
 			div.chatwindow {
@@ -281,7 +281,9 @@
 				background-color: #fdffc4;
 				opacity:0.6;
 				filter:alpha(opacity=60);
-				overflow: auto;
+				overflow: none;
+				overflow-x: none;
+				overflow-y: auto;
 				position:absolute;
 				top: 0px;
 				right: 0px;
@@ -457,8 +459,8 @@
 				white-space: -moz-pre-wrap;
 				white-space: -pre-wrap;
 				white-space: -o-pre-wrap;
-				white-space: pre-wrap;
 				word-wrap: break-word;
+				white-space: normal;
 			}
 			
 			span._supplicant, span._source {
