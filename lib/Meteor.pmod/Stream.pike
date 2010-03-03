@@ -19,7 +19,8 @@ String.Buffer out_buffer = String.Buffer();
 function close_cb, error_cb;
 // we dont want to close before we get the first write
 int autoclose = 0;
-int autoclose_after_send = 0; 
+int autoclose_after_send = 0;
+int autoclose_after_write = 0;
 int will_send = 0;
 Stdio.File connection;
 
@@ -54,11 +55,10 @@ void create(Stdio.File connection, function cb, function error, int|void autoclo
 	// we dont want to close right after the headers have been sent
 	if (autoclose) {
 	    this_program::autoclose_after_send = autoclose;
-	} else {
-	    will_send = 1;
-	    connection->set_write_callback(_write);
-	}
+	} 
 
+	will_send = 1;
+	connection->set_write_callback(_write);
 	connection->set_close_callback(_close);
 }
 
@@ -90,13 +90,17 @@ void write(string data) {
 		connection->set_write_callback(_write);
 	}
 
+	// we will close this connection after first proper data
+	// has been written.
+	if (autoclose_after_send) autoclose_after_write = 1;
+
 	RETURN;	
 }
 
 void _write() {
 	LOCK;
 
-	if (autoclose_after_send && !autoclose) {
+	if (autoclose_after_write && !autoclose) {
 	    autoclose = 1;
 	    out_buffer->add("0\r\n\r\n");
 	}
@@ -114,10 +118,11 @@ void _write() {
 		out_buffer->add(t[bytes..]);
 	} else {
 
+		connection->set_write_callback(0);
+
 		if (autoclose) {
+			connection->set_close_callback(0);
 			CLOSE("AutoClose");
-		} else {
-			connection->set_write_callback(0);
 		}
 
 		will_send = 0;
