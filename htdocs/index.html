@@ -30,12 +30,15 @@
 			    	if (!bip) return;
 			    	
 			        var icon = document.getElementById('soundIcon');
+				var link = document.getElementById('soundLink');
 
 				if (bip.on) {
 				    UTIL.replaceClass(icon, "on", "off");
+				    link.title = "Toggle sound on.";
 				    bip.on = false;
 				} else {
 				    UTIL.replaceClass(icon, "off", "on");
+				    link.title = "Toggle sound off.";
 				    bip.on = true;
 				}
 			};
@@ -65,6 +68,7 @@
 					bip = new UTIL.Audio({ wav : "sounds/bip.wav", ogg : "sounds/bip.ogg", mp3 : "sounds/bip.mp3", autoplay : false, autobuffer : true, hidden : true });
 					if (bip.getDomNode) document.getElementById("bip").appendChild(bip.getDomNode());
 					UTIL.replaceClass(document.getElementById("soundIcon"), "no", "on");
+					document.getElementById("soundLink").title = "Toggle sound off.";
 					bip.on = true;
 				    } catch (e) {
 					meteor.debug("sound wont work: %o", e);
@@ -691,7 +695,7 @@
 <div id="bip" style="width:0px; height:0px;"></div>
 <div id="container" style="display:none;">
         <div id="leftPane">
-			<a href="javascript:void(null)" onclick="soundManager()" title="toggle sound" id="soundLink"><div id="soundIcon" class="no"></div></a>
+			<a href="javascript:void(null)" onclick="soundManager()" title="You browser does not support sound." id="soundLink"><div id="soundIcon" class="no"></div></a>
 			<div id="rooms">
 			        <div class="roomHeader">Available Rooms</div>
 				<emit source="chat_rooms">
