@@ -24,7 +24,7 @@ function elink(name,fun,title) {
 	if (title) a.title = title;
 	return a;
 }
-var AccChat = yakity.Chat.extend({
+var AccChat = Yakity.Chat.extend({
 	constructor : function (client, templates, target_id, input) {
 		this.target_id = target_id;
 		this.input = input;
@@ -145,18 +145,18 @@ var AccChat = yakity.Chat.extend({
 		var members = document.createElement("div");
 
 		if (uniform == this.client.uniform) {
-			win = new yakity.TemplatedWindow(this.templates, uniform);
+			win = new Yakity.TemplatedWindow(this.templates, uniform);
 			toggler.appendChild(document.createTextNode("Welcome to YakityChat"));
 			UTIL.addClass(header, "status");
 			UTIL.addClass(container, "status");
 		} else if (uniform.is_person()) {
-			win = new yakity.TemplatedWindow(this.templates, uniform);
+			win = new Yakity.TemplatedWindow(this.templates, uniform);
 			UTIL.addClass(win.getMessagesNode(), "privatechat");
 			UTIL.addClass(header, "private");
 			UTIL.addClass(container, "private");
 			toggler.appendChild(profiles.getDisplayNode(uniform));
 		} else {
-			win = new yakity.RoomWindow(this.templates, uniform);
+			win = new Yakity.RoomWindow(this.templates, uniform);
 			UTIL.addClass(header, "public");
 			UTIL.addClass(container, "public");
 			win.register_event("onenter", this, function() {
