@@ -27,18 +27,17 @@
 			var METEORURL = "<meteorurl/>";
 
 			function soundManager() {
-			        var currentIcon = document.getElementById('soundCheck').value;
+			    	if (!bip) return;
+			    	
+			        var icon = document.getElementById('soundIcon');
 
-			        if (currentIcon == "on")
-			        {
-			        document.getElementById('soundIcon').src = 'images/sound-off.png';
-			        document.getElementById('soundCheck').value = 'off';
-			        }
-			        else
-			        {
-			        document.getElementById('soundIcon').src = 'images/sound-on.png';
-                                document.getElementById('soundCheck').value = 'on';
-			        }
+				if (bip.on) {
+				    UTIL.replaceClass(icon, "on", "off");
+				    bip.on = false;
+				} else {
+				    UTIL.replaceClass(icon, "off", "on");
+				    bip.on = true;
+				}
 			};
 			
 
@@ -64,7 +63,9 @@
 				    //this may fail if plugin support is missing
 				    try { 
 					bip = new UTIL.Audio({ wav : "sounds/bip.wav", ogg : "sounds/bip.ogg", mp3 : "sounds/bip.mp3", autoplay : false, autobuffer : true, hidden : true });
-					document.getElementById("bip").appendChild(bip.getDomNode());
+					if (bip.getDomNode) document.getElementById("bip").appendChild(bip.getDomNode());
+					UTIL.replaceClass(document.getElementById("soundIcon"), "no", "on");
+					bip.on = true;
 				    } catch (e) {
 					meteor.debug("sound wont work: %o", e);
 				    };
@@ -167,13 +168,11 @@
 								UTIL.replaceClass(this.header, "offline", "idle");
 							}
 						});
-						win.register_event("new_message", this, function(win, p, node) {
-                                                        var currentIcon = document.getElementById('soundCheck').value;
-
+						if (bip) win.register_event("new_message", this, function(win, p, node) {
 							if (p.source() == this.client.uniform 
 							    || p.v("_source_relay") == this.client.uniform 
 							    || ((p.data.isMethod("_notice_enter") || p.data.isMethod("_notice_leave")) && p.data.v("_supplicant") == this.client.uniform)
-							    || currentIcon != "on") {
+							    || !bip.on) {
 								return;
 							}
 
@@ -560,14 +559,6 @@
 				color: #528CE0;
 			}
 			
-			div.soundIcon {
-			        width: 16px;
-			        height: 16px;
-			        position: absolute;
-			        right: 0px;
-			        top: 10px;
-			}
-			
 			div.userList
 			{
 				height: 150px;
@@ -662,7 +653,24 @@
 			        margin-right: 10px;
 			}
 			
-			.soundLink {
+			div#soundIcon {
+			        width: 16px;
+			        height: 16px;
+			        position: absolute;
+			        right: 0px;
+			        top: 10px;
+			}
+			div#soundIcon[class~="on"] {
+				background-image: url(images/sound-on.png);
+			}
+			div#soundIcon[class~="off"] {
+				background-image: url(images/sound-off.png);
+			}
+			div#soundIcon[class~="no"] {
+				background-image: url(images/sound-no.png);
+			}
+			
+			a#soundLink {
 			        outline-style:none;
                                 outline-width:0px;
 			}
@@ -677,12 +685,7 @@
 <div id="bip" style="width:0px; height:0px;"></div>
 <div id="container" style="display:none;">
         <div id="leftPane">
-			<div class="soundIcon">
-                                <input id="soundCheck" type="hidden" name="soundcheck" value="on">
-				<a href="javascript:void(null)" onclick="soundManager()" title="toggle sound" class="soundLink">
-				    <img src="images/sound-on.png" border="0" id="soundIcon">
-				</a>
-			</div>			
+			<a href="javascript:void(null)" onclick="soundManager()" title="toggle sound" id="soundLink"><div id="soundIcon" class="no"></div></a>
 			<div id="rooms">
 			        <div class="roomHeader">Available Rooms</div>
 				<emit source="chat_rooms">
