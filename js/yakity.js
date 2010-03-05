@@ -41,7 +41,7 @@ psyc = {
 	STOP : 1,
 	GOON : 0	
 };
-yakity = {};
+Yakity = {};
 /**
  * PSYC message class.
  * @constructor
@@ -52,7 +52,7 @@ yakity = {};
  * @property {mmp#Vars} vars variables
  * @property {String} data Payload
  */
-yakity.Message = mmp.Packet.extend({
+Yakity.Message = mmp.Packet.extend({
 	constructor : function(method, data, vars) {
 		this.method = method;
 		this.base(data, vars);
@@ -60,7 +60,7 @@ yakity.Message = mmp.Packet.extend({
 		this.vars.remove("_timestamp");
 	},
 	toString : function() {
-		var ret = "yakity.Message("+this.method+", ([ ";
+		var ret = "Yakity.Message("+this.method+", ([ ";
 		ret += this.vars.toString();
 		ret += "]))";
 		return ret;
@@ -69,7 +69,7 @@ yakity.Message = mmp.Packet.extend({
 		return this.method.indexOf(method) == 0;
 	}
 });
-yakity.default_polymorphic = function() {
+Yakity.default_polymorphic = function() {
 	var pol = new serialization.Polymorphic();
 	var method = new serialization.Method();
 	// integer and string come first because they should not get overwritten by 
@@ -78,8 +78,8 @@ yakity.default_polymorphic = function() {
 	pol.register_type("_integer", "number", new serialization.Integer());
 	pol.register_type("_float", "float", new serialization.Float());
 	pol.register_type("_method", "string", method);
-	//pol.register_type("_message", yakity.Message, new serialization.Message(method, pol, pol));
-	pol.register_type("_mapping", yakity.Mapping, new serialization.Mapping(pol, pol));
+	//pol.register_type("_message", Yakity.Message, new serialization.Message(method, pol, pol));
+	pol.register_type("_mapping", Yakity.Mapping, new serialization.Mapping(pol, pol));
 	pol.register_type("_list", Array, new serialization.Array(pol));
 	pol.register_type("_time", mmp.Date, new serialization.Date());
 	pol.register_type("_uniform", mmp.Uniform, new serialization.Uniform());
@@ -90,7 +90,7 @@ yakity.default_polymorphic = function() {
  * @constructor
  * @params {String} url Meteor endpoint urls.
  */
-yakity.Client = function(url, name) {
+Yakity.Client = function(url, name) {
 	this.callbacks = new Mapping();
 	var self = this;
 	var errorcb = function(error) {
@@ -103,7 +103,7 @@ yakity.Client = function(url, name) {
 	this.connection = new meteor.Connection(url, { nick : name }, UTIL.make_method(this, this.incoming), errorcb);
 	this.connection.init();
 	var method = new serialization.Method();
-	var poly = yakity.default_polymorphic();
+	var poly = Yakity.default_polymorphic();
 	this.msig = new serialization.Message(method, new serialization.OneTypedVars(poly), poly);
 	this.psig = new serialization.Packet(this.msig);
 	this.parser = new serialization.AtomParser();
@@ -111,7 +111,7 @@ yakity.Client = function(url, name) {
 	this.name = name;
 };
 // params = ( method : "_message", source : Uniform }
-yakity.Client.prototype = {
+Yakity.Client.prototype = {
     	abort : function() {
 		if (this.connection) {
 		    this.connection.close();
@@ -122,7 +122,7 @@ yakity.Client.prototype = {
 		}
 	},
 	toString : function() {
-		return "yakity.Client("+this.connection.url+")";
+		return "Yakity.Client("+this.connection.url+")";
 	},
 	/**
 	 * Register for certain incoming messages. This can be used to implement chat tabs or handlers for certain message types.
@@ -155,12 +155,12 @@ yakity.Client.prototype = {
 		delete this.connection;
 	},
  	sendmsg : function(target, method, data, vars) {
-		var m = new yakity.Message(method, data, vars);
+		var m = new Yakity.Message(method, data, vars);
 		var p = new mmp.Packet(m, { _target : target, _source : this.uniform });
 		this.send(p);
 	},
 	/**
-	 * Send a packet. This should be of type yakity.Message.
+	 * Send a packet. This should be of type Yakity.Message.
 	 * @params {Object} packet Message to send.
 	 */
 	send : function(p) {
@@ -227,7 +227,7 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 				if (meteor.debug) meteor.debug("failed to decode: "+data[i]+"\nERROR: "+error);
 				continue;
 			}
-			if (p instanceof mmp.Packet && (m = p.data) instanceof yakity.Message) {
+			if (p instanceof mmp.Packet && (m = p.data) instanceof Yakity.Message) {
 				method = m.method;
 				if (meteor.debug) meteor.debug("incoming: %o", p);
 				count = p.v("_id");	
@@ -301,7 +301,7 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 		}
 	}
 };
-yakity.linky_text = function(text) {
+Yakity.linky_text = function(text) {
     //var reg = /(https?|ftp|imap|irc|ldap|nfs|nntp|sips?|telnet|xmpp):\/\/(\w+(:\w+)?@)?[\w\.\-]+(:\d+)?(\/[\w\$\-_.\+!\*'\(\),]+|\/?)?/g;
     var reg = /(https?|ftp|imap|irc|ldap|nfs|nntp|sips?|telnet|xmpp):\/\/([-;:&=\+\$,\w]+@{1})?([-A-Za-z0-9\.]+)+:?(\d+)?((\/[-\+~%\/\.\w]+)?\??([-\+=&;%@\.\w]+)?#?([\w]+)?)?/g;
     var div = document.createElement("div");
@@ -327,7 +327,7 @@ yakity.linky_text = function(text) {
 
     return div;
 };
-yakity.replace_vars = function(p, template, templates) {
+Yakity.replace_vars = function(p, template, templates) {
 	var m = p.data;
 
 	var reg = /\[[\w-]+\]/g;
@@ -343,7 +343,7 @@ yakity.replace_vars = function(p, template, templates) {
 		var t;
 
 		if (s == "data") {
-			t = yakity.linky_text(m.data);
+			t = Yakity.linky_text(m.data);
 		} else if (s == "method") {
 			t = m.method;
 		} else if (p.V(s) || m.V(s)) {
@@ -374,7 +374,7 @@ yakity.replace_vars = function(p, template, templates) {
 
 	return a.join("");
 };
-yakity.funky_text = function(p, templates) {
+Yakity.funky_text = function(p, templates) {
 	var m = p.data;
 	var template = templates.get(m.method);
 
@@ -405,7 +405,7 @@ yakity.funky_text = function(p, templates) {
 		var t;
 
 		if (s == "data") {
-			t = yakity.linky_text(m.data);
+			t = Yakity.linky_text(m.data);
 		} else if (s == "method") {
 			t = m.method;
 		} else if (p.V(s) || m.V(s)) {
@@ -454,7 +454,7 @@ yakity.funky_text = function(p, templates) {
 
 	return div;
 };
-yakity.Base = Base.extend({
+Yakity.Base = Base.extend({
 	constructor : function() {
 		this.plugins = [];
 		this.events = new HigherDMapping();
@@ -521,7 +521,7 @@ yakity.Base = Base.extend({
 		}
 	}
 });
-yakity.ChatWindow = yakity.Base.extend({
+Yakity.ChatWindow = Yakity.Base.extend({
 	constructor : function(id) {
 		this.base();
 		this.mlist = new Array();
@@ -559,7 +559,7 @@ yakity.ChatWindow = yakity.Base.extend({
 		return this.messages;
 	}
 });
-yakity.TemplatedWindow = yakity.ChatWindow.extend({
+Yakity.TemplatedWindow = Yakity.ChatWindow.extend({
 	constructor : function(templates, id) {
 		this.base(id);
 		if (templates) this.setTemplates(templates);
@@ -568,10 +568,10 @@ yakity.TemplatedWindow = yakity.ChatWindow.extend({
 		this.templates = t;
 	},
 	renderMessage : function(p, m) {
-		return yakity.funky_text(p, this.templates);
+		return Yakity.funky_text(p, this.templates);
 	}
 });
-yakity.RoomWindow = yakity.TemplatedWindow.extend({
+Yakity.RoomWindow = Yakity.TemplatedWindow.extend({
 	constructor : function(templates, id) {
 		this.base(templates, id);
 		this.members = new TypedTable();
@@ -647,11 +647,11 @@ yakity.RoomWindow = yakity.TemplatedWindow.extend({
 });
 /**
  * Creates a new tabbed chat application.
- * @param {Object} client yakity.Client object to use.
+ * @param {Object} client Yakity.Client object to use.
  * @param {Object} div DOM div object to put the Chat into.
  * @constructor
  */
-yakity.Chat = Base.extend({
+Yakity.Chat = Base.extend({
 	constructor : function(client) {
 		this.windows = new Mapping();
 		this.active = null;
@@ -702,7 +702,7 @@ yakity.Chat = Base.extend({
 		// close window after _notice_leave is there or after double click on close button
 	}
 });
-yakity.ProfileData = yakity.Base.extend({
+Yakity.ProfileData = Yakity.Base.extend({
 	constructor : function(client) {
 		this.base();
 		this.client = client;
@@ -797,7 +797,7 @@ yakity.ProfileData = yakity.Base.extend({
 		return psyc.STOP;
 	}
 });
-yakity.UserList = yakity.Base.extend({
+Yakity.UserList = Yakity.Base.extend({
 	constructor : function(client, profiles) {
 		this.base();
 		this.client = client;
@@ -842,8 +842,8 @@ yakity.UserList = yakity.Base.extend({
 		return psyc.STOP;
 	}
 });
-yakity.Presence = {};
-yakity.Presence.Typing = yakity.Base.extend({
+Yakity.Presence = {};
+Yakity.Presence.Typing = Yakity.Base.extend({
 	constructor : function(client, chat) {
 		this.base();
 		this.client = client;
@@ -886,7 +886,7 @@ yakity.Presence.Typing = yakity.Base.extend({
 		return true;
 	}
 });
-yakity.InputHistory = Base.extend({
+Yakity.InputHistory = Base.extend({
 	constructor : function() {
 		this.history = [];
 		this.pos = -1;
@@ -915,10 +915,10 @@ yakity.InputHistory = Base.extend({
 		} else return undefined;
 	}
 });
-yakity.HtmlTemplate = function(html) {
+Yakity.HtmlTemplate = function(html) {
 	return (function(packet, templates) {
 		var div = document.createElement("div");
-		div.innerHTML = yakity.replace_vars(packet, html, templates);
+		div.innerHTML = Yakity.replace_vars(packet, html, templates);
 		return div;
 	});
 };
