@@ -299,7 +299,7 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 		return;
 	    } else {
 			werror("%O not found.\n", fname);
-		answer(r, 404, "File does not exist.");
+		answer(r, 404, Stdio.read_file((BASE_PATH) + "/404.inc");
 		return;
 	    }
 	}
