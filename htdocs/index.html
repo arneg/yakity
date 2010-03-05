@@ -277,8 +277,14 @@
 				position: relative;
 			}
 			
+			div.membersList {
+				height: 150px;
+				overflow: none;
+				overflow-x: none;
+				overflow-y: auto;
+			}
                         
-			div.membersList
+			div.membersContainer
 			{
 			
 			        background-color: #eee; 
@@ -287,18 +293,42 @@
 				display: block; 
 				border-left: 1px solid rgb(102, 102, 102); 
 				border-bottom: 1px solid rgb(102, 102, 102); 
+				border-right: 1px solid rgb(102, 102, 102); 
 				-moz-border-radius-bottomleft: 10px; 			
-				height: 150px;
 				width: 50%;
-				overflow: none;
-				overflow-x: none;
-				overflow-y: auto;
 				position:absolute;
 				top: 0px;
 				right: 15px;
-
+				min-height: 18px;
 			}
-			
+
+			a.membersToggler {
+				position: absolute;
+				bottom: 2px;
+				left: 3px;
+				width: 100%;
+			}
+
+			div.membersContainer a.focus div.Button {
+			    	background-image: url(images/arrowup.png);
+				background-position: left bottom;
+				background-repeat: no-repeat;
+			}
+
+			div.membersContainer a.blur div.Button{
+			    	background-image: url(images/arrowdown.png);
+				background-position: left bottom;
+				background-repeat: no-repeat;
+			}
+				
+			div.Button {
+				display: block;
+				width: 13px;
+				height: 14px;
+				line-height: 14px;
+			}
+
+
 			div.membersList table {
 				width: 100%;
 			}
@@ -317,7 +347,7 @@
 				color: #528CE0;
 			}
 			
-			a.toggleInfo {
+			a.toggleInfo, div.infoIcon {
 				width: 25px;
 				height: 24px;
 				line-height: 24px;
@@ -331,37 +361,37 @@
 				height: 24px;
 			}
 
-			div.public a.toggleInfo {
+			div.public div.infoIcon {
 				background: url(images/yakgroup.png);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			div.unread[class~="public"] a.toggleInfo {
+			div.unread[class~="public"] div.infoIcon {
 				background: url(images/yakgroup-waiting.png);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			div.left[class~="public"] a.toggleInfo {
+			div.left[class~="public"] div.infoIcon {
 				background: url(images/yakgroup-left.png);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			div.private a.toggleInfo {
+			div.private div.infoIcon {
 				background: url(images/member-icon.png);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			div.unread[class~="private"] a.toggleInfo {
+			div.unread[class~="private"] div.infoIcon {
 				background: url(images/member-icon-waiting.png);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			div.typing[class~="private"] a.toggleInfo {
+			div.typing[class~="private"] div.infoIcon {
 				background: url(images/member-icon-typing.gif);
 				background-position: center center;
 				background-repeat: no-repeat;
 			}
-			div.offline[class~="private"] a.toggleInfo {
+			div.offline[class~="private"] div.infoIcon {
 				background: url(images/member-icon-left.gif);
 				background-position: center center;
 				background-repeat: no-repeat;
@@ -680,7 +710,7 @@
 				background-image: url(images/sound-no.png);
 			}
 			
-			a#soundLink {
+			a {
 			        outline-style:none;
                                 outline-width:0px;
 			}
