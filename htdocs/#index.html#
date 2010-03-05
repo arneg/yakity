@@ -1,0 +1,703 @@
+q<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+    	<title>YakityChat</title>    
+    
+        <script src="js/Base.js" type="text/javascript"></script>
+        <script src="ppp-js/utf8.js" type="text/javascript"></script>
+        <script src="ppp-js/util.js" type="text/javascript"></script>
+        <script src="ppp-js/mapping.js" type="text/javascript"></script>
+        <script src="ppp-js/meteor.js" type="text/javascript"></script>
+        <script src="ppp-js/table.js" type="text/javascript"></script>
+        <script src="ppp-js/serialization.js" type="text/javascript"></script>
+        <script src="ppp-js/mmp.js" type="text/javascript"></script>
+        <script src="js/yakity.js" type="text/javascript"></script>
+        <script src="js/accChat.js" type="text/javascript"></script>
+        <script src="mootools-1.2.3-core-nc.js" type="text/javascript"></script>
+        <script src="mootools-1-1.2.3.1-more.js" type="text/javascript"></script>
+
+		<script type="text/javascript">
+			var client; 
+			var error;
+			var chat;
+			var foo;
+			var profiles;
+			var userlist;
+			var METEORURL = "<meteorurl/>";
+
+			function onconnect(success, uh) {
+				client.onconnect = null;
+				if (!success) {
+					var error = document.getElementById("connectError");
+					var err_node = document.createTextNode(uh);
+					if (error.firstChild) {
+						error.replaceChild(err_node, error.firstChild);
+					} else {
+						error.appendChild(err_node);
+					}
+					client = null;
+					return;
+				} else {
+					document.getElementById("connect").style.display = "none";
+					document.getElementById("container").style.display = "block";
+				}
+
+				var ulink = function (uniform) {
+					var div = document.createElement("a");
+					div.appendChild(profiles.getDisplayNode(uniform));
+					div.onclick = function() {
+						var win = chat.getWindow(uniform);
+						chat.active = win;
+						chat.accordion.display(win.pos);
+					};
+
+					return div;
+				};
+
+				var timestamp = (function(type, key, value, p) {
+					var div = document.createElement("div");
+					div.appendChild(document.createTextNode(value.render("_hours") + ":" + value.render("_minutes") + ":" + value.render("_seconds")));
+					return div;
+				});
+				var userlink = (function(type, key, value, p) {
+					if (type) return value.render(type);
+					var span = document.createElement("span");
+					span.appendChild(profiles.getDisplayNode(value));
+					return span;
+				});
+				var templates = new mmp.Vars({
+					_status_circuit :  yakity.HtmlTemplate("<h1>Instructions</h1><div class='introDiv'><img src='images/yakgroup.png' align='left'> Room chat icon, click to toggle the room members list.</div><div class='introDiv'><img src='images/yakgroup-waiting.png' align='left'> Group chat, unread message waiting.</div><div class='introDiv'><img src='images/member-icon.png' align='left'> Private chat icon.</div><div class='introDiv'><img src='images/member-icon-waiting.png' align='left'> Private chat, unread message.</div><div class='introDiv'><img src='images/sound-on.png' align='left'> Message notification, click to toggle sound on/off.</div>"),
+					_notice_enter : "[_supplicant] enters [_source].",
+					_notice_leave : "[_supplicant] leaves [_source].",
+					_message_public : "[_timestamp] [_source_relay] [data]",
+					_message_private : "[_timestamp] [_source_relay] [data]",
+					//_message_private : yakity.HtmlTemplate("<strong>[_timestamp]</strong> [_source_relay] [data]"),
+					_echo_message_public : "[_timestamp] [_source_relay] [data]",
+					_echo_message_private : "[_timestamp] [_source_relay] [data]",
+					_source : userlink,
+					_supplicant : userlink,
+					_timestamp : timestamp
+				});
+				profiles = new yakity.ProfileData(client);
+		
+				var lprofiles = new yakity.ProfileData(client).extend({
+					getDisplayNode : function(uniform) {
+						return ulink(uniform);
+					}
+				});
+				
+				
+				userlist = new yakity.UserList(client, lprofiles);
+				
+				var userdiv = document.createElement("div");
+                                UTIL.addClass(userdiv, "userList");
+                                userdiv.appendChild(userlist.table.table);
+				document.getElementById("leftPane").appendChild(userdiv);
+
+				var CustomChat = AccChat.extend({
+					createWindow : function(uniform) {
+						var win = this.base(uniform);
+						if (uniform.is_room()) {
+							win.renderMember = function(uniform) {
+								return ulink(uniform);
+							}
+						}
+						win.extend({
+							renderMessage : function(p) {
+								var div = this.base(p);
+
+								if (div && p.v("_source_relay") == client.uniform) {
+									UTIL.addClass(div, "self");	
+								}
+								return div;
+							},
+							_notice_presence_typing : function(p) {
+								UTIL.replaceClass(this.header, "idle", "typing");
+								UTIL.replaceClass(this.container, "idle", "typing");
+								return psyc.STOP;
+							},
+							_notice_presence_idle : function(p) {
+								UTIL.replaceClass(this.container, "typing", "idle");
+								UTIL.replaceClass(this.header, "typing", "idle");
+								return psyc.STOP;
+							},
+							_notice_logout : function(p) {
+								UTIL.replaceClass(this.container, "idle", "offline");
+								UTIL.replaceClass(this.header, "idle", "offline");
+								UTIL.replaceClass(this.container, "typing", "offline");
+								UTIL.replaceClass(this.header, "typing", "offline");
+							},
+							_notice_login : function(p) {
+								UTIL.replaceClass(this.container, "offline", "idle");
+								UTIL.replaceClass(this.header, "offline", "idle");
+							}
+						});
+						win.register_event("new_message", this, function(win, p, node) {
+                                                        var currentIcon = document.getElementById('soundCheck').value;
+							if (p.source() != this.client.uniform 
+								&& p.v("_source_relay") != this.client.uniform 
+								&& currentIcon == "on") {
+							 	play_bip();
+							}
+						});
+
+						return win;
+					}
+				});
+				chat = new CustomChat(client, templates, "YakityChat", document.chat_input.text);
+				chat.idle = new yakity.Presence.Typing(client, chat);
+			}
+
+			function play_bip() {
+				var div
+					if (window.opera || navigator.appVersion.indexOf("Mac") != -1) {
+				    if (navigator.appVersion.indexOf("Linux") != -1) {
+					document.getElementById('bip').innerHTML = "<embed src=\"sounds/bip.wav\" type=\"application/x-mplayer2\" autostart=true height=0 width=0 hidden=true>";
+				    } else {
+					document.getElementById('bip').innerHTML = "<embed src=\"sounds/bip.wav\" type=\"audio/wav\" autostart=true height=0 width=0 hidden=true cache=true>";
+				    }
+				} else if (document.all && window.XMLHttpRequest) { // IE
+				    document.all.sound.src = "sounds/bip.wav";
+				} else {
+				    if (!document.embeds["bip"]) {
+					//document.getElementById('bip').innerHTML = "<embed name=\"bip\" src=\"sounds/bip.wav\" autostart=false height=0 width=0 controller=false enablejavascript=true hidden>";
+					//document.getElementById('bip').innerHTML = "<embed src=\"sounds/bip.wav\" name=\"bip\" autostart=false width=0 height=0 enablejavascript=\"true\">";
+
+				    }
+
+				    if (document.embeds["bip"].Play) document.embeds["bip"].Play();
+				    else if (document.embeds["bip"].DoPlay) document.embeds["bip"].DoPlay();
+				}
+				//setTimeout(function() { document.getElementById('chatText').focus(); }, 10);
+			}
+
+			function init() {
+				if (client) return false;
+
+				var name = document.login.name.value;
+				client = new yakity.Client(METEORURL, name);
+				client.onconnect = onconnect;
+
+				window.onunload = function() {
+					if (client) {
+						client.logout();
+						client = null;
+					}
+				};
+
+				return false;
+			};
+
+			function new_input() {
+				var str = document.chat_input.text.value;
+				if (str.length == 0) return false;
+
+				try {
+					if (this.chat.active) {
+						var target = this.chat.active.name;
+						this.client.sendmsg(target, target.is_person() ? "_message_private" : "_message_public", str);
+						document.chat_input.text.value = "";
+					} else {
+						//error_fun("You cannot chat to the DEBUG!");
+					}
+				} catch (err) {
+					meteor.debug("send failed: ".err.toString());
+				}
+				return false;
+			};
+			
+			function soundManager() {
+			
+			        var currentIcon = document.getElementById('soundCheck').value;
+
+
+			        if (currentIcon == "on")
+			        {
+			        document.getElementById('soundIcon').src = 'images/sound-off.png';
+			        document.getElementById('soundCheck').value = 'off';
+			        }
+			        else
+			        {
+			        document.getElementById('soundIcon').src = 'images/sound-on.png';
+                                document.getElementById('soundCheck').value = 'on';
+			        }
+			}
+			
+			
+		</script>
+		<style type="text/css">
+			body {
+				font-family: 'Andale Mono', FreeSans, sans-serif;
+				margin: 5px 5px 5px 5px;
+				background-color: #007fc2;
+			}
+                        
+
+			div.header a {
+				text-align: left;
+			}
+
+			div.error {
+				font-family: monospace;
+				font-size: small;
+				height: 350px;
+				color: black;
+				overflow:auto;
+			}
+
+			div._notice_enter span._supplicant, div._notice_leave span._supplicant {
+				float: left;
+				margin-right: 3px;
+			}
+                        
+			div.status div.messages, div.public div.messages, div.private div.messages {
+				height: 250px;
+				overflow: auto;
+			}
+
+			div.chatwindow {
+				background-color: #dddddd;
+				border-right: 1px #ccc solid;
+				border-left: 1px #ccc solid;
+				position: relative;
+			}
+			
+                        
+			div.membersList
+			{
+				height: 150px;
+				width: 50%;
+				background-color: #fdffc4;
+				opacity:0.6;
+				filter:alpha(opacity=60);
+				overflow: auto;
+				position:absolute;
+				top: 0px;
+				right: 0px;
+			}
+			
+			div.membersList table {
+				width: 100%;
+			}
+			
+			div.membersList table th {
+				font-size: 10pt;
+			}
+			
+			div.membersList table td {
+				font-size: 8pt;
+				text-align: right;
+				padding-right: 15px;
+			}
+			
+			div.membersList table tbody div {
+				cursor: pointer;
+				cursor: hand;
+				color: #528CE0;
+			}
+			
+			a.toggleInfo {
+				width: 25px;
+				height: 24px;
+				line-height: 24px;
+				float:left;
+			}
+
+			a.toggler {
+				font-size: 9pt;
+				font-family: 'Andale-Mono', sans-serif;
+				display: block;
+				height: 24px;
+			}
+
+			div.public a.toggleInfo {
+				background: url(images/yakgroup.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+			div.unread[class~="public"] a.toggleInfo {
+				background: url(images/yakgroup-waiting.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+			div.left[class~="public"] a.toggleInfo {
+				background: url(images/yakgroup-left.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+			div.private a.toggleInfo {
+				background: url(images/member-icon.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+			div.unread[class~="private"] a.toggleInfo {
+				background: url(images/member-icon-waiting.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+			div.typing[class~="private"] a.toggleInfo {
+				background: url(images/member-icon-typing.gif);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+			div.offline[class~="private"] a.toggleInfo {
+				background: url(images/member-icon-left.gif);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+
+			div.messages {
+				background-color: #dddddd;
+			}
+			
+			div.typing div.messages {
+				background-color: #eedddd;
+			}
+
+			div.offline div.messages, div.left div.messages {
+			    background-color: #bbbbbb;
+			}
+
+			div.header {
+				cursor: pointer;
+				height: 25px;
+				line-height: 25px;
+				border-right: 1px #ccc solid;
+				border-left: 1px #ccc solid;
+				border-top: 1px #FFF solid;
+				border-bottom: 1px #999 solid;
+				font-family: 'Andale Mono', FreeSans, sans-serif;
+				font-size: 9pt;
+				background: url(images/yakitytab.gif);
+				color: #528CE0;
+				margin: 0;
+				padding: 3px 5px 1px;
+			}
+
+			div.closeButton, div.leaveButton, div.enterButton {
+				display: block;
+				width: 20px;
+				height: 24px;
+				line-height: 24px;
+				float: right;
+			}
+                        
+			div.closeButton {
+				background: url(images/cross-icon-red.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+                        
+			div.joined div.closeButton {
+				display: none;
+			}
+                        
+			div.leaveButton {
+				background: url(images/cross-icon-grey.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+                        
+			div.left div.leaveButton {
+				display: none;
+			}
+                        
+			div.enterButton {
+				background: url(images/yak-icon.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+			}
+                        
+			div.joined div.enterButton {
+				display: none;
+			}
+                        
+
+			span._user_realname {
+				color: #00f;
+				font-variant: small-caps;
+			}
+
+			
+			div._ {
+				font-family: 'Andale Mono', FreeSans, sans-serif;
+				color: #000;
+				font-size: 9pt;
+				line-height: 120%;
+			}
+
+			div._timestamp {
+				float: right;
+				font-size: 8pt;
+				color: #999;
+				margin-right: 5px;
+			}
+
+			div._echo_message_private {
+				padding: 5px;
+			}
+                        
+			div._message, div._notice {
+				text-decoration: none;
+				color: #999; 
+				padding: 5px;
+			}
+			
+			div._message .data {
+				color: #000;
+				white-space: -moz-pre-wrap;
+				white-space: -pre-wrap;
+				white-space: -o-pre-wrap;
+				white-space: pre-wrap;
+				word-wrap: break-word;
+			}
+			
+			div._supplicant, div._source {
+				color: #528CE0;
+				font-weight: bold;
+				text-decoration: none;
+				cursor: pointer;
+				cursor: hand;
+			}
+			
+			div.self span._source_relay {
+				color: #000;
+				font-weight: bold;
+				text-decoration: none;
+			}
+			
+			
+			br.clearall {
+				clear:both;
+			}
+			
+			div#inputChats {
+			        position: relative;
+			}
+			
+			#inputChats input.chatText { 
+				position: absolute;
+				height: 26px; 
+				width: 89%; 
+				font-size: 14pt; 
+				left: 5px;
+			}
+			
+			#inputChats input.chatSubmit { 
+				position: absolute;
+				right: 5px;
+				margin-left: 5px;
+				padding-left: 5px;
+			}
+                        
+			#container {
+				min-width: 450px;
+				max-width: 780px;
+				position: relative;
+				margin: 0px auto 0px auto;
+				background: #fff;
+				border: 2px solid #555;
+				-moz-border-radius-topleft: 10px;
+				-webkit-border-top-left-radius: 10px;
+				border-top-left-radius: 10px;
+				white-space: nowrap;
+			}
+			
+			#leftPane {
+				background-image: url(images/yakitychat_icon.png);
+				background-repeat: no-repeat;
+				background-position: 5px 5px;				
+                                position: absolute;
+                                left: 5px;        
+                                width: 29%;
+                                padding-right: 10px;
+			}
+			
+			#rightPane
+			{
+                                background-color: #ddd; 
+				min-height: 250px;
+				margin: 0 0px 0 34%;
+			}
+			
+			#YakityChat {
+			        min-height: 250px;
+			}
+			
+			#rooms {
+				height: 65px;
+				width: 100%
+				overflow: auto;
+				padding-top: 55px;
+				padding-right: 5px;
+			}
+			
+			#rooms div.roomHeader {
+				text-align: center;
+				font-size: 10pt;
+				font-weight: bold;
+			}
+			
+			#rooms a {
+				font-size: 8pt;
+				cursor: pointer;
+				cursor: hand;
+				color: #528CE0;
+			}
+			
+			div.soundIcon {
+			        width: 16px;
+			        height: 16px;
+			        position: absolute;
+			        right: 0px;
+			        top: 10px;
+			}
+			
+			div.userList
+			{
+				height: 150px;
+				width: 100%;
+				overflow: auto;
+			}
+			
+			div.userList table
+			{
+				width: 100%;
+			}
+			
+			div.userList table thead th
+			{
+				font-size: 10pt;
+			}
+			
+			div.userList table tbody td
+			{
+				font-size: 8pt;
+				cursor: pointer;
+				cursor: hand;
+				color: #528CE0;
+			}
+			
+			#basePane {
+				height: 50px;
+				background: #efefef;
+				line-height: 50px;
+				padding: 20px;
+				clear:both;
+				-moz-border-radius-bottomright: 10px;
+				-webkit-border-bottom-right-radius: 10px;
+				border-bottom-right-radius: 10px;
+				-moz-border-radius-bottomleft: 10px;
+				-webkit-border-bottom-left-radius: 10px;
+				border-bottom-left-radius: 10px;
+                                
+			}
+			
+                        
+			#connect {
+				position: relative;
+				width: 400px;
+				padding: 10px;
+				margin-left: auto;
+				margin-right: auto;
+				margin-top: 100px;
+				background: #fff;
+				border: 2px solid #555;
+				-moz-border-radius: 10px;
+				-webkit-border-radius: 10px;
+				border-radius: 10px;
+			}
+			
+			
+			input.inputSubmit {
+				float:right; 
+				margin-top: 55px;
+			}
+			
+			#connect .textInput {
+				height: 26px; 
+				width: 200px; 
+				font-size: 16pt; 
+				margin-right: 10px;
+			}
+			
+			#connectRequest
+			{
+				height: 145px;
+				line-height: 145px;
+				padding-left: 135px;
+				background-image: url(images/yakitychat.png);
+				background-repeat: no-repeat;
+				background-position: left 0px;
+			}
+			
+			.terms {
+			        margin-top: 10px;
+				font-size: 6.5pt;
+				text-align: center;
+				font-family: 'Andale Mono', FreeSans, sans-serif;
+				color: white;
+			}
+			
+			.introDiv {
+			        padding: 10px;
+			}
+			
+			.introDiv img {
+			        margin-right: 10px;
+			}
+			
+			h1 {
+			        font-size: 14px;
+			        padding: 10px;
+			}
+		</style>
+</head>
+<body>
+<bgsound id="sound">
+<div id="bip" style="width:0px;height:0px;"> 
+<!--[if !IE]> <-->
+    <embed src="sounds/bip.wav" type="audio/wav" name=bip autostart=false width=0 height=0 enablejavascript=true cache=true>
+<!--> <![endif]-->
+</div>
+<div id="container" style="display:none;">
+        <div id="leftPane">
+			<div class="soundIcon">
+                                <input id="soundCheck" type="hidden" name="soundcheck" value="on">
+				<a href="javascript:void(null)" onclick="soundManager()" title="toggle sound">
+				    <img src="images/sound-on.png" border="0" id="soundIcon">
+				</a>
+			</div>			
+			<div id="rooms">
+			        <div class="roomHeader">Available Rooms</div>
+				<emit source="chat_rooms">
+				    <a onclick='return chat.enterRoom(mmp.get_uniform("&_.uniform;"));'>&_.name;</a><br>
+				</emit>
+			</div>
+        </div>
+        <div id="rightPane">
+			<div id="YakityChat"></div>
+        </div>
+        <div id="basePane">
+			<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.probable_type_event()" onMouseUp="chat.idle.probable_type_event();">
+                        <div id="inputChats">        
+                                <input type="image" src="images/yak.png" name="submit" tabindex="2" class="chatSubmit">
+				<input name=text value="" size="50" class="chatText" id="chatText" autocomplete="off">
+			</div>
+			</form>
+        </div>
+        <div class="basePane" style="float:right;"></div>
+        <div class="basePane" style="clear:right;"></div>
+</div>
+<div id="connect">
+       <div id="connectError"></div>
+       <div id="connectRequest">
+                <form name="login" onSubmit="return init()">
+                        <input type="image" src="images/yak.png" name="submit" tabindex="2" class="inputSubmit">
+                        <input name="name" value="Enter Nickname..." onfocus="this.value=''" size="25" max-length="45" tabindex="1" class="textInput"> 
+                </form>
+       </div> 
+</div>
+<div class="terms">YakityChat&trade; is a trademark owned by Webhaven<sup>&reg;</sup> International ApS, DK<br />
+YakityChat&trade; is open source software: <a href="http://yakitychat.com/license.html" target="_blank">License</a></div>
+</body>
