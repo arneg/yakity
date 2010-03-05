@@ -16,18 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 /**
- * @returns true if given value is an integer number.
- */
-intp = function(i) { return (typeof(i) == "number" && i%1 == 0); };
-/**
- * @returns true if given value is array.
- */
-arrayp = function(a) { return (typeof(a) == "object" && a instanceof Array); };
-
-stringp = function(s) { return typeof(s) == "string"; };
-functionp = function(f) { return (typeof(f) == "function" || f instanceof Function); };
-objectp = function(o) { return typeof(o) == "object"; }
-/**
  * Set this to a mapping of templates that should be used automatically when displaying messages inside Chat tabs. PSYC method inheritance is used when accessing the templates. Hence a template for "_message" will also be used for "_message_public" if there is no template for it. Therefore setting a template for "_" effectively sets a default template for all methods.
  * @type mmp#Vars
  * @name psyc.templates
@@ -239,7 +227,7 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 					last_id = m.v("_last_id");
 					this.uniform = source;
 
-					if (intp(last_id) && this.icount < last_id) {
+					if (UTIL.intp(last_id) && this.icount < last_id) {
 						this.sync(last_id);
 						this.icount = count;
 					}
@@ -256,7 +244,7 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 					}
 				}
 				
-				if (intp(count)) {
+				if (UTIL.intp(count)) {
 					if (this.icount+1 < count) {
 						// request all up to count-1
 						this.sync(count-1);
@@ -269,7 +257,7 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 				var none = 1;
 
 				for (var t = method; t; t = mmp.abbrev(t)) {
-					if (this.hasOwnProperty(t) && functionp(this[t])) {
+					if (this.hasOwnProperty(t) && UTIL.functionp(this[t])) {
 						this[t].call(this, m);
 					}
 					if (!this.callbacks.hasIndex(t)) continue;
@@ -318,7 +306,7 @@ Yakity.linky_text = function(text) {
 
     for (var i = 0; i < a.length; i++) {
 	    var t = a[i];
-	    if (stringp(t)) {
+	    if (UTIL.stringp(t)) {
 		    if (t.length > 0) div.appendChild(document.createTextNode(t));
 	    } else {
 		    div.appendChild(t);
@@ -350,10 +338,10 @@ Yakity.replace_vars = function(p, template, templates) {
 			var vtml = templates.get(s);
 			t = p.V(s) ? p.v(s) : m.v(s);
 
-			if (functionp(vtml)) {
+			if (UTIL.functionp(vtml)) {
 				t = vtml.call(window, type, s, t, m);
 			} else if (objectp(t)) {
-				if (functionp(t.render)) {
+				if (UTIL.functionp(t.render)) {
 					t = t.render(type);
 				} else {
 					t = t.toString();
@@ -382,7 +370,7 @@ Yakity.funky_text = function(p, templates) {
 
 	var reg = /\[[\w-]+\]/g;
 
-	if (functionp(template)) {
+	if (UTIL.functionp(template)) {
 		var node = template(p, templates);
 		node.className = mmp.abbreviations(m.method).join(" ");
 		return node;
@@ -412,10 +400,10 @@ Yakity.funky_text = function(p, templates) {
 			var vtml = templates.get(s);
 			t = p.V(s) ? p.v(s) : m.v(s);
 
-			if (functionp(vtml)) {
+			if (UTIL.functionp(vtml)) {
 				t = vtml.call(window, type, s, t, m);
 			} else if (objectp(t)) {
-				if (functionp(t.render)) {
+				if (UTIL.functionp(t.render)) {
 					t = t.render(type);
 				} else {
 					t = t.toString();
@@ -445,7 +433,7 @@ Yakity.funky_text = function(p, templates) {
 	//meteor.debug("inserting "+a.length+" nodes");
 	for (var i = 0; i < a.length; i++) {
 		var t = a[i];
-		if (stringp(t)) {
+		if (UTIL.stringp(t)) {
 			if (t.length > 0) div.appendChild(document.createTextNode(t));
 		} else {
 			div.appendChild(t);
@@ -469,7 +457,7 @@ Yakity.Base = Base.extend({
 		}
 
 		for (var t = method; t; t = mmp.abbrev(t)) {
-			if (functionp(this[t])) {
+			if (UTIL.functionp(this[t])) {
 				none = 0;
 				if (psyc.STOP == this[t].call(this, p, m)) {
 					return psyc.STOP;
