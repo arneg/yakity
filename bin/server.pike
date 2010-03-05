@@ -204,6 +204,10 @@ string ext2type(string ext) {
 	    return "image/vnd.microsoft.icon";
 	case "wav":
 	    return "audio/wav";
+	case "ogg":
+	    return "application/ogg";
+	case "mp3":
+	    return "application/mpeg";
 	case "png":
 	case "jpg":
 	case "jpeg":
@@ -298,8 +302,8 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 					  ]));
 		return;
 	    } else {
-			werror("%O not found.\n", fname);
-		answer(r, 404, Stdio.read_file((BASE_PATH) + "/404.inc");
+		werror("%O not found.\n", fname);
+		answer(r, 404, Stdio.read_file((BASE_PATH) + "/404.inc"));
 		return;
 	    }
 	}
