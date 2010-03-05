@@ -159,7 +159,7 @@ Yakity.Client.prototype = {
 			this.connection.send(this.psig.encode(p).render());
 		} catch (error) {
 			if (meteor.debug) {
-				if (typeof(error) == "object") {
+				if (UTIL.objectp(error)) {
 					var str = "";
 					for (var i in error) {
 						str += i+" "+error[i]+"\n";
@@ -340,7 +340,7 @@ Yakity.replace_vars = function(p, template, templates) {
 
 			if (UTIL.functionp(vtml)) {
 				t = vtml.call(window, type, s, t, m);
-			} else if (objectp(t)) {
+			} else if (UTIL.objectp(t)) {
 				if (UTIL.functionp(t.render)) {
 					t = t.render(type);
 				} else {
@@ -351,7 +351,7 @@ Yakity.replace_vars = function(p, template, templates) {
 			t = "["+s+"]";
 		}
 
-		if (objectp(t)) {
+		if (UTIL.objectp(t)) {
 		    t = t.innerHTML;
 		}
 
@@ -402,7 +402,7 @@ Yakity.funky_text = function(p, templates) {
 
 			if (UTIL.functionp(vtml)) {
 				t = vtml.call(window, type, s, t, m);
-			} else if (objectp(t)) {
+			} else if (UTIL.objectp(t)) {
 				if (UTIL.functionp(t.render)) {
 					t = t.render(type);
 				} else {
@@ -414,7 +414,7 @@ Yakity.funky_text = function(p, templates) {
 			t = "["+s+"]";
 		}
 
-		if (objectp(t)) {
+		if (UTIL.objectp(t)) {
 			for (var i = 0; i < classes.length; i++) {
 				UTIL.addClass(t, classes[i]);
 			}
@@ -530,7 +530,7 @@ Yakity.ChatWindow = Yakity.Base.extend({
 		return this.mlist.concat();
 	},
 	render : function(o) {
-		if (typeof(o) == "object" && typeof(o.render) == "function") {
+		if (UTIL.objectp(o) && UTIL.functionp(o.render)) {
 			return o.render("dom");
 		}
 
