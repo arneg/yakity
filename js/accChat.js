@@ -38,13 +38,9 @@ var AccChat = Yakity.Chat.extend({
 				var chatwin = self.DOMtoWIN.get(toggler);
 				if (chatwin && self.active != chatwin) {
 					toggler.setStyle('color', '#41464D');
-					
 					self.active = chatwin;
 					chatwin.trigger("focus", chatwin);
-					window.setTimeout((function(node) {
-											chatwin.getMessagesNode().style.overflow="auto";
-											chatwin.getMessagesNode().scrollTop = chatwin.getMessagesNode().scrollHeight;
-									  }), 700);
+					chatwin.getMessagesNode().style.overflow="auto";
 				} else if (!chatwin) {
 					self.active = null;
 				}
@@ -91,11 +87,11 @@ var AccChat = Yakity.Chat.extend({
 		    	this.accordion.previous = -1;
 
 			if (win.pos < this.accordion.elements.length) {
-				this.active = this.DOMtoWIN.get(this.accordion.togglers[win.pos]);
 				this.accordion.display(win.pos, false);
+				//this.active = this.DOMtoWIN.get(this.accordion.togglers[win.pos]);
 			} else if (win.pos > 0) {
-				this.active = this.DOMtoWIN.get(this.accordion.togglers[win.pos-1]);
 				this.accordion.display(win.pos-1, false);
+				//this.active = this.DOMtoWIN.get(this.accordion.togglers[win.pos-1]);
 			}
 		}
 
@@ -138,14 +134,13 @@ var AccChat = Yakity.Chat.extend({
 		var toggler = document.createElement("a");
 		toggler.title = "toggle pane";
 		UTIL.addClass(toggler, "toggler");
-		var togglemembers = document.createElement("a");
-		togglemembers.title = "toggle members list";
-		UTIL.addClass(togglemembers, "toggleInfo");
-		toggler.appendChild(togglemembers);
 		
 		var container = document.createElement("div");
 		var header = document.createElement("div");
-		var members = document.createElement("div");
+		var infoicon = document.createElement("div");
+		UTIL.addClass(infoicon, "infoIcon");
+		toggler.appendChild(infoicon);
+
 
 		if (uniform == this.client.uniform) {
 			win = new Yakity.TemplatedWindow(this.templates, uniform);
@@ -171,11 +166,29 @@ var AccChat = Yakity.Chat.extend({
 				UTIL.replaceClass(header, "joined", "left");
 			});
 			
+			var members = document.createElement("div");
+			UTIL.addClass(members, "membersList");
+			var membersc = document.createElement("div");
+			UTIL.addClass(membersc, "membersContainer");
+			var togglemembers = document.createElement("a");
+			UTIL.addClass(togglemembers, "focus");
+			UTIL.addClass(togglemembers, "membersToggler");
+			togglemembers.title = "Toggle members list.";
+			togglemembers.appendChild(document.createElement("div"));
+			UTIL.addClass(togglemembers.firstChild, "Button");
+
+			members.appendChild(win.getMembersNode());
+			membersc.appendChild(togglemembers);
+			membersc.appendChild(members);
+			win.getMessagesNode().appendChild(membersc);
+			togglemembers.href = "javascript:void(null)";
 			togglemembers.onclick = function() {
 				if (members.style.display=="none") {
 					members.style.display="block";	
+					UTIL.replaceClass(togglemembers, "blur", "focus");
 				} else {
 					members.style.display="none";	
+					UTIL.replaceClass(togglemembers, "focus", "blur");
 				}
 			};
 			
@@ -240,11 +253,6 @@ var AccChat = Yakity.Chat.extend({
 		UTIL.addClass(win.getMessagesNode(), "messages");
 		container.appendChild(win.getMessagesNode());
 
-		if (uniform.is_room()) {
-			UTIL.addClass(members, "membersList");
-			members.appendChild(win.getMembersNode());
-			win.getMessagesNode().appendChild(members);
-		}
 
 		var pos = this.accordion.elements.length;
 		document.getElementById(this.target_id).appendChild(header);
@@ -254,7 +262,9 @@ var AccChat = Yakity.Chat.extend({
 
 		// fixes the flicker bug. dont know why mootools is f*cking with the styles
 		// at all.
-		container.style.overflow = "auto";
+		if (UTIL.App.is_firefox) {
+		    container.style.overflow = "auto";
+		}
 
 		win.header = header;
 		win.container = container;
