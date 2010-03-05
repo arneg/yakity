@@ -99,6 +99,8 @@ var AccChat = Yakity.Chat.extend({
 			}
 		}
 
+		/*
+		 * TODO: this is deactivated until the server message history is working again properly
 		var messages = win.getMessages();
 
 		for (i = 0; i < messages.length; i++) {
@@ -113,6 +115,7 @@ var AccChat = Yakity.Chat.extend({
 		}
 
 		this.client.sendmsg(this.client.uniform, "_request_history_delete", 0, { _messages : messages });
+		*/
 		this.base(uniform);
 	},
 	msg : function(p, m) {
