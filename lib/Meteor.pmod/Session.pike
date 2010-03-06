@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 constant keepalive_interval = 30;
 constant timeout = 5;
+constant keepalive = "_keepalive 0 ";
 string client_id;
 function cb, error_cb;
 int closing = 1;
@@ -54,7 +55,7 @@ void create(string client_id, void|function cb, void|function error) {
 // this is called in intervals
 void keepalive() {
 	kid = 0;
-	stream->write("_keepalive 0 ");
+	stream->write(keepalive);
 	KEEPALIVE;
 }
 
@@ -147,9 +148,8 @@ void register_new_id() {
 
 	if (autoclose) headers["Connection"] = "keep-alive";
 
-	// send this first
-	//stream->out_buffer->add("HTTP/1.1 200 OK\r\n" + connection_id->make_response_headers(headers));
-	stream->out_buffer->add(connection_id->make_response_headers(headers));
+	// we append a keepalive packet to trigger readyState 3
+	stream->out_buffer->add(connection_id->make_response_headers(headers) + sprintf("%x\r\n%s\r\n", sizeof(keepalive), keepalive));
 	
 	//string t = stream->out_buffer->get();
 	//stream->out_buffer->add(t);
