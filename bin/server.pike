@@ -49,8 +49,8 @@ class HTTPRequest {
 		parsing_start = 0;
 		::finish(clean);
 	}
+
 #endif
-	
 }
 
 #if constant(get_profiling_info)
@@ -349,6 +349,6 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 		return;
 	}
 
-	werror("'%s' not in sessions %O\n", id->variables["id"], sessions);
+	werror("unknown session '%s'\n", id->variables["id"]);
 	answer(r, 500, "me dont know you");
 } 
