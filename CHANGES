@@ -1,4 +1,20 @@
-Changes since 0.1rc1
+Changes from 0.1 to 0.1.1
+ Bugfixes
+  - Fixed a bug in IE connection handling which leads to unnecessary
+    many requests
+  - Fixed some accordion bugs with double scrollbars during transition
+    between panes
+  - Introduces timeouts for the XHR objects including reconnects
+
+ Features
+  - Slight improvements on the layout/css
+  - Uses html5 audio is available. Uses new Audio abstraction in
+    ppp/util.js
+
+ Improvements
+  - Library cleanup. A lot of things have been moved to ppp/util.js
+
+Changes from 0.1rc1 to 0.1
  Bugfixes
   - Cleaned up the code to not make any cyclic references which 
     would make the garbage colector run often and long in high
@@ -6,7 +22,6 @@ Changes since 0.1rc1
     immediately.
   - Fixed a bug in the code using the mootools accordion. Removing
     panes now actually works properly.
-  - 
 
  Features
   - Some more presence notices. Includes a notice for typing,
