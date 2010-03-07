@@ -126,7 +126,8 @@ void register_new_id() {
 	new_id = 0;
 
 	// browser now asks for autoclose on their own
-	int autoclose = has_index(connection_id->variables, "autclose");
+	int autoclose = !!((int)connection_id->variables["autoclose"]);
+
 
 	//if (autoclose) werror("Creating new autoclosing Stream for %O\n", connection_id);
 
