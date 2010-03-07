@@ -173,7 +173,7 @@ var AccChat = Yakity.Chat.extend({
 			var togglemembers = document.createElement("a");
 			UTIL.addClass(togglemembers, "focus");
 			UTIL.addClass(togglemembers, "membersToggler");
-			togglemembers.title = "Toggle members list.";
+			togglemembers.title = "Toggle members list";
 			togglemembers.appendChild(document.createElement("div"));
 			UTIL.addClass(togglemembers.firstChild, "Button");
 
