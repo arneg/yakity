@@ -106,7 +106,7 @@
 					return span;
 				});
 				var templates = new mmp.Vars({
-					_status_circuit :  Yakity.HtmlTemplate("<h1>Instructions</h1><div class='introDiv'><img src='images/yakgroup.png' align='left'> Room chat icon, click to toggle the room members list.</div><div class='introDiv'><img src='images/yakgroup-waiting.png' align='left'> Group chat, unread message waiting.</div><div class='introDiv'><img src='images/member-icon.png' align='left'> Private chat icon.</div><div class='introDiv'><img src='images/member-icon-waiting.png' align='left'> Private chat, unread message.</div><div class='introDiv'><img src='images/sound-on.png' align='left'> Message notification, click to toggle sound on/off.</div>"),
+					_status_circuit :  Yakity.HtmlTemplate("<h1>Instructions</h1><div class='introDiv'><img src='images/yakgroup.png' align='left'> Room chat icon.</div><div class='introDiv'><img src='images/yakgroup-waiting.png' align='left'> Group chat, unread message waiting.</div><div class='introDiv'><img src='images/member-icon.png' align='left'> Private chat icon.</div><div class='introDiv'><img src='images/member-icon-waiting.png' align='left'> Private chat, unread message.</div><div class='introDiv'><img src='images/sound-on.png' align='left'> Message notification, click to toggle sound on/off.</div>"),
 					_notice_enter : "[_supplicant] enters [_source].",
 					_notice_leave : "[_supplicant] leaves [_source].",
 					_message_public : "[_timestamp] [_source_relay] [data]",
@@ -294,7 +294,8 @@
 				border-left: 1px solid rgb(102, 102, 102); 
 				border-bottom: 1px solid rgb(102, 102, 102); 
 				border-right: 1px solid rgb(102, 102, 102); 
-				-moz-border-radius-bottomleft: 10px; 			
+				-moz-border-radius-bottomleft: 10px; 
+                                -webkit-border-bottom-left-radius: 10px;
 				width: 50%;
 				position:absolute;
 				top: 0px;
