@@ -124,8 +124,9 @@ void register_new_id() {
 
 	connection_id = new_id;
 	new_id = 0;
-	// IE needs an autoclose right now
-	int autoclose = (-1 != search(connection_id->request_headers["user-agent"], "MSIE"));
+
+	// browser now asks for autoclose on their own
+	int autoclose = has_index(connection_id->variables, "autclose");
 
 	//if (autoclose) werror("Creating new autoclosing Stream for %O\n", connection_id);
 
