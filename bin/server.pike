@@ -126,7 +126,7 @@ int main(int argc, array(string) argv) {
 
 	http_server = Protocols.HTTP.Server.Port(handle_request, port, bind);
 	http_server->request_program = HTTPRequest;
-	werror("Started HTTP server on %s:%d\n", bind, port);
+	werror("Started HTTP server: http://%s:%d/\n", bind, port);
 
 	server = Yakity.Server(Serialization.TypeCache());
 
