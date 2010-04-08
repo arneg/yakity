@@ -15,7 +15,12 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+#ifdef WRITEV
+array out_buffer = ({});
+int out_buffer_length = 0;
+#else
 String.Buffer out_buffer = String.Buffer();
+#endif
 function close_cb, error_cb;
 // we dont want to close before we get the first write
 int autoclose = 0;
@@ -62,6 +67,13 @@ void create(Stdio.File connection, function cb, function error, int|void autoclo
 	connection->set_close_callback(_close);
 }
 
+#ifdef WRITEV
+void feed(string ... args) {
+    out_buffer += args;
+    out_buffer_length += `+(@map(args, sizeof));
+}
+#endif
+
 void _close() {
 	LOCK;
 	ERROR(sprintf("Connection closed by peer. %d of data could not be sent.", sizeof(out_buffer)));
@@ -71,7 +83,11 @@ void _close() {
 void close() {
 	LOCK;
 
+#ifdef WRITEV
+	feed("0\r\n\r\n");
+#else
 	out_buffer->add("0\r\n\r\n");
+#endif
 	connection->set_write_callback(_write);
 	autoclose = 1;
 
@@ -83,7 +99,11 @@ void write(string data) {
 
 	if (autoclose) error("stream->write() should not be called in autoclose state as data would be lost.");
 
+#ifdef WRITEV
+	feed(sprintf("%x\r\n", sizeof(data)), data, "\r\n");
+#else
 	out_buffer->add(sprintf("%x\r\n%s\r\n", sizeof(data), data));
+#endif
 
 	if (!will_send) {
 		will_send = 1;
@@ -102,22 +122,49 @@ void _write() {
 
 	if (autoclose_after_write && !autoclose) {
 	    autoclose = 1;
+#ifdef WRITEV
+	    feed("0\r\n\r\n");
+#else
 	    out_buffer->add("0\r\n\r\n");
+#endif
 	}
 
+#ifdef WRITEV
+	int bytes = connection->write(out_buffer);
+#else
 	string t = out_buffer->get();
 	//werror("writing %d bytes to %O", sizeof(out_buffer), connection->query_address());
 	int bytes = connection->write(t);
+#endif
 	//werror(" (did %d)\n", bytes);
 
 	// maybe too harsh?
 	if (bytes == -1) {
 		CLOSE("Could not write to socket. Connection lost.");
 		RETURN;
+#ifdef WRITEV
+	} else if (bytes < out_buffer_length) {
+		out_buffer_length -= bytes;
+
+	    	foreach (out_buffer;int i;string t) {
+			if (sizeof(t) > bytes) {
+			    aoffset = i;
+			    out_buffer = out_buffer[i..];
+			    out_buffer[0] = t[bytes..];
+			    break;
+			} else {
+			    bytes -= sizeof(t);
+			}
+		}
+#else
 	} else if (bytes < sizeof(t)) {
 		out_buffer->add(t[bytes..]);
+#endif
 	} else {
-
+#ifdef WRITEV
+		out_buffer = ({});
+		out_buffer_length = 0;
+#endif
 		connection->set_write_callback(0);
 
 		if (autoclose) {
