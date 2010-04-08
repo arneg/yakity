@@ -148,7 +148,6 @@ void _write() {
 
 	    	foreach (out_buffer;int i;string t) {
 			if (sizeof(t) > bytes) {
-			    aoffset = i;
 			    out_buffer = out_buffer[i..];
 			    out_buffer[0] = t[bytes..];
 			    break;
