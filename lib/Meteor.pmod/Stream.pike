@@ -151,6 +151,9 @@ void _write() {
 			    out_buffer = out_buffer[i..];
 			    out_buffer[0] = t[bytes..];
 			    break;
+			} else if (sizeof(t) == bytes) {
+			    out_buffer = out_buffer[i+1..];
+			    break;
 			} else {
 			    bytes -= sizeof(t);
 			}
