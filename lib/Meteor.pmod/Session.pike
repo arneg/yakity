@@ -150,8 +150,14 @@ void register_new_id() {
 
 	if (autoclose) headers["Connection"] = "keep-alive";
 
+	if (connection_id->send_chunk) {
+	    headers->size = -1;
+	    connection_id->make_response_headers(headers);
+	    connection_id->send_chunk(keepalive_packet);
+	} else {
+	    stream->out_buffer->add(connection_id->make_response_headers(headers) + sprintf("%x\r\n%s\r\n", sizeof(keepalive_packet), keepalive_packet));
+	}
 	// we append a keepalive packet to trigger readyState 3
-	stream->out_buffer->add(connection_id->make_response_headers(headers) + sprintf("%x\r\n%s\r\n", sizeof(keepalive_packet), keepalive_packet));
 	
 	//string t = stream->out_buffer->get();
 	//stream->out_buffer->add(t);

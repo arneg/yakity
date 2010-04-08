@@ -248,6 +248,10 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 		"connection" : Function.curry(`->)(r, "my_fd"),
 		"data" : r->body_raw,
 		"method" : r->request_type,
+#if constant(Protocols.HTTP.Server.Request.send_chunk)
+		"send_chunk" : r->send_chunk,
+#endif
+		
 		"variables" : r->variables,
 		"answer" : Function.curry(answer)(r),
 		"end" : Function.curry(r->finish)(1),
