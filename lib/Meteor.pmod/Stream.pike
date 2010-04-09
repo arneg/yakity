@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 array out_buffer = allocate(10);
 int out_buffer_length = 0;
 int out_buffer_start = 0;
-int out_buffer_stop = 0;
+int out_buffer_stop = -1;
 #else
 String.Buffer out_buffer = String.Buffer();
 #endif
@@ -181,7 +181,7 @@ void _write() {
 	} else {
 #ifdef WRITEV
 		out_buffer_start = 0;
-		out_buffer_stop = 0;
+		out_buffer_stop = -1;
 		out_buffer_length = 0;
 #endif
 		connection->set_write_callback(0);
