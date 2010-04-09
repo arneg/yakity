@@ -136,12 +136,12 @@ void _write() {
 #ifdef WRITEV
 	int bytes = connection->write(out_buffer);
 #else
-#ifdef MEASURE_THROUGHPUT
-	Meteor.obytes += bytes;
-#endif
 	string t = out_buffer->get();
 	//werror("writing %d bytes to %O", sizeof(out_buffer), connection->query_address());
 	int bytes = connection->write(t);
+#endif
+#ifdef MEASURE_THROUGHPUT
+	Meteor.obytes += bytes;
 #endif
 	//werror(" (did %d)\n", bytes);
 
