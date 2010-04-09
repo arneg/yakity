@@ -170,8 +170,8 @@ void register_new_id() {
 
 	while (!queue->isEmpty()) {
 		mixed o = queue->shift();
-		if (stringp(o)) stream->write(o);
-		else stream->write(o->render());
+		if (object_program(o) == Serialization.Atom) stream->write(o->render());
+		else stream->write(o);
 	}
 
 	RETURN;
