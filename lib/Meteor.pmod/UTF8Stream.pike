@@ -20,6 +20,8 @@ void write(MMP.Utils.Cloak|string data) {
     ::write(stringp(data) ? data : string_to_utf8(data));
 }
 
+#ifdef WRITEV
 string encode(string s) {
 	return ::encode(string_to_utf8(s));
 }
+#endif
