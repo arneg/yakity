@@ -104,7 +104,7 @@ void write(MMP.Utils.Cloak|string data) {
 	if (autoclose) error("stream->write() should not be called in autoclose state as data would be lost.");
 
 #ifdef WRITEV
-	feed(stringp(data) ? data : data->get(this_pogram, encode));
+	feed(stringp(data) ? data : data->get(this_program, encode));
 #else
 	out_buffer->add(sprintf("%x\r\n%s\r\n", sizeof(data), data));
 #endif
