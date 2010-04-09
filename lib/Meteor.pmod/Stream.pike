@@ -141,7 +141,7 @@ void _write() {
 	int bytes = connection->write(t);
 #endif
 #ifdef MEASURE_THROUGHPUT
-	Meteor.obytes += bytes;
+	Meteor.measure(bytes);
 #endif
 	//werror(" (did %d)\n", bytes);
 
