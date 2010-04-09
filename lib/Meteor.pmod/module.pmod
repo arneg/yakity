@@ -10,7 +10,7 @@ void measure_bytes(function f, void|int time) {
     int t = gethrtime(1);
 
     void cb() {
-	f((float)(obytes-old_bytes)/(gethrtime(1)-t));	
+	f((float)(obytes-old_bytes)/(1E-6(gethrtime(1)-t)));	
     };
 
     call_out(cb, time||1);
