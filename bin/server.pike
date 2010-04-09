@@ -154,6 +154,13 @@ int main(int argc, array(string) argv) {
 #ifdef TRACE
 	signal(signum("SIGINT"), onexit);
 #endif
+	object stdin = Stdio.File();
+	stdin->assign(Stdio.stdin);
+	object stdout = Stdio.File();
+	stdout->assign(Stdio.stdout);
+
+	object hilfe = Tools.Hilfe.GenericAsyncHilfe(stdin, stdout);
+	hilfe->variables->broadcast = server->broadcast;
 	return -1;
 }
 
