@@ -68,6 +68,10 @@ void create(Stdio.File connection, function cb, function error, int|void autoclo
 }
 
 #ifdef WRITEV
+string encode(string s) {
+	return sprintf("%x\r\n%s\r\n", sizeof(s), s);
+}
+
 void feed(string ... args) {
     out_buffer += args;
     out_buffer_length += `+(@map(args, sizeof));
@@ -94,13 +98,13 @@ void close() {
 	RETURN;	
 }
 
-void write(string data) {
+void write(MMP.Utils.Cloak|string data) {
 	LOCK;
 
 	if (autoclose) error("stream->write() should not be called in autoclose state as data would be lost.");
 
 #ifdef WRITEV
-	feed(sprintf("%x\r\n", sizeof(data)), data, "\r\n");
+	feed(stringp(data) ? data : data->get(this_pogram, encode));
 #else
 	out_buffer->add(sprintf("%x\r\n%s\r\n", sizeof(data), data));
 #endif

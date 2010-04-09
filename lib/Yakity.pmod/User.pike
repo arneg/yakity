@@ -190,12 +190,18 @@ int msg(MMP.Packet p) {
 	int before = gethrvtime(1);
 #endif
 
-	string atom;
+	string|MMP.Utils.Cloak atom;
 
 	mixed err = catch {
+#ifdef WRITEV
+		if (!has_index(p->vars, "_context")) {
+			atom = mmp_signature->render(p, mmp_signature->buffer)->get();
+		}
+#else
 		if (has_index(p->vars, "_context")) {
 			mmp_signature->encode(p);
 		}
+#endif
 
 	    	atom = mmp_signature->render(p);
 	};

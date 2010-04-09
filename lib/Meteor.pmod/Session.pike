@@ -156,7 +156,7 @@ void register_new_id() {
 	    connection_id->send_chunk(keepalive_packet);
 	} else {
 #ifdef WRITEV
-	    stream->feed(connection_id->make_response_headers(headers), sprintf("%x\r\n%s\r\n", sizeof(keepalive_packet), keepalive_packet));
+	    stream->feed(connection_id->make_response_headers(headers) + sprintf("%x\r\n%s\r\n", sizeof(keepalive_packet), keepalive_packet));
 #else
 	    stream->out_buffer->add(connection_id->make_response_headers(headers) + sprintf("%x\r\n%s\r\n", sizeof(keepalive_packet), keepalive_packet));
 #endif
@@ -247,7 +247,7 @@ string _sprintf(int type) {
 	} else return "Session()";
 }
 
-void send(string|Serialization.Atom atom) {
+void send(string|MMP.Utils.Cloak|Serialization.Atom atom) {
 	LOCK;
 	KEEPDEAD;
 	//werror("%O: send(%O)\n", this, atom);
@@ -255,8 +255,8 @@ void send(string|Serialization.Atom atom) {
 		queue->push(atom);	
 	} else {
 		KEEPALIVE;
-		if (stringp(atom)) stream->write(atom);
-		else stream->write(atom->render());
+		if (object_program(atom) == Serialization.Atom) stream->write(atom->render());
+		else stream->write(atom);
 	}
 	RETURN;
 }
