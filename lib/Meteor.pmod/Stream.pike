@@ -120,7 +120,10 @@ void write(MMP.Utils.Cloak|string data) {
 
 	if (!will_send) {
 		will_send = 1;
-		connection->set_write_callback(_write);
+		_write();
+
+		if (out_buffer_length)
+		    connection->set_write_callback(_write);
 	}
 
 	// we will close this connection after first proper data
