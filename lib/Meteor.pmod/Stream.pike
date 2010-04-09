@@ -16,8 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #ifdef WRITEV
-array out_buffer = ({});
+array out_buffer = allocate(10);
 int out_buffer_length = 0;
+int out_buffer_start = 0;
+int out_buffer_stop = 0;
 #else
 String.Buffer out_buffer = String.Buffer();
 #endif
@@ -72,9 +74,16 @@ string encode(string s) {
 	return sprintf("%x\r\n%s\r\n", sizeof(s), s);
 }
 
-void feed(string ... args) {
-    out_buffer += args;
-    out_buffer_length += `+(@map(args, sizeof));
+void feed(string data) {
+    if (out_buffer_stop == sizeof(out_buffer)-1) {
+	out_buffer = out_buffer[out_buffer_start..];
+	out_buffer_stop = sizeof(out_buffer);
+	out_buffer_start = 0;
+	out_buffer += allocate(20);
+    } else out_buffer_stop++;
+
+    out_buffer[out_buffer_stop] = data;
+    out_buffer_length += sizeof(data);
 }
 #endif
 
@@ -134,7 +143,7 @@ void _write() {
 	}
 
 #ifdef WRITEV
-	int bytes = connection->write(out_buffer);
+	int bytes = connection->write(out_buffer[out_buffer_start..out_buffer_stop]);
 #else
 	string t = out_buffer->get();
 	//werror("writing %d bytes to %O", sizeof(out_buffer), connection->query_address());
@@ -155,11 +164,11 @@ void _write() {
 
 	    	foreach (out_buffer;int i;string t) {
 			if (sizeof(t) > bytes) {
-			    out_buffer = out_buffer[i..];
-			    out_buffer[0] = t[bytes..];
+			    out_buffer_start = i;
+			    out_buffer[i] = t[bytes..];
 			    break;
 			} else if (sizeof(t) == bytes) {
-			    out_buffer = out_buffer[i+1..];
+			    out_buffer_start = i+1;
 			    break;
 			} else {
 			    bytes -= sizeof(t);
@@ -171,7 +180,8 @@ void _write() {
 #endif
 	} else {
 #ifdef WRITEV
-		out_buffer = ({});
+		out_buffer_start = 0;
+		out_buffer_stop = 0;
 		out_buffer_length = 0;
 #endif
 		connection->set_write_callback(0);
@@ -182,6 +192,13 @@ void _write() {
 		}
 
 		will_send = 0;
+	}
+
+	if (out_buffer_stop - out_buffer_start > sizeof(out_buffer)/2) {
+	    out_buffer = out_buffer[out_buffer_start..out_buffer_stop];
+	    out_buffer_start = 0;
+	    out_buffer_stop = sizeof(out_buffer)-1;
+	    out_buffer += allocate(10);
 	}
 
 	RETURN;	
