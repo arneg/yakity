@@ -25,12 +25,14 @@ do
 	MAX=$(echo "($num + 1) * $EACH - 1"|bc)
 	WAIT=$(echo "($EACH * 0.1) + 2"|bc)
 	echo "pike -M $DIR/../lib/ $DIR/client.pike $MURL $BURL $MIN $MAX > $DIR/../stats/$num.plot"
-	pike -DTUNICAST -M $DIR/../ppp/lib -M $DIR/../lib/ $DIR/client.pike $MURL $BURL $MIN $MAX > $DIR/../stats/$num.plot &
+	#pike -DTUNICAST -M $DIR/../ppp/lib -M $DIR/../lib/ $DIR/client.pike $MURL $BURL $MIN $MAX > $DIR/../stats/$num.plot &
+	pike -M $DIR/../ppp/lib -M $DIR/../lib/ $DIR/client.pike $MURL $BURL $MIN $MAX > $DIR/../stats/$num.plot &
 	PID="$PID $!" 
 	if [ $num -ne $N ]
 	then
 		echo "sleep $WAIT"
-		sleep $WAIT
+		#sleep $WAIT
+		sleep 5
 	fi
 done
 

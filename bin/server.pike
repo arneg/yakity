@@ -162,8 +162,22 @@ int main(int argc, array(string) argv) {
 	object hilfe = MMP.Utils.Hilfe(stdin, stdout);
 	hilfe->variables->broadcast = server->broadcast;
 	hilfe->variables->server = server;
+#ifdef MEASURE_THROUGHPUT
+	Thread.Thread(printer);
+#endif
 	return -1;
 }
+
+#ifdef MEASURE_THROUGHPUT
+void printer() {
+	void print(float f) {
+		write("%f mb/s\n", f /1024/1024);
+	};
+   for(;;) {
+      Meteor.measure_bytes(print, 1);
+   }
+}
+#endif
 
 class Guest(string real_name) {
 }
