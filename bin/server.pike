@@ -174,7 +174,7 @@ void printer() {
 		write("%f mb/s\n", f /1024/1024);
 	};
    for(;;) {
-      Meteor.measure_bytes(print, 1);
+      print(Meteor.measure_bytes(1));
    }
 }
 #endif

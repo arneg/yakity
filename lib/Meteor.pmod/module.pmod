@@ -5,15 +5,13 @@ void measure(int bytes) {
     obytes += bytes;
 }
 
-void measure_bytes(function f, void|int time) {
+float measure_bytes(void|int time) {
     int old_bytes = obytes;
     int t = gethrtime();
 
-    void cb() {
-	f((obytes-old_bytes)/(1E-6*(gethrtime()-t)));	
-    };
+    sleep(time || 1);
 
-    call_out(cb, time||1);
+    return ((obytes-old_bytes)/(1E-6*(gethrtime()-t)));	
 }
 
 #endif
