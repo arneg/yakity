@@ -194,12 +194,15 @@ void _write() {
 		will_send = 0;
 	}
 
+	
+#ifdef WRITEV
 	if (out_buffer_stop - out_buffer_start > sizeof(out_buffer)/2) {
 	    out_buffer = out_buffer[out_buffer_start..out_buffer_stop];
 	    out_buffer_start = 0;
 	    out_buffer_stop = sizeof(out_buffer)-1;
 	    out_buffer += allocate(10);
 	}
+#endif
 
 	RETURN;	
 }
