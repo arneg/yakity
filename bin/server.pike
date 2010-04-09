@@ -159,8 +159,9 @@ int main(int argc, array(string) argv) {
 	object stdout = Stdio.File();
 	stdout->assign(Stdio.stdout);
 
-	object hilfe = Tools.Hilfe.GenericAsyncHilfe(stdin, stdout);
+	object hilfe = MMP.Utils.Hilfe(stdin, stdout);
 	hilfe->variables->broadcast = server->broadcast;
+	hilfe->variables->server = server;
 	return -1;
 }
 
