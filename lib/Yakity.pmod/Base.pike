@@ -81,7 +81,7 @@ void send(MMP.Uniform target, Serialization.Atom|Yakity.Message m, void|MMP.Unif
 
 void broadcast(Yakity.Message m) {
 	MMP.Packet p = MMP.Packet(message_signature->encode(m), ([ "_source" : uniform ]));
-	call_out(server->broadcast, 0, p);
+	server->broadcast(p);
 }
 
 void sendmsg(MMP.Uniform target, string method, void|string data, void|mapping vars) {

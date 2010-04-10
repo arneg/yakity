@@ -69,8 +69,13 @@ void stream_fail_cb(object request, object info) {
 
 
 void stream_data_cb(mixed id, string data) {
-	request->con->buf += data;
+	// TODO: this is bad, dont use this session for chat-client. leave this to 
+	// browsers!
+	//request->con->buf += data;
 	inbuf += data;	
+#ifdef MEASURE_THROUGHPUT
+	Meteor.inbuf(sizeof(data));
+#endif
 
 	if (length) {
 		if (sizeof(inbuf) >= length + 2) {

@@ -1,17 +1,24 @@
 #ifdef MEASURE_THROUGHPUT
-int obytes = 0;
+private int obytes = 0, ibytes = 0;
 
 void measure(int bytes) {
     obytes += bytes;
 }
 
-float measure_bytes(void|int time) {
-    int old_bytes = obytes;
-    int t = gethrtime();
+void inbuf(int bytes) {
+    ibytes += bytes;
+}
 
-    sleep(time || 1);
 
-    return ((obytes-old_bytes)/(1E-6*(gethrtime()-t)));	
+float measure_bytes(function print, void|int time) {
+    int old_obytes = obytes, old_ibytes = ibytes, t = gethrtime();
+
+    void _cb() {
+	float lval = 1E-6*(gethrtime()-t);
+	print((obytes-old_obytes)/lval, (ibytes-old_ibytes)/lval);
+    };
+
+    call_out(_cb, time||1);
 }
 
 #endif

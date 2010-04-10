@@ -64,7 +64,7 @@ void print_profiling_info(array|program a) {
 	foreach (sort(indices(m));;string fun) {
 	    array(int) times = m[fun];
 	    if (fun != "__INIT")
-		werror("%O->%-20s %10f %10f micro s %8d calls\n", p, fun, (float)times[2]*1000/times[0], (float)times[1]*1000/times[0], times[0]);
+		werror("%O->%-20s %10f %10f micro s %8d calls\t(%3.2f, %3.2f) ms\n", p, fun, (float)times[2]*1000/times[0], (float)times[1]*1000/times[0], times[0], (float)times[2], (float)times[1]);
 	}
     }
 }
@@ -163,19 +163,23 @@ int main(int argc, array(string) argv) {
 	hilfe->variables->broadcast = server->broadcast;
 	hilfe->variables->server = server;
 #ifdef MEASURE_THROUGHPUT
-	Thread.Thread(printer);
+	hilfe->variables->do_it = do_it;
+	Meteor.measure_bytes(print, 1);
 #endif
 	return -1;
 }
 
+
 #ifdef MEASURE_THROUGHPUT
-void printer() {
-	void print(float f) {
-		write("%f mb/s\n", f /1024/1024);
-	};
-   for(;;) {
-      print(Meteor.measure_bytes(1));
-   }
+void do_it(int i) {
+    for (int j; j < i; j++) {
+	call_out(server->root->broadcast, 0, Yakity.Message("_message_barsch", "sdfsd"*30, ([ "_nick" : "forelle" ])));
+    }
+}
+
+void print(float f, float g) {
+    write("o: %f mb/s,\ti: %f mb/s\n", f /1024/1024, g / 1024 / 1024);
+    Meteor.measure_bytes(print, 1);
 }
 #endif
 

@@ -193,11 +193,7 @@ int msg(MMP.Packet p) {
 	string|MMP.Utils.Cloak atom;
 
 	mixed err = catch {
-#ifdef WRITEV
-		if (!has_index(p->vars, "_context")) {
-			atom = mmp_signature->render(p, mmp_signature->buffer)->get();
-		}
-#else
+#ifndef WRITEV
 		if (has_index(p->vars, "_context")) {
 			mmp_signature->encode(p);
 		}
@@ -218,6 +214,7 @@ int msg(MMP.Packet p) {
 	//history[count] = atom;
 
 	foreach (sessions;; object s) { 
+	    //call_out(s->send, 0, atom);
 	    s->send(atom); 
 	}
 }
