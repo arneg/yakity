@@ -15,21 +15,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#ifdef WRITEV
-array out_buffer = allocate(10);
-int out_buffer_length = 0;
-int out_buffer_start = 0;
-int out_buffer_stop = -1;
-#else
-String.Buffer out_buffer = String.Buffer();
-#endif
 function close_cb, error_cb;
 // we dont want to close before we get the first write
 int autoclose = 0;
-int autoclose_after_send = 0;
-int autoclose_after_write = 0;
-int will_send = 0;
-Stdio.File connection;
+MMP.Utils.BufferedStream connection;
 
 #ifdef ENABLE_THREADS
 Thread.Mutex m = Thread.Mutex();
@@ -55,54 +44,34 @@ Thread.Mutex m = Thread.Mutex();
 							 close_cb = error_cb = 0; } while(0)
 
 void create(Stdio.File connection, function cb, function error, int|void autoclose) {
-	this_program::connection = connection;
+	object o = MMP.Utils.BufferedStream();
+	o->assign(connection);
+	this_program::connection = o;
 	this_program::close_cb = cb;
 	this_program::error_cb = error;
 
-	// we dont want to close right after the headers have been sent
-	if (autoclose) {
-	    this_program::autoclose_after_send = autoclose;
-	} 
-
-	will_send = 1;
-	connection->set_write_callback(_write);
 	connection->set_close_callback(_close);
 }
 
-#ifdef WRITEV
 string encode(string s) {
 	return sprintf("%x\r\n%s\r\n", sizeof(s), s);
 }
 
-void feed(string data) {
-    if (out_buffer_stop == sizeof(out_buffer)-1) {
-	out_buffer = out_buffer[out_buffer_start..];
-	out_buffer_stop = sizeof(out_buffer);
-	out_buffer_start = 0;
-	out_buffer += allocate(20);
-    } else out_buffer_stop++;
-
-    out_buffer[out_buffer_stop] = data;
-    out_buffer_length += sizeof(data);
+void feed(string ... data) {
+	connection->write(@data);
 }
-#endif
 
 void _close() {
 	LOCK;
-	ERROR(sprintf("Connection closed by peer. %d of data could not be sent.", sizeof(out_buffer)));
+	ERROR(sprintf("Connection closed by peer. %d of data could not be sent.", connection->out_buffer_length));
 	RETURN;
 }
 
 void close() {
 	LOCK;
 
-#ifdef WRITEV
-	feed("0\r\n\r\n");
-#else
-	out_buffer->add("0\r\n\r\n");
-#endif
-	connection->set_write_callback(_write);
 	autoclose = 1;
+	write("0\r\n\r\n");
 
 	RETURN;	
 }
@@ -110,100 +79,15 @@ void close() {
 void write(MMP.Utils.Cloak|string data) {
 	LOCK;
 
-	if (autoclose) error("stream->write() should not be called in autoclose state as data would be lost.");
-
-#ifdef WRITEV
-	feed(stringp(data) ? data : data->get(this_program, encode));
-#else
-	out_buffer->add(sprintf("%x\r\n%s\r\n", sizeof(data), data));
-#endif
-
-	if (!will_send) {
-		will_send = 1;
-		connection->set_write_callback(_write);
+	if (autoclose) {
+	    connection->close_when_finished();
+	    autoclose = 0;
 	}
+
+	connection->write(stringp(data) ? sprintf("%x\r\n%s\r\n", sizeof(data), data) : data->get(this_program, encode));
 
 	// we will close this connection after first proper data
 	// has been written.
-	if (autoclose_after_send) autoclose_after_write = 1;
-
-	RETURN;	
-}
-
-void _write() {
-	LOCK;
-
-	if (autoclose_after_write && !autoclose) {
-	    autoclose = 1;
-#ifdef WRITEV
-	    feed("0\r\n\r\n");
-#else
-	    out_buffer->add("0\r\n\r\n");
-#endif
-	}
-
-#ifdef WRITEV
-	int bytes = connection->write(out_buffer[out_buffer_start..out_buffer_stop]);
-#else
-	string t = out_buffer->get();
-	//werror("writing %d bytes to %O", sizeof(out_buffer), connection->query_address());
-	int bytes = connection->write(t);
-#endif
-#ifdef MEASURE_THROUGHPUT
-	Meteor.measure(bytes);
-#endif
-	//werror(" (did %d)\n", bytes);
-
-	// maybe too harsh?
-	if (bytes == -1) {
-		CLOSE("Could not write to socket. Connection lost.");
-		RETURN;
-#ifdef WRITEV
-	} else if (bytes < out_buffer_length) {
-		out_buffer_length -= bytes;
-
-	    	foreach (out_buffer;int i;string t) {
-			if (sizeof(t) > bytes) {
-			    out_buffer_start = i;
-			    out_buffer[i] = t[bytes..];
-			    break;
-			} else if (sizeof(t) == bytes) {
-			    out_buffer_start = i+1;
-			    break;
-			} else {
-			    bytes -= sizeof(t);
-			}
-		}
-#else
-	} else if (bytes < sizeof(t)) {
-		out_buffer->add(t[bytes..]);
-#endif
-	} else {
-#ifdef WRITEV
-		out_buffer_start = 0;
-		out_buffer_stop = -1;
-		out_buffer_length = 0;
-#endif
-		connection->set_write_callback(0);
-
-		if (autoclose) {
-			connection->set_close_callback(0);
-			CLOSE("AutoClose");
-		}
-
-		will_send = 0;
-	}
-
-	
-#ifdef WRITEV
-	if (out_buffer_stop - out_buffer_start > sizeof(out_buffer)/2) {
-	    out_buffer = out_buffer[out_buffer_start..out_buffer_stop];
-	    out_buffer_start = 0;
-	    out_buffer_stop = sizeof(out_buffer)-1;
-	    out_buffer += allocate(10);
-	}
-#endif
-
 	RETURN;	
 }
 
