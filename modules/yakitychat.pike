@@ -286,25 +286,18 @@ class TagEntitiesEmit {
 
 string simpletag_sendmsg(string tagname, mapping args, string content, RequestID id) {
 	MMP.Uniform target = server->get_uniform(args["_target"]);
-	object user;
 	NOCACHE();
 
-	if (!(user = server->get_entity(target))) {
-		werror("sendmsg to unknown user %s.\n", args["_target"]);
-		return "";
-	}
+	if (!args["method"]) error("sendmsg tag needs a method.\n");
 
-	Yakity.Message m = Yakity.Message();
-	m->method = args["method"];
-	m->vars = ([]);
-	m->data = content;
+	mapping vars = ([]);
 	foreach (args; string index; string val) {
 		if (has_prefix(index, "_")) {
-			m->vars[index] = val;
+			vars[index] = val;
 		}
 	}
 
-	user->msg(m);
+	root->sendmsg(target, args["method"], content, vars);
 }
 
 TAGDOCUMENTATION;
