@@ -43,7 +43,7 @@ Yakity = {};
 Yakity.Message = mmp.Packet.extend({
 	constructor : function(method, data, vars) {
 		this.method = method;
-		this.base(data, vars);
+		this.base(data||"", vars||{});
 		// TODO: this is a hack
 		this.vars.remove("_timestamp");
 	},
@@ -92,7 +92,7 @@ Yakity.Client = function(url, name) {
 	this.connection.init();
 	var method = new serialization.Method();
 	var poly = Yakity.default_polymorphic();
-	this.msig = new serialization.Message(method, new serialization.OneTypedVars(poly), poly);
+	this.msig = new serialization.Message(new serialization.OneTypedVars(poly), poly);
 	this.psig = new serialization.Packet(this.msig);
 	this.parser = new serialization.AtomParser();
 	this.icount = 0;
