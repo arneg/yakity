@@ -81,6 +81,10 @@ int bcastcnt2; // immanuel kant
 #endif
 
 
+void msg(MMP.Packet p) {
+    deliver(p);
+}
+
 void deliver(MMP.Packet p) {
 	//werror("deliver(%O)\n", m);
 	object o;
