@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-inherit Yakity.Base;
+inherit PSYC.Base;
 
 mixed rooms, users;
 
@@ -45,6 +45,6 @@ int _request_users(MMP.Packet p) {
 		sendmsg(source, "_update_users", 0,  ([ "_users" : profiles ]));
 	}
 
-	return Yakity.STOP;
+	return PSYC.STOP;
 }
 

@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-inherit Yakity.Base;
+inherit PSYC.Base;
 
 string name;
 multiset(MMP.Uniform) members = (<>);
@@ -27,16 +27,17 @@ void create(object server, MMP.Uniform uniform, string name) {
 }
 
 void castmsg(string mc, string data, mapping vars) {
+    	Serialization.Atom m = message_signature->encode(PSYC.Message(mc, data, vars));
 	foreach (members; MMP.Uniform t;) {
-		sendmsg(t, mc, data, vars);
+	    	send(t, m);
 	}
 }
 
 // TODO: We want to use a real psyc multicast here, but we dont have stuff properly
 // 	 set up. This will go when PPP is integrated.
-void groupcast(Yakity.Message|Serialization.Atom m, void|MMP.Uniform relay) {
-	if (object_program(m) == Yakity.Message) {
-		m = message_encode(m);
+void groupcast(PSYC.Message|Serialization.Atom m, void|MMP.Uniform relay) {
+	if (object_program(m) == PSYC.Message) {
+		m = message_signature->encode(m);
 	}
 
 	mapping vars = relay ? ([ "_source_relay" : relay, "_source" : uniform ]) : ([ "_source" : uniform ]);
@@ -65,7 +66,7 @@ int _request_enter(MMP.Packet p) {
 
 	}
 
-	return Yakity.STOP;
+	return PSYC.STOP;
 }
 
 int _request_history(MMP.Packet p) {
@@ -73,7 +74,7 @@ int _request_history(MMP.Packet p) {
 
 	if (!has_index(members, source)) {
 		sendmsg(source, "_error_membership_required", "You must join the room first.");
-		return Yakity.STOP;
+		return PSYC.STOP;
 	}
 
 	foreach (history;;MMP.Packet p) {
@@ -81,7 +82,7 @@ int _request_history(MMP.Packet p) {
 		server->deliver(tp);
 	}
 
-	return Yakity.STOP;
+	return PSYC.STOP;
 }
 
 int _notice_logout(MMP.Packet p) {
@@ -92,7 +93,7 @@ int _notice_logout(MMP.Packet p) {
 		castmsg("_notice_leave", "Logout", ([ "_supplicant" : source ]));
 	}
 
-	return Yakity.STOP;
+	return PSYC.STOP;
 }
 
 int _request_leave(MMP.Packet p) {
@@ -104,14 +105,14 @@ int _request_leave(MMP.Packet p) {
 	} else {
 		sendmsg(source, "_notice_leave", 0, ([ "_supplicant" : source ]));
 	}
-	return Yakity.STOP;
+	return PSYC.STOP;
 }
 
 int _request_profile(MMP.Packet p) {
 	MMP.Uniform source = p->source();
 
 	sendmsg(source, "_update_profile", 0, ([ "_profile" : ([ "_name_display" : name ]) ]));
-	return Yakity.STOP;	
+	return PSYC.STOP;	
 }
 
 
@@ -120,7 +121,7 @@ int _message_public(MMP.Packet p) {
 
 	if (!has_index(members, source)) {
 		sendmsg(source, "_error_membership_required", "You must join the room first.");
-		return Yakity.STOP;
+		return PSYC.STOP;
 	}
 
 	if (sizeof(history) == history->max_size()) {
@@ -130,5 +131,5 @@ int _message_public(MMP.Packet p) {
 	history->push_back(p);
 	groupcast(p->data, source);
 
-	return Yakity.STOP;
+	return PSYC.STOP;
 }

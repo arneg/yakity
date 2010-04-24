@@ -15,37 +15,25 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-inherit Yakity.Base;
+inherit PSYC.Base;
 
 array(object) sessions = ({});
 mixed user;
 function logout_cb; // logout callback
-int count = 0; // this is a local counter. the js speaks a subset of 
-			   // what psyc should do
 object mmp_signature;
 
-// allowed to save 200 messages. this needs to be configurable somewhere.
-MMP.Utils.QuotaMap history = MMP.Utils.QuotaMap(200);
+mapping(MMP.Uniform:int) clients = ([]);
 
 void create(object server, object uniform, mixed user, function logout) {
 	::create(server, uniform);
 	this_program::user = user;
 	logout_cb = logout;
-
 	mmp_signature = Packet(Atom());
-
-	object m = Yakity.Message();
-	m->method = "_notice_login";
-	m->vars = ([ "_profile" : get_profile() ]);
-	broadcast(m);
 }
 
 void implicit_logout() {
 	if (logout_cb) {
 		logout_cb(this);
-		object m = Yakity.Message();
-		m->method = "_notice_logout";
-		broadcast(m);
 		logout_cb = 0;
 	} else {
 		werror("NO logout callback given. Cleanup seems impossible.\n");
@@ -57,13 +45,9 @@ void add_session(object session) {
 	sessions += ({ session });
 	session->cb = incoming;
 	session->error_cb = session_error;
-	object m = Yakity.Message();
-	m->vars = ([
-		"_last_id" : count,
-	]);
-	m->method = "_status_circuit";
-	m->data = "Welcome on board.";
-	MMP.Packet p = MMP.Packet(message_encode(m), ([ "_source" : uniform ]));
+
+	object m = PSYC.Message("_status_circuit", "Welcome on board.");
+	MMP.Packet p = MMP.Packet(message_signature->encode(m), ([ "_source" : uniform ]));
 	session->send(mmp_signature->encode(p));
 
 	if (find_call_out(implicit_logout) != -1) {
@@ -87,47 +71,6 @@ void session_error(object session, string err) {
 
 	werror("ERROR: %O %s\n", session, err);
 }
-int _request_history_delete(MMP.Packet p) {
-	if (p->source() != uniform) {
-		return Yakity.GOON;
-	}
-
-	Yakity.Message m = message_decode(p->data);
-	array(int) list = m->vars["_messages"];
-
-	if (!arrayp(list)) {
-		error("Bad request.\n");
-	}
-
-	foreach (list;;int n) {
-		if (has_index(history, n)) m_delete(history, n);
-	}
-
-	return Yakity.STOP;
-}
-
-int _request_history(MMP.Packet p) {
-	if (!p->misc["session"]) {
-		return Yakity.STOP;
-	}
-
-	if (p->source() != uniform) {
-		return Yakity.GOON;
-	}
-
-	Yakity.Message m = message_decode(p->data);
-	array(int) list = m->vars["_messages"];
-
-	if (!arrayp(list)) {
-		error("Bad request.\n");
-	}
-
-	foreach (list;;int n) {
-		if (has_index(history, n)) m->misc->session->send(history[n]);
-	}
-
-	return Yakity.STOP;
-}
 
 int _request_logout(MMP.Packet p) {
 
@@ -147,7 +90,7 @@ int _message_private(MMP.Packet p) {
 		send(source, p->data, source);
 	}
 
-	return Yakity.GOON;
+	return PSYC.GOON;
 }
 
 mapping get_profile() {
@@ -161,7 +104,7 @@ int _request_profile(MMP.Packet p) {
 		sendmsg(source, "_update_profile", 0, ([ "_profile" : get_profile() ]));
 	}
 
-	return Yakity.STOP;
+	return PSYC.STOP;
 }
 
 void incoming(object session, Serialization.Atom atom) {
@@ -184,20 +127,14 @@ void incoming(object session, Serialization.Atom atom) {
 
 int msg(MMP.Packet p) {
 
-	if (::msg(p) == Yakity.STOP) return Yakity.STOP;
-
-#ifdef ATOM_TRACE
-	int before = gethrvtime(1);
-#endif
+	if (::msg(p) == PSYC.STOP) return PSYC.STOP;
 
 	string|MMP.Utils.Cloak atom;
 
 	mixed err = catch {
-#ifndef WRITEV
 		if (has_index(p->vars, "_context")) {
 			mmp_signature->encode(p);
 		}
-#endif
 
 	    	atom = mmp_signature->render(p);
 	};
@@ -206,12 +143,6 @@ int msg(MMP.Packet p) {
 		werror("Failed to encode %O: %s\n", p, describe_error(err));
 		return Yakity.STOP;
 	}
-
-#ifdef ATOM_TRACE
-	int stamp = gethrvtime(1);
-	werror("render: %2.3f ms\t\tlifetime: %2.3f ms\n", (stamp - before) * 1E-6, (before - p->vars["_hrtime"]) * 1E-6);
-#endif
-	//history[count] = atom;
 
 	foreach (sessions;; object s) { 
 	    //call_out(s->send, 0, atom);
