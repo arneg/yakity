@@ -122,7 +122,7 @@ void incoming(object session, Serialization.Atom atom) {
 		// sending messages to yourself.
 	}
 
-	server->deliver(p);
+	send(p->target(), p->data);
 }
 
 int msg(MMP.Packet p) {

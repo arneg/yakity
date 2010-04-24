@@ -43,8 +43,7 @@ void groupcast(PSYC.Message|Serialization.Atom m, void|MMP.Uniform relay) {
 	mapping vars = relay ? ([ "_source_relay" : relay, "_source" : uniform ]) : ([ "_source" : uniform ]);
 
 	foreach (members; MMP.Uniform t;) {
-		MMP.Packet p = MMP.Packet(m, vars + ([ "_target" : t ]));
-		server->deliver(p);
+	    	send(t, m, relay);	
 	}
 }
 
