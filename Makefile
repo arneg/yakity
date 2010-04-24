@@ -24,9 +24,9 @@ release:
 	rm $(NAME)/htdocs/ppp-js/time.js
 	rm $(NAME)/htdocs/ppp-js/psyc.js
 	cp -r ppp/lib/Serialization.pmod $(NAME)/lib/
+	cp -r ppp/lib/PSYC.pmod $(NAME)/lib/
 	cp ppp-bsd ppp/lib/Serialization.pmod/LICENSE
 	cp -r ppp/lib/MMP.pmod $(NAME)/lib/
-	rm $(NAME)/lib/MMP.pmod/Parser.pike
 	cp ppp-bsd ppp/lib/MMP.pmod/LICENSE
 	cp htdocs/favicon.ico $(NAME)/htdocs/
 	cp htdocs/index.html $(NAME)/htdocs/
