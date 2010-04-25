@@ -78,28 +78,27 @@ Yakity.default_polymorphic = function() {
  * @constructor
  * @params {String} url Meteor endpoint urls.
  */
-Yakity.Client = function(url, name) {
-	this.callbacks = new Mapping();
-	var self = this;
-	var errorcb = function(error) {
-		if (!self.uniform) { // we are not connected yet.
-			if (self.onconnect) self.onconnect(0, error);
-		}
+Yakity.Client = Base.extend({
+	constructor : function(url, name) {
+	    this.callbacks = new Mapping();
+	    var self = this;
+	    var errorcb = function(error) {
+		    if (!self.uniform) { // we are not connected yet.
+			    if (self.onconnect) self.onconnect(0, error);
+		    }
 
-		if (meteor.debug) meteor.debug(error);
-	};
-	this.connection = new meteor.Connection(url, { nick : name }, UTIL.make_method(this, this.incoming), errorcb);
-	this.connection.init();
-	var method = new serialization.Method();
-	var poly = Yakity.default_polymorphic();
-	this.msig = new serialization.Message(new serialization.OneTypedVars(poly), poly);
-	this.psig = new serialization.Packet(this.msig);
-	this.parser = new serialization.AtomParser();
-	this.icount = 0;
-	this.name = name;
-};
-// params = ( method : "_message", source : Uniform }
-Yakity.Client.prototype = {
+		    if (meteor.debug) meteor.debug(error);
+	    };
+	    this.connection = new meteor.Connection(url, { nick : name }, UTIL.make_method(this, this.incoming), errorcb);
+	    this.connection.init();
+	    var method = new serialization.Method();
+	    var poly = Yakity.default_polymorphic();
+	    this.msig = new serialization.Message(new serialization.OneTypedVars(poly), poly);
+	    this.psig = new serialization.Packet(this.msig);
+	    this.parser = new serialization.AtomParser();
+	    this.icount = 0;
+	    this.name = name;
+	},
     	abort : function() {
 		if (this.connection) {
 		    this.connection.close();
@@ -288,7 +287,7 @@ MESSAGES: for (i = 0; i < data.length; i++) {
 			}
 		}
 	}
-};
+});
 Yakity.linky_text = function(text) {
     //var reg = /(https?|ftp|imap|irc|ldap|nfs|nntp|sips?|telnet|xmpp):\/\/(\w+(:\w+)?@)?[\w\.\-]+(:\d+)?(\/[\w\$\-_.\+!\*'\(\),]+|\/?)?/g;
     var reg = /(https?|ftp|imap|irc|ldap|nfs|nntp|sips?|telnet|xmpp):\/\/([-;:&=\+\$,\w]+@{1})?([-A-Za-z0-9\.]+)+:?(\d+)?((\/[-\+~%\/\.\w]+)?\??([-\+=&;%@\.\w]+)?#?([\w]+)?)?/g;
