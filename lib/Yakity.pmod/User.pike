@@ -118,11 +118,7 @@ void incoming(object session, Serialization.Atom atom) {
 		if (Yakity.STOP == ::msg(p)) {
 			return;
 		}
-		m_delete(p->misc, "session");
-		// sending messages to yourself.
-	}
-
-	send(p->target(), p->data);
+	} else send(p->target(), p->data);
 }
 
 int msg(MMP.Packet p) {
