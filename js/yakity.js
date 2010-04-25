@@ -706,6 +706,9 @@ Yakity.ProfileData = Yakity.Base.extend({
 		this.profile = m;
 	},
 	getDisplayNode : function(uniform) {
+		if (this.client.uniform.host != uniform.host) {
+			return document.createTextNode(uniform.toString());
+		}
 
 		if (this.cache.hasIndex(uniform)) {
 			var name = this.cache.get(uniform).get("_name_display");
