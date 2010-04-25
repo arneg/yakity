@@ -14,17 +14,17 @@ inherit Meteor.SessionHandler;
 mixed configuration;
 object server;
 object root;
+string base;
 mapping(MMP.Uniform:object) users = ([]);
-mapping(MMP.Uniform:object) rooms = ([]);
+mapping(MMP.Uniform:object|int) rooms = ([]);
 
 MMP.Uniform to_uniform(void|int type, void|string name) {
-	string domain = configuration->query("Domain");
-	if (domain == "nowhere") domain = roxen->get_domain();
+    	if (!base) error("Module has not been properly initialized.\n");
 	if (type && name) {
-		name = Standards.IDNA.to_ascii(name);
-		return server->get_uniform(sprintf("psyc://%s/%c%s", domain, type, name));
+	    name = Standards.IDNA.to_ascii(name);
+	    return server->get_uniform(sprintf("%s/%c%s", base, type, name));
 	} else {
-		return server->get_uniform(sprintf("psyc://%s", domain));
+	    return server->get_uniform(base);
 	}
 }
 
@@ -41,6 +41,7 @@ void stop() {
 
 string status() {
 	return sprintf("<br>sessions: <br><pre>%O</pre>", sessions)
+			+ sprintf("<br> uniforms: <br><pre>%O\n<pre>", server->uniform_cache) 
 			+ sprintf("<br> users: <br><pre>%O\n<pre>", users) 
 			+ sprintf("<br> rooms: <br><pre>%O</pre>", rooms) 
 			+ sprintf("<br> entities: <br><pre>%O</pre>", server->entities);
@@ -48,23 +49,44 @@ string status() {
 
 void create() {
 	defvar("location", Variable.Location("/meteor/",
-										 0, "Connection endpoint for js connections", "This is where the "
-										 "module will be inserted in the virtual "
-										 "namespace of your server."));
+					     0, "Connection endpoint for js connections", "This is where the "
+					     "module will be inserted in the virtual "
+					     "namespace of your server."));
 	defvar("rooms", Variable.StringList(({}), 0, "List of Rooms", "This is the list of rooms that users may join."));
-
+	defvar("bind", "NONE", "PSYC port", TYPE_STRING|VAR_INITIAL|VAR_NO_DEFAULT, "Port to bind for interserver connections.");
 }
 
 int start(int c, Configuration conf) {
 	if (!configuration) {
 		this_program::configuration = conf;
-		server = Yakity.Server(Serialization.TypeCache());
+		string bind = query("bind");
+		string host;
+		int port;
+
+		switch (sscanf(bind, "%[^:]:%d", host, port)) {
+		case 1:
+		    port = MMP.DEFAULT_PORT;
+		    bind = sprintf("%s:%d", bind, port);
+		case 2:
+		    break;
+		default:
+		    error("Malformed bind address: %s\n", bind);
+		}
+
+		if (port == MMP.DEFAULT_PORT) {
+		    base = sprintf("psyc://%s", host);
+		} else {
+		    base = sprintf("psyc://%s:%d", host, port);
+		}
+
+		server = MMP.Server(([ "bind" : bind ]));
+
 		root = Yakity.Root(server, to_uniform());
 		root->users = users;
 		root->rooms = rooms;
 		server->register_entity(root->uniform, root);
-		server->root = root;
 	}
+
 	if (!c) {
 		getvar("rooms")->set_changed_callback(changed);
 	}
@@ -173,8 +195,18 @@ void changed(Variable.StringList var) {
 	foreach (var->query(); ; string name) {
 		if (!sizeof(name)) continue;
 
-		MMP.Uniform u = to_uniform('@', name);
+		MMP.Uniform u;
+		if (has_prefix(name, "psyc://")) {
+		    u = server->get_uniform(name);
+		    rooms[u] = 1;
+		    should[u] = 1;
+		    continue;
+		} else {
+		    u = to_uniform('@', name);
+		}
+
 		should[u] = 1;
+
 		if (!has_index(rooms, u)) {
 			object r = Yakity.Room(server, u, name);
 			rooms[u] = r;
@@ -183,10 +215,12 @@ void changed(Variable.StringList var) {
 	}
 
 	// sort out the old ones
-	foreach (rooms; MMP.Uniform u; object room) {
+	foreach (rooms; MMP.Uniform u; int|object room) {
 		if (!has_index(should, u)) {
-			room->stop();
-			server->unregister_entity(u);
+		    	if (objectp(room)) {
+			    room->stop();
+			    server->unregister_entity(u);
+			}
 			m_delete(rooms, u);
 		}
 	}
@@ -232,7 +266,7 @@ class TagMemberEmit {
 
 		room = rooms[server->get_uniform(room)];
 
-		if (!room) {
+		if (!room || !objectp(room)) {
 			return ({});
 		}
 		return map(indices(room->members), cb);
