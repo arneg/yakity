@@ -68,12 +68,8 @@ void _close() {
 }
 
 void close() {
-	LOCK;
-
 	autoclose = 1;
 	write("0\r\n\r\n");
-
-	RETURN;	
 }
 
 void write(MMP.Utils.Cloak|string data) {
