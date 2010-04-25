@@ -40,8 +40,6 @@ void groupcast(PSYC.Message|Serialization.Atom m, void|MMP.Uniform relay) {
 		m = message_signature->encode(m);
 	}
 
-	mapping vars = relay ? ([ "_source_relay" : relay, "_source" : uniform ]) : ([ "_source" : uniform ]);
-
 	foreach (members; MMP.Uniform t;) {
 	    	send(t, m, relay);	
 	}
@@ -77,8 +75,7 @@ int _request_history(MMP.Packet p) {
 	}
 
 	foreach (history;;MMP.Packet p) {
-		MMP.Packet tp = MMP.Packet(p->data, p->vars + ([ "_source" : uniform, "_source_relay" : p->source(), "_target" : source ]));
-		server->deliver(tp);
+	    	send(source, p->data, p->source());	
 	}
 
 	return PSYC.STOP;
