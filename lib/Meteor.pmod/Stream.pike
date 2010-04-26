@@ -88,8 +88,8 @@ void write(MMP.Utils.Cloak|string data) {
 }
 
 string _sprintf(int type) {
-	if (connection) {
-		return sprintf("Meteor.Stream(%O)", connection->query_address());
+	if (connection && connection->is_open()) {
+		return sprintf("Meteor.Stream(%s)", connection->query_address() || strerror(connection->errno()));
 	} else {
 		return sprintf("Meteor.Stream(DEAD)");
 	}
