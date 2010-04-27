@@ -139,6 +139,7 @@ int msg(MMP.Packet p) {
 		werror("Failed to encode %O: %s\n", p, describe_error(err));
 		return Yakity.STOP;
 	}
+	werror("SENDING: %O\n", atom->get());
 
 	foreach (sessions;; object s) { 
 	    //call_out(s->send, 0, atom);
