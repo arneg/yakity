@@ -91,9 +91,8 @@ Yakity.Client = Base.extend({
 	    };
 	    this.connection = new meteor.Connection(url, { nick : name }, UTIL.make_method(this, this.incoming), errorcb);
 	    this.connection.init();
-	    var method = new serialization.Method();
 	    var poly = Yakity.default_polymorphic();
-	    this.msig = new serialization.Message(new serialization.OneTypedVars(poly), poly);
+	    this.msig = new serialization.Message(new serialization.Vars({ _ : poly }), new serialization.String());
 	    this.psig = new serialization.Packet(this.msig);
 	    this.parser = new serialization.AtomParser();
 	    this.icount = 0;
@@ -458,8 +457,12 @@ Yakity.Base = Base.extend({
 		for (var t = method; t; t = mmp.abbrev(t)) {
 			if (UTIL.functionp(this[t])) {
 				none = 0;
-				if (psyc.STOP == this[t].call(this, p, m)) {
-					return psyc.STOP;
+				try {
+				    if (psyc.STOP == this[t].call(this, p, m)) {
+					    return psyc.STOP;
+				    }
+				} catch (error) {
+				    if (meteor.debug) meteor.debug("error when calling "+t+" in "+this+": %o", error);
 				}
 			}
 		}
@@ -745,6 +748,7 @@ Yakity.ProfileData = Yakity.Base.extend({
 	},
 	_update_profile : function(p, m) {
 		var source = p.source();
+		if (!m.V("_profile")) throw("no profile in _update_profile.\n");
 		var profile = m.v("_profile");
 
 		this.cache.set(source, profile);
