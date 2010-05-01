@@ -26,8 +26,18 @@ MMP.Uniform to_uniform(void|int type, void|string name) {
 }
 
 void print_help() {
-	werror("Usage: server.pike -p <port> -d <domain> -b <bind address> -r <rooms>\n\n");
-	werror("\tThe bind address is optional. If not given, the domain is used as the bind address instead.\n");
+werror(#"Usage: pike -M lib bin/server.pike [OPTIONS]\n
+Possible options are:
+ -h		: Print this message
+ --hilfe	: Start an interactive server console
+ --bind		: Address to bind
+ --http-bind	: Address to bind for HTTP
+ --psyc-bind	: Address to bind for PSYC
+ 	The above expect arguments of the form <domain>[:<port>].
+ --domain	: Domain to use. Only necessary if different from the psyc-bind address.
+ 		  Should be used for NAT situations.
+ --rooms	: List of rooms to create. Expects a comma seperated list of names.
+");
 }
 
 class HTTPRequest {
@@ -85,9 +95,12 @@ int main(int argc, array(string) argv) {
 
 	if (mixed err = catch { opt = Getopt.find_all_options(argv, ({
 		({ "domain", Getopt.HAS_ARG, ({ "-d", "--domain" }) }),
-		({ "port", Getopt.HAS_ARG, ({ "-p", "--port" }) }),
 		({ "rooms", Getopt.HAS_ARG, ({ "-r", "--rooms" }) }),
 		({ "bind", Getopt.HAS_ARG, ({ "-b", "--bind" }) }),
+		({ "psyc_bind", Getopt.HAS_ARG, ({ "--psyc-bind" }) }),
+		({ "http_bind", Getopt.HAS_ARG, ({ "--http-bind" }) }),
+		({ "hilfe", Getopt.NO_ARG, ({ "--hilfe" }) }),
+		({ "help", Getopt.NO_ARG, ({ "-h" }) }),
 					   }), 1); }) {
 		werror("error: %O\n", err);
 		print_help();
@@ -96,26 +109,23 @@ int main(int argc, array(string) argv) {
 		options[t[0]] = t[1];
 	}
 
-	string bind;
-
-	switch (has_index(options, "bind") | has_index(options, "domain") << 1) {
-	case 3:
-		bind = options["bind"];
-		domain = options["domain"];
-		break;
-	case 2:
-		bind = domain = options["domain"];
-		break;
-	case 1:
-		bind = domain = options["bind"];
-		break;
-	default:
-		werror("You have to specify either domain or bind address.\n");
-		print_help();
-		_exit(1);
+	if (options->help) {
+	    print_help();
+	    exit(0);
 	}
 
-	int port = (int)options["port"] || 80;
+	string http_bind = options->http_bind || options->bind;
+	string psyc_bind = options->psyc_bind || options->bind;
+	int psyc_port, http_port;
+
+	if (!stringp(http_bind) || 1 == sscanf(http_bind, "%[^:]:%d", http_bind, http_port)) http_port = 80;
+	if (!stringp(psyc_bind) || 1 == sscanf(psyc_bind, "%[^:]:%d", psyc_bind, psyc_port)) psyc_port = MMP.DEFAULT_PORT;
+
+	if (!http_bind && !psyc_bind) {
+	    werror("You have to specify a psyc or a http address to bind.\n");
+	    print_help();
+	    exit(1);
+	}
 
 	mixed err = catch {
 	    array(int) nofile = System.getrlimit("nofile");
@@ -124,11 +134,27 @@ int main(int argc, array(string) argv) {
 	    }
 	};
 
-	http_server = Protocols.HTTP.Server.Port(handle_request, port, bind);
-	http_server->request_program = HTTPRequest;
-	werror("Started HTTP server: http://%s:%d/\n", bind, port);
+	if (http_bind) {
+	    werror("Starting HTTP server on %s:%d\n", http_bind, http_port);
+	    http_server = Protocols.HTTP.Server.Port(handle_request, http_port, http_bind);
+	    http_server->request_program = HTTPRequest;
+	}
 
-	server = Yakity.Server(Serialization.TypeCache());
+	mapping m = ([]);
+
+	if (psyc_bind) m->bind = sprintf("%s:%d", psyc_bind, psyc_port);
+
+	if (options->domain) {
+	    string domain;
+	    int port;
+
+	    if (1 == sscanf(options->domain, "%[^:]:%d", domain, port)) port = MMP.DEFAULT_PORT;
+	    if (domain != psyc_bind || port != psyc_port) m->vhosts = ({ sprintf("%s:%d", domain, port) });
+	} else domain = psyc_bind || http_bind;
+
+	if (psyc_bind) werror("Starting WZTZ server on %s:%d\n", psyc_bind, psyc_port);
+
+	server = MMP.Server(m);
 
 	if (has_index(options, "rooms")) {
 	    foreach (options["rooms"]/",";; string name) {
@@ -138,14 +164,13 @@ int main(int argc, array(string) argv) {
 		rooms[u] = r;
 		server->register_entity(u, r);
 	    }
+	    werror("Created Rooms:\t%s\n", (array(string))indices(rooms) * "\n\t\t\t" );
 	}
 
-	werror("Created %d Rooms:\t%s\n", sizeof(rooms), (array(string))indices(rooms) * "\n\t\t\t" );
 
 	root = Yakity.Root(server, to_uniform());
 	root->users = users;
 	root->rooms = rooms;
-	server->root = root;
 	server->register_entity(root->uniform, root);
 	werror("Ready for clients.\n");
 #if defined(TRACE) && !constant(get_profiling_info)
@@ -154,18 +179,24 @@ int main(int argc, array(string) argv) {
 #ifdef TRACE
 	signal(signum("SIGINT"), onexit);
 #endif
-	object stdin = Stdio.File();
-	stdin->assign(Stdio.stdin);
-	object stdout = Stdio.File();
-	stdout->assign(Stdio.stdout);
+	if (options->hilfe) {
+	    mapping variables = ([]);
+	    variables->broadcast = server->broadcast;
+	    variables->server = server;
+	    werror("Available variables are: %s\n", indices(variables) * ", ");
+	    object stdin = Stdio.File();
+	    stdin->assign(Stdio.stdin);
+	    object stdout = Stdio.File();
+	    stdout->assign(Stdio.stdout);
 
-	object hilfe = MMP.Utils.Hilfe(stdin, stdout);
-	hilfe->variables->broadcast = server->broadcast;
-	hilfe->variables->server = server;
+	    object hilfe = MMP.Utils.Hilfe(stdin, stdout);
+	    hilfe->variables += variables;
 #ifdef MEASURE_THROUGHPUT
-	hilfe->variables->do_it = do_it;
-	Meteor.measure_bytes(print, 1);
+	    hilfe->variables->do_it = do_it;
+	    Meteor.measure_bytes(print, 1);
 #endif
+	}
+
 	return -1;
 }
 
