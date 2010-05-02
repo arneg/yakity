@@ -1,0 +1,42 @@
+<html>
+    <head>
+	<script src="/ppp-js/Base.js" type="text/javascript"></script>
+	<script src="/ppp-js/util.js" type="text/javascript"></script>
+	<script src="/ppp-js/widget.js" type="text/javascript"></script>
+	<script type="text/javascript">
+	    function init() {
+		var b1 = new WIDGET.SimpleButton(document.getElementById("button1"), [ "hover", "clicked" ]);
+		var b2 = new WIDGET.SimpleButton(document.getElementById("button2"), [ "hover", "clicked" ]);
+		var c = new WIDGET.Cycle();
+		c.addButton(b1, 1);
+		c.addButton(b2, 2);
+
+		for (var i = 0; i < 20; i++) {
+		    var div = document.createElement("div");
+		    div.appendChild(document.createTextNode("Test: "+i));
+		    document.body.appendChild(div);
+		    c.addItem(new WIDGET.Base(div, [ "blur" ]));
+		}
+	    }
+	</script>
+	<style type="text/css">
+	    body {
+		background-color: #fed;
+	    }
+	    div.blur {
+		display: none;
+	    }
+	    div {
+		background-color: #ddd;
+		border: 1px solid #aaa;
+	    }
+	    div.hover {
+		background-color: #fff;
+	    }
+	</style>
+    </head>
+    <body onload="init();">
+	<div id=button1> plus one! </div>
+	<div id=button2> plut two! </div>
+    </body>
+</html>
