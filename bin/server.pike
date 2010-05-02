@@ -40,6 +40,16 @@ Possible options are:
 ");
 }
 
+void ERROR(mixed ... args) {
+    werror(@args);
+    print_help();
+    exit(1);
+}
+
+void WARN(mixed ... args) {
+    werror(@args);
+}
+
 class HTTPRequest {
 	inherit Protocols.HTTP.Server.Request;
 #ifdef TRACE_SOFT_MEMLEAKS
@@ -102,9 +112,7 @@ int main(int argc, array(string) argv) {
 		({ "hilfe", Getopt.NO_ARG, ({ "--hilfe" }) }),
 		({ "help", Getopt.NO_ARG, ({ "-h" }) }),
 					   }), 1); }) {
-		werror("error: %O\n", err);
-		print_help();
-		_exit(1);
+		ERROR("error: %O\n", err);
 	} else foreach (sort(opt);;array t) {
 		options[t[0]] = t[1];
 	}
@@ -114,23 +122,21 @@ int main(int argc, array(string) argv) {
 	    exit(0);
 	}
 
-	string http_bind = options->http_bind || options->bind;
-	string psyc_bind = options->psyc_bind || options->bind;
+	string http_bind = options->http_bind || options->bind || options->domain;
+	string psyc_bind = options->psyc_bind || options->bind || options->domain;
 	int psyc_port, http_port;
 
 	if (!stringp(http_bind) || 1 == sscanf(http_bind, "%[^:]:%d", http_bind, http_port)) http_port = 80;
 	if (!stringp(psyc_bind) || 1 == sscanf(psyc_bind, "%[^:]:%d", psyc_bind, psyc_port)) psyc_port = MMP.DEFAULT_PORT;
 
 	if (!http_bind && !psyc_bind) {
-	    werror("You have to specify a psyc or a http address to bind.\n");
-	    print_help();
-	    exit(1);
+	    ERROR("You have to specify a psyc or a http address to bind.\n");
 	}
 
 	mixed err = catch {
 	    array(int) nofile = System.getrlimit("nofile");
 	    if (arrayp(nofile) && sizeof(nofile) == 2 && nofile[1] > -1 && nofile[1] < 10000) {
-		werror("Warning: The number of file descriptors is limited to %d. This will limit the amount of users you can serve.\n", nofile[1]);
+		WARN("Warning: The number of file descriptors is limited to %d. This will limit the amount of users you can serve.\n", nofile[1]);
 	    }
 	};
 
@@ -145,12 +151,15 @@ int main(int argc, array(string) argv) {
 	if (psyc_bind) m->bind = sprintf("%s:%d", psyc_bind, psyc_port);
 
 	if (options->domain) {
-	    string domain;
 	    int port;
 
-	    if (1 == sscanf(options->domain, "%[^:]:%d", domain, port)) port = MMP.DEFAULT_PORT;
+	    switch (sscanf(options->domain, "%1[^:]:%d", domain, port)) {
+	    case 0: ERROR("Malformed domain '%s'. Expected <host>[:<port>]\n", options->domain);
+	    case 1: port = MMP.DEFAULT_PORT; break;
+	    }
 	    if (domain != psyc_bind || port != psyc_port) m->vhosts = ({ sprintf("%s:%d", domain, port) });
 	} else domain = psyc_bind || http_bind;
+	werror("Using domain %s\n", domain||options->domain);
 
 	if (psyc_bind) werror("Starting WZTZ server on %s:%d\n", psyc_bind, psyc_port);
 
@@ -174,7 +183,7 @@ int main(int argc, array(string) argv) {
 	server->register_entity(root->uniform, root);
 	werror("Ready for clients.\n");
 #if defined(TRACE) && !constant(get_profiling_info)
-	werror("Warning: TRACE can only be used if pike has been compile --with-profiling.\n");
+	WARN("Warning: TRACE can only be used if pike has been compile --with-profiling.\n");
 #endif
 #ifdef TRACE
 	signal(signum("SIGINT"), onexit);
@@ -291,10 +300,6 @@ string index;
 int ctime;
 
 void handle_request(Protocols.HTTP.Server.Request r) {
-#if defined(HTTP_TRACE)
-	int parsing_time = gethrvtime(1) - r->parsing_start;
-	werror("parsing time for HTTP request: %O ms\n", parsing_time*1E-6);
-#endif
 	string f = basename(r->not_query);
 	mapping id = ([
 		"request_headers" : r->request_headers,
