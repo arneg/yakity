@@ -916,3 +916,33 @@ Yakity.HtmlTemplate = function(html) {
 		return div;
 	});
 };
+Yakity.UI = {};
+Yakity.UI.TextInput = WIDGET.Base.extend({
+	constructor : function(node, buttons) {
+		var actions = {};
+		this.typing_callout = 0;	
+		this.lastinput = "";
+
+		if (buttons.submit) buttons.registerEvent("click", UTIL.make_method(this, function() {
+			var t = this.node.value;
+			this.node.value = "";
+			this.submit(t);
+		});
+		actions.keyup = UTIL.make_method(this, function(t, ev) {
+			if (this.node.value != this.lastinput) {
+				this.lastinput = this.node.value;
+				this.typing(ev.keyCode);
+			}
+		});
+		actions.mouseup = UTIL.make_method(this, function(t, ev) {
+			if (this.node.value != this.lastinput) {
+				this.lastinput = this.node.value;
+				this.typing(ev.which);
+			}
+		});
+		this.base(node, {}, actions);
+	}, 
+	// dummies if not overloaded.
+	typing : function(key) { },
+	submit : function(text) { }
+});
