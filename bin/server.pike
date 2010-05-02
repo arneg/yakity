@@ -153,8 +153,8 @@ int main(int argc, array(string) argv) {
 	if (options->domain) {
 	    int port;
 
-	    switch (sscanf(options->domain, "%1[^:]:%d", domain, port)) {
-	    case 0: ERROR("Malformed domain '%s'. Expected <host>[:<port>]\n", options->domain);
+	    switch (sscanf(options->domain, "%[^:]:%d", domain, port)) {
+	    case 0: if (!sizeof(domain)) ERROR("Malformed domain '%s'. Expected <host>[:<port>]\n", options->domain);
 	    case 1: port = MMP.DEFAULT_PORT; break;
 	    }
 	    if (domain != psyc_bind || port != psyc_port) m->vhosts = ({ sprintf("%s:%d", domain, port) });
