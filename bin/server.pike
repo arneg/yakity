@@ -12,18 +12,8 @@ mixed configuration;
 object server;
 object http_server;
 object root;
-string domain;
 mapping(MMP.Uniform:object) users = ([]);
 mapping(MMP.Uniform:object) rooms = ([]);
-
-MMP.Uniform to_uniform(void|int type, void|string name) {
-	if (type && name) {
-		name = Standards.IDNA.to_ascii(name);
-		return server->get_uniform(sprintf("psyc://%s/%c%s", domain, type, name));
-	} else {
-		return server->get_uniform(sprintf("psyc://%s", domain));
-	}
-}
 
 void print_help() {
 werror(#"Usage: pike -M lib bin/server.pike [OPTIONS]\n
@@ -147,6 +137,7 @@ int main(int argc, array(string) argv) {
 	}
 
 	mapping m = ([]);
+	string domain;
 
 	if (psyc_bind) m->bind = sprintf("%s:%d", psyc_bind, psyc_port);
 
@@ -168,7 +159,7 @@ int main(int argc, array(string) argv) {
 	if (has_index(options, "rooms")) {
 	    foreach (options["rooms"]/",";; string name) {
 		name = String.trim_all_whites(name);
-		MMP.Uniform u = to_uniform('@', name);
+		MMP.Uniform u = server->to_uniform('@', name);
 		object r = Yakity.Room(server, u, name);
 		rooms[u] = r;
 		server->register_entity(u, r);
@@ -177,7 +168,7 @@ int main(int argc, array(string) argv) {
 	}
 
 
-	root = Yakity.Root(server, to_uniform());
+	root = Yakity.Root(server, server->to_uniform());
 	root->users = users;
 	root->rooms = rooms;
 	server->register_entity(root->uniform, root);
@@ -240,7 +231,7 @@ object get_user(mixed id) {
 
 	//werror("get_user %O\n", id);
 
-	uniform = to_uniform('~', name);
+	uniform = server->to_uniform('~', name);
 
 	if (has_index(users, uniform)) return 0;
 
@@ -387,19 +378,16 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 			return;
 		}
 
-		object user = get_user(id);
-
-		if (!user) {
-			werror("404 with love!\n");
-			answer(r, 404, sprintf("The username %s is already in use.", id->variables["nick"]));
-			return;
-		}
-
+		MMP.Uniform uniform = server->get_temporary();
 		session = get_new_session();
 
-		user->add_session(session);
+		object temp = PSYC.Proxy(server, uniform, session);
+		server->register_entity(uniform, temp);
+
+		string response = sprintf("_id %s_uniform %s", Serialization.Atom("_string", session->client_id)->render(), Serialization.Atom("_string", (string)uniform)->render());
+
 		r->response_and_finish(([
-			"data" : session->client_id, 
+			"data" : Serialization.Atom("_vars", response)->render(), 
 			"type" : "text/atom",
 			"error" : 200,
 			"extra_heads" : ([
