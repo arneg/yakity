@@ -15,87 +15,36 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-/**
- * Set this to a mapping of templates that should be used automatically when displaying messages inside Chat tabs. PSYC method inheritance is used when accessing the templates. Hence a template for "_message" will also be used for "_message_public" if there is no template for it. Therefore setting a template for "_" effectively sets a default template for all methods.
- * @type mmp#Vars
- * @name psyc.templates
- * @field
- * @example
- * psyc.templates = new Vars("_message_public", 
- * "[_source_relay] says in [_source]: [data]", 
- * "_", "[_source] sends [method]: [data]");
- */
-psyc = {
-	STOP : 1,
-	GOON : 0	
-};
 Yakity = {};
-/**
- * PSYC message class.
- * @constructor
- * @param {String} method PSYC method
- * @param {mmp#Vars} vars variables
- * @param {String} data Payload
- * @property {String} method PSYC method
- * @property {mmp#Vars} vars variables
- * @property {String} data Payload
- */
-Yakity.Message = mmp.Packet.extend({
-	constructor : function(method, data, vars) {
-		this.method = method;
-		this.base(data||"", vars||{});
-		// TODO: this is a hack
-		this.vars.remove("_timestamp");
-	},
-	toString : function() {
-		var ret = "Yakity.Message("+this.method+", ([ ";
-		ret += this.vars.toString();
-		ret += "]))";
-		return ret;
-	},
-	isMethod : function(method) {
-		return this.method.indexOf(method) == 0;
-	}
-});
-Yakity.default_polymorphic = function() {
-	var pol = new serialization.Polymorphic();
-	var method = new serialization.Method();
-	// integer and string come first because they should not get overwritten by 
-	// method and float
-	pol.register_type("_string", "string", new serialization.String());
-	pol.register_type("_integer", "number", new serialization.Integer());
-	pol.register_type("_float", "float", new serialization.Float());
-	pol.register_type("_method", "string", method);
-	//pol.register_type("_message", Yakity.Message, new serialization.Message(method, pol, pol));
-	pol.register_type("_mapping", Mapping, new serialization.Mapping(pol, pol));
-	pol.register_type("_list", Array, new serialization.Array(pol));
-	pol.register_type("_time", mmp.Date, new serialization.Date());
-	pol.register_type("_uniform", mmp.Uniform, new serialization.Uniform());
-	return pol;
-}
 /**
  * Holds a Meteor connection and uses it to send and receive Atoms.
  * @constructor
  * @params {String} url Meteor endpoint urls.
  */
-Yakity.Client = Base.extend({
+Yakity.Client = psyc.Base.extend({
 	constructor : function(url, name) {
-	    this.callbacks = new Mapping();
-	    var self = this;
-	    var errorcb = function(error) {
-		    if (!self.uniform) { // we are not connected yet.
-			    if (self.onconnect) self.onconnect(0, error);
+	    this.base({ 
+		msg : UTIL.make_method(this, function(p) {
+			this.connection.send(this.packet_signature.encode(p).render());	
+		})
+	    }, 0);
+	    var errorcb = UTIL.make_method(this, function(error) {
+		    if (!this.uniform) { // we are not connected yet.
+			    if (this.onconnect) this.onconnect(0, error);
 		    }
 
 		    if (meteor.debug) meteor.debug(error);
-	    };
+	    });
 	    this.connection = new meteor.Connection(url, { nick : name }, UTIL.make_method(this, this.incoming), errorcb);
 	    this.connection.init();
-	    var poly = Yakity.default_polymorphic();
-	    this.msig = new serialization.Message(new serialization.Vars({ _ : poly }), new serialization.String());
-	    this.psig = new serialization.Packet(this.msig);
+	    this.connection.onconnect = UTIL.make_method(this, function(v) {
+		this.uniform = mmp.get_uniform(v._uniform);
+		if (!this.uniform) {
+			throw("no _uniform in initialization mapping from server.");
+		}
+	    });
+	    this.packet_signature = new serialization.Packet(new serialization.Any());
 	    this.parser = new serialization.AtomParser();
-	    this.icount = 0;
 	    this.name = name;
 	},
     	abort : function() {
@@ -110,23 +59,6 @@ Yakity.Client = Base.extend({
 	toString : function() {
 		return "Yakity.Client("+this.connection.url+")";
 	},
-	/**
-	 * Register for certain incoming messages. This can be used to implement chat tabs or handlers for certain message types.
-	 * @params {Object} params Object containing the properties "method", "callback" and optionally "source". For all incoming messages matching "method" and "source" the callback is called. The "source" property should be of type mmp.Uniform.
-	 * @returns A wrapper object of type meteor.CallbackWrapper. It can be used to unregister the handler.
-	 */
-	register_method : function(params) {
-		var wrapper = new meteor.CallbackWrapper(params, this.callbacks);
-		
-		if (this.callbacks.hasIndex(params.method)) {
-			var list = this.callbacks.get(params.method);
-			list.push(wrapper);
-		} else {
-			this.callbacks.set(params.method, new Array( wrapper ) );
-		}
-
-		return wrapper;
-	},
 	logout : function() {
 		if (this.uniform) {
 		    // not connected yet.
@@ -140,61 +72,22 @@ Yakity.Client = Base.extend({
 		this.connection.close();
 		delete this.connection;
 	},
- 	sendmsg : function(target, method, data, vars) {
-		var m = new Yakity.Message(method, data, vars);
-		var p = new mmp.Packet(m, { _target : target, _source : this.uniform });
-		this.send(p);
-	},
-	/**
-	 * Send a packet. This should be of type Yakity.Message.
-	 * @params {Object} packet Message to send.
-	 */
-	send : function(p) {
-		if (!p.V("_target")) throw("Message without _target is baaad!");
-		if (!p.V("_source")) p.source(this.uniform);
-
-		try {
-			this.connection.send(this.psig.encode(p).render());
-		} catch (error) {
-			if (meteor.debug) {
-				if (UTIL.objectp(error)) {
-					var str = "";
-					for (var i in error) {
-						str += i+" "+error[i]+"\n";
-					}
-					meteor.debug("send() failed: "+str);
-				} else meteor.debug("send() failed: "+error);
-			}
-			return;
-		}
-	},
-	/**
-	 * Request all messages up to id count from the PSYC user. This is done automatically if missing messages are detected during handshake with the user.
-	 * @params {Integer} count Message to send.
-	 */
-	sync : function(count) {
-		var list = new Array(count - this.icount);
-		for (var i = 0; this.icount+i+1 <= count; i++) {
-			list[i] = this.icount+i+1;
-		}
-		this.sendmsg(this.uniform, "_request_history", 0, { _messages : list });
-	},
 	_notice_logout : function (m) {
 		this.client.reconnect = 0;	
 	},
 	incoming : function (data) {
-		var self, method, count, p, m, wrapper, i, last_id;
-		var source, target, context;
+		var p, wrapper, i, last_id;
+		var source, target;
 
 		meteor.debug(data.length+" bytes of incoming data.");
 
 		if (this.keepalive) {
 			window.clearTimeout(this.keepalive);
 		}
-		self = this;
-		wrapper = function() {
-			self.connection.reconnect_incoming();
-		};
+
+		wrapper = UTIL.make_method(this, function() {
+			this.connection.reconnect_incoming();
+		});
 		this.keepalive = window.setTimeout(wrapper, 45*1000);
 
 		try {
@@ -202,87 +95,37 @@ Yakity.Client = Base.extend({
 		} catch (error) {
 			if (meteor.debug) meteor.debug("failed to parse: "+data+"\nERROR: "+error);
 		}
-MESSAGES: for (i = 0; i < data.length; i++) {
+
+		MESSAGES: for (i = 0; i < data.length; i++) {
 			if (data[i].type == "_keepalive") {
 				// dont try to decode the keepalive packet
 				continue MESSAGES;
 			}
 			try {
-				p = this.psig.decode(data[i]);
+				p = this.packet_signature.decode(data[i]);
 			} catch (error) {
 				if (meteor.debug) meteor.debug("failed to decode: "+data[i]+"\nERROR: "+error);
 				continue;
 			}
-			if (p instanceof mmp.Packet && (m = p.data) instanceof Yakity.Message) {
-				method = m.method;
+			if (p instanceof mmp.Packet) {
 				if (meteor.debug) meteor.debug("incoming: %o", p);
-				count = p.v("_id");	
-				target = p.target();
-				source = p.source();
-				context = p.v("_context");
 
-				if (method == "_status_circuit") {
-					last_id = m.v("_last_id");
-					this.uniform = source;
+				var target = p.target();
+				var source = p.source();
 
-					if (UTIL.intp(last_id) && this.icount < last_id) {
-						this.sync(last_id);
-						this.icount = count;
-					}
-					if (this.onconnect) {
-						this.onconnect(1, this);
-					}
-				} else if (!context) {
-					if (target != this.uniform) {
+				if (!p.V("_context")) {
+					if (!this.uniform && target != this.uniform) {
 						if (meteor.debug) meteor.debug("received message for "+target+", not for us!");
 						continue;
-					} else if (!source) {
+					}
+
+					if (!source) {
 						if (meteor.debug) meteor.debug("received message without source.\n");
 						continue;
 					}
 				}
 				
-				if (UTIL.intp(count)) {
-					if (this.icount+1 < count) {
-						// request all up to count-1
-						this.sync(count-1);
-
-					} else if (this.icount == count - 1) {
-						this.icount = count;
-					}
-				}
-
-				var none = 1;
-
-				for (var t = method; t; t = mmp.abbrev(t)) {
-					if (this.hasOwnProperty(t) && UTIL.functionp(this[t])) {
-						this[t].call(this, m);
-					}
-					if (!this.callbacks.hasIndex(t)) continue;
-
-					none = 0;
-					var list = this.callbacks.get(t);
-					var stop = 0;
-
-					for (var j = 0; j < list.length; j++) {
-						try {
-							if (psyc.STOP == list[j].msg(p, m)) {
-								stop = 1;
-							}
-						} catch (error) {
-							if (meteor.debug) meteor.debug(error);
-						}
-					}
-
-					// we do this to stop only after all callbacks on the same level have been handled.
-					if (stop) {
-						continue MESSAGES;
-					}
-				}
-
-				if (meteor.debug && none) meteor.debug("No callback registered for "+method);
-			} else {
-				if (meteor.debug) meteor.debug("Got non _message atom from "+connection.toString());
+				this.msg(p);
 			}
 		}
 	}
@@ -441,19 +284,17 @@ Yakity.funky_text = function(p, templates) {
 	return div;
 };
 Yakity.Base = Base.extend({
-	constructor : function() {
+	constructor : function(client) {
 		this.plugins = [];
 		this.events = new HigherDMapping();
+		this.sendmsg = client.sendmsg;
+		this.send = client.send;
 	},
 	msg : function (p, m) {
 		var method = m.method;
 		var none = 1;
 
-		if (method.search("_") != 0) {
-			if (meteor.debug) meteor.debug("Bad method "+method);
-			return psyc.STOP;
-		}
-
+		// same is happening
 		for (var t = method; t; t = mmp.abbrev(t)) {
 			if (UTIL.functionp(this[t])) {
 				none = 0;
@@ -476,9 +317,6 @@ Yakity.Base = Base.extend({
 		}
 
 		return psyc.GOON;
-	},
-	sendmsg : function(target, method, data, vars) {
-		this.client.sendmsg(target, method, data, vars);
 	},
 	register_plugin : function(o) {
 		this.plugins.push(o);
@@ -927,7 +765,7 @@ Yakity.UI.TextInput = WIDGET.Base.extend({
 			var t = this.node.value;
 			this.node.value = "";
 			this.submit(t);
-		});
+		}));
 		actions.keyup = UTIL.make_method(this, function(t, ev) {
 			if (this.node.value != this.lastinput) {
 				this.lastinput = this.node.value;
