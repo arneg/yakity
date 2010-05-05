@@ -755,7 +755,7 @@ Yakity.HtmlTemplate = function(html) {
 	});
 };
 Yakity.UI = {};
-Yakity.UI.TextInput = WIDGET.Base.extend({
+Yakity.UI.TextInput = Widget.Base.extend({
 	constructor : function(node, buttons) {
 		var actions = {};
 		this.typing_callout = 0;	
