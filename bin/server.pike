@@ -256,7 +256,7 @@ string ext2type(string ext) {
 	case "js":
 	    return "application/javascript";
 	case "css":
-	    return "text/stylesheet";
+	    return "text/css";
 	case "ico":
 	    return "image/vnd.microsoft.icon";
 	case "wav":
