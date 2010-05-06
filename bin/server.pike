@@ -153,6 +153,7 @@ int main(int argc, array(string) argv) {
 	werror("Using domain %s\n", domain||options->domain);
 
 	if (psyc_bind) werror("Starting WZTZ server on %s:%d\n", psyc_bind, psyc_port);
+	m->get_new = get_user;
 
 	server = MMP.Server(m);
 
@@ -224,19 +225,14 @@ void logout_callback(object o) {
 };
 
 
-object get_user(mixed id) {
-	MMP.Uniform uniform;
+object get_user(MMP.Uniform uniform) {
 	object o;
-	string name = id->variables["nick"];
-
-	//werror("get_user %O\n", id);
-
-	uniform = server->to_uniform('~', name);
-
-	if (has_index(users, uniform)) return 0;
+	string name = uniform->resource;
+	if (name[0] != '~') return 0;
+	name = name[1..];
 
 	object user = Guest(name);
-	server->register_entity(uniform, o = Yakity.User(server, uniform, user, logout_callback));
+	o = Yakity.User(server, uniform, user, logout_callback);
 	users[uniform] = o;
 
 	return o;
@@ -366,6 +362,7 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	}
 
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
+#if 0
 		string name = id->variables["nick"];
 
 		if (!stringp(name) || !sizeof(name)) {
@@ -377,6 +374,7 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 			answer(r, 404, "C'mon, that nickname is too long.");
 			return;
 		}
+#endif
 
 		MMP.Uniform uniform = server->get_temporary();
 		session = get_new_session();
