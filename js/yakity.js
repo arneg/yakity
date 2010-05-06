@@ -39,6 +39,7 @@ Yakity.Client = psyc.Base.extend({
 	    this.connection.init();
 	    this.connection.onconnect = UTIL.make_method(this, function(v) {
 			this.uniform = mmp.get_uniform(v._uniform);
+			this.default_vars.set("_source", this.uniform);
 			if (!this.uniform) {
 				throw("no _uniform in initialization mapping from server.");
 			}
@@ -56,6 +57,15 @@ Yakity.Client = psyc.Base.extend({
 		if (this.incoming) {
 		    delete this.incoming;
 		}
+	},
+	_notice_link : function(p, m) {
+		this.default_vars.set("_source_identification", p.source());
+		this.trigger("link", 1, p.source());
+	},
+	link : function(name) {
+		// use tagging here. we want to allow delegation but also avoid bad stuff
+		var target = this.uniform.get_object("~"+name);
+		this.sendmsg(target, "_request_link");
 	},
 	toString : function() {
 		return "Yakity.Client("+this.connection.url+")";
