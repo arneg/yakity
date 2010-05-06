@@ -3,6 +3,10 @@ body {
 	margin: 5px 5px 5px 5px;
 	background-color: #007fc2;
 }
+
+.hidden {
+	display: none;
+}
 			
 
 div.header a {
@@ -306,19 +310,6 @@ div#inputChats {
 	padding-left: 5px;
 }
 			
-#container {
-	min-width: 450px;
-	max-width: 780px;
-	position: relative;
-	margin: 0px auto 0px auto;
-	background: #fff;
-	border: 2px solid #555;
-	-moz-border-radius-topleft: 10px;
-	-webkit-border-top-left-radius: 10px;
-	border-top-left-radius: 10px;
-	white-space: nowrap;
-}
-
 #leftPane {
 	background-image: url(images/yakitychat_icon.png);
 	background-repeat: no-repeat;
@@ -401,16 +392,31 @@ div.userList * a {
 					
 }
 
-			
-#link {
+.window {
+	background: #fff;
+	border: 2px solid #555;
 	position: relative;
+}
+
+#container {
+	min-width: 450px;
+	max-width: 780px;
+	margin: 0px auto 0px auto;
+	-moz-border-radius-topleft: 10px;
+	-webkit-border-top-left-radius: 10px;
+	border-top-left-radius: 10px;
+	white-space: nowrap;
+}
+
+#content {
+	margin-top: 100px;
+}
+			
+#link,#connect {
 	width: 400px;
 	padding: 10px;
 	margin-left: auto;
 	margin-right: auto;
-	margin-top: 100px;
-	background: #fff;
-	border: 2px solid #555;
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
 	border-radius: 10px;
@@ -439,8 +445,8 @@ input.inputSubmit {
 	background-position: left 0px;
 }
 
-.terms {
-		margin-top: 10px;
+#terms {
+	margin-top: 10px;
 	font-size: 6.5pt;
 	text-align: center;
 	font-family: 'Andale Mono', FreeSans, sans-serif;
