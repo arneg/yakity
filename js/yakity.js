@@ -523,7 +523,7 @@ Yakity.Chat = Base.extend({
 });
 Yakity.ProfileData = Yakity.Base.extend({
 	constructor : function(client) {
-		this.base();
+		this.base(client);
 		this.client = client;
 		this.cache = new Mapping();
 		this.requests = new Mapping();
@@ -622,7 +622,7 @@ Yakity.ProfileData = Yakity.Base.extend({
 });
 Yakity.UserList = Yakity.Base.extend({
 	constructor : function(client, profiles) {
-		this.base();
+		this.base(client);
 		this.client = client;
 		this.profiles = profiles;
 		client.register_method({ method : "_update_users", source : this.client.uniform.root(), object : this });
@@ -668,7 +668,7 @@ Yakity.UserList = Yakity.Base.extend({
 Yakity.Presence = {};
 Yakity.Presence.Typing = Yakity.Base.extend({
 	constructor : function(client, chat) {
-		this.base();
+		this.base(client);
 		this.client = client;
 		this.chat = chat;
 		this.ids = new Mapping();
