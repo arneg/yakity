@@ -36,12 +36,13 @@ void castmsg(string mc, string data, mapping vars) {
 // TODO: We want to use a real psyc multicast here, but we dont have stuff properly
 // 	 set up. This will go when PPP is integrated.
 void groupcast(PSYC.Message|Serialization.Atom m, void|MMP.Uniform relay) {
+	mapping vars = relay ? ([ "_source_relay" : relay ]) : 0;
 	if (object_program(m) == PSYC.Message) {
 		m = message_signature->encode(m);
 	}
 
 	foreach (members; MMP.Uniform t;) {
-	    	send(t, m, relay);	
+	    	send(t, m, vars);
 	}
 }
 
@@ -75,7 +76,7 @@ int _request_history(MMP.Packet p) {
 	}
 
 	foreach (history;;MMP.Packet p) {
-	    	send(source, p->data, p->source());	
+	    	send(source, p->data, ([ "_source_relay" : p->source() ]));
 	}
 
 	return PSYC.STOP;
