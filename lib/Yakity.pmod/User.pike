@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 inherit PSYC.Base;
 
-array(object) sessions = ({});
 mixed user;
 function logout_cb; // logout callback
 object mmp_signature;
@@ -41,18 +40,22 @@ void implicit_logout() {
 
 }
 
-void add_session(object session) {
-	sessions += ({ session });
-	session->cb = incoming;
-	session->error_cb = session_error;
-
-	object m = PSYC.Message("_status_circuit", "Welcome on board.");
-	MMP.Packet p = MMP.Packet(message_signature->encode(m), ([ "_source" : uniform ]));
-	session->send(mmp_signature->encode(p));
+void add_client(MMP.Uniform client) {
+	clients[client] = 1;
 
 	if (find_call_out(implicit_logout) != -1) {
 		remove_call_out(implicit_logout);
 	}
+}
+
+void remove_client(MMP.Uniform uniform) {
+	m_delete(clients, uniform);
+
+	if (!sizeof(clients)) call_out(implicit_logout, 3);
+}
+
+int(0..1) is_client(MMP.Uniform uniform) {
+	return has_index(clients, uniform);
 }
 
 void logout() {
@@ -60,16 +63,29 @@ void logout() {
 	call_out(logout_cb, 0, this);
 }
 
-void session_error(object session, string err) {
-	sessions -= ({ session });
-	session->error_cb = 0;
-	session->cb = 0;
+void send_to_clients(MMP.Packet p) {
+	foreach (clients; MMP.Uniform client;) {
+		mapping vars = p->vars + ([
+			"_source_relay" : p->source(),
+			"_target" : client,
+			"_source" : uniform
+		]);
+		MMP.Packet new = MMP.Packet(p->data, vars);
+		server->msg(new);
+	}
+}
 
-	if (!sizeof(sessions)) {
-		if (-1 == find_call_out(implicit_logout)) call_out(implicit_logout, 0);
+int _request_link(MMP.Packet p, PSYC.Message m, function callback) {
+	// we have only newbie based linking
+	if (!sizeof(clients)) {
+		add_client(p->source());
 	}
 
-	werror("ERROR: %O %s\n", session, err);
+	sendreplymsg(p, "_notice_link");
+}
+
+int _request_unlink(MMP.Packet p, PSYC.Message m, function callback) {
+	remove_client(p->source());
 }
 
 int _request_logout(MMP.Packet p) {
@@ -81,13 +97,13 @@ int _request_logout(MMP.Packet p) {
 	return Yakity.STOP;
 }
 
-int _message_private(MMP.Packet p) {
+int _message_private(MMP.Packet p, PSYC.Message m, function callback) {
 	MMP.Uniform source = p->source();
 
 	// It might be smart to have some kind of smarter detection here.
 	// this might go really wrong if people send bad replies
 	if (source && source != uniform && p->vars["_source_relay"] != uniform) {
-		send(source, p->data, source);
+		sendreply(source, p->data, ([ "_source_relay" : source ]));
 	}
 
 	return PSYC.GOON;
@@ -97,59 +113,26 @@ mapping get_profile() {
 	return ([ "_name_display" : user->real_name ]);
 }
 
-int _request_profile(MMP.Packet p) {
+int _request_profile(MMP.Packet p, PSYC.Message m, function callback) {
 	MMP.Uniform source = p->source();
 
 	if (source) {
-		sendmsg(source, "_update_profile", 0, ([ "_profile" : get_profile() ]));
+		sendreplymsg(p, "_update_profile", 0, ([ "_profile" : get_profile() ]));
 	}
 
 	return PSYC.STOP;
-}
-
-void incoming(object session, Serialization.Atom atom) {
-	MMP.Packet p = mmp_signature->decode(atom);
-
-	//werror("%s->incoming(%O, %O)\n", this, session, m);
-	p->vars["_source"] = uniform;
-
-	if (p->target() == uniform) {
-		p->misc["session"] = session;
-		if (Yakity.STOP == ::msg(p)) {
-			return;
-		}
-	} else send(p->target(), p->data);
 }
 
 int msg(MMP.Packet p) {
 
 	if (::msg(p) == PSYC.STOP) return PSYC.STOP;
 
-	string|MMP.Utils.Cloak atom;
-
-	mixed err = catch {
-		if (has_index(p->vars, "_context")) {
-			mmp_signature->encode(p);
-		}
-
-	    	atom = mmp_signature->render(p);
-	};
-
-	if (err) {
-		werror("Failed to encode %O: %s\n", p, describe_error(err));
-		return Yakity.STOP;
-	}
-	werror("SENDING: %O\n", atom->get());
-
-	foreach (sessions;; object s) { 
-	    //call_out(s->send, 0, atom);
-	    s->send(atom); 
-	}
+	send_to_clients(p);
 }
 
 string _sprintf(int type) {
 	if (type == 'O') {
-		return sprintf("User(%s, %O)", uniform, sessions);
+		return sprintf("User(%s, %O)", uniform, clients);
 	} else {
 		return sprintf("User(%s)", uniform);
 	}
