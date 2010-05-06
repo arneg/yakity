@@ -24,13 +24,13 @@ Yakity = {};
 Yakity.Client = psyc.Base.extend({
 	constructor : function(url, name) {
 	    this.base({ 
-		msg : UTIL.make_method(this, function(p) {
-			this.connection.send(this.packet_signature.encode(p).render());	
-		})
+			msg : UTIL.make_method(this, function(p) {
+				this.connection.send(this.packet_signature.encode(p).render());	
+			})
 	    }, 0);
 	    var errorcb = UTIL.make_method(this, function(error) {
 		    if (!this.uniform) { // we are not connected yet.
-			    if (this.onconnect) this.onconnect(0, error);
+				this.trigger("connect", 0, error);	
 		    }
 
 		    if (meteor.debug) meteor.debug(error);
@@ -38,16 +38,17 @@ Yakity.Client = psyc.Base.extend({
 	    this.connection = new meteor.Connection(url, { nick : name }, UTIL.make_method(this, this.incoming), errorcb);
 	    this.connection.init();
 	    this.connection.onconnect = UTIL.make_method(this, function(v) {
-		this.uniform = mmp.get_uniform(v._uniform);
-		if (!this.uniform) {
-			throw("no _uniform in initialization mapping from server.");
-		}
+			this.uniform = mmp.get_uniform(v._uniform);
+			if (!this.uniform) {
+				throw("no _uniform in initialization mapping from server.");
+			}
+			this.trigger("connect", 1);
 	    });
 	    this.packet_signature = new serialization.Packet(new serialization.Any());
 	    this.parser = new serialization.AtomParser();
 	    this.name = name;
 	},
-    	abort : function() {
+	abort : function() {
 		if (this.connection) {
 		    this.connection.close();
 		    delete this.connection;
@@ -283,10 +284,9 @@ Yakity.funky_text = function(p, templates) {
 
 	return div;
 };
-Yakity.Base = Base.extend({
+Yakity.Base = UTIL.EventSource.extend({
 	constructor : function(client) {
 		this.plugins = [];
-		this.events = new HigherDMapping();
 		this.sendmsg = client.sendmsg;
 		this.send = client.send;
 	},
@@ -327,25 +327,6 @@ Yakity.Base = Base.extend({
 				this.plugins.splice(i, 1);
 				return;
 			}
-		}
-	},
-	register_event : function(name, o, fun) {
-		return this.events.set(name, [o, fun]);	
-	},
-	unregister_event : function(id) {
-		return this.events.remove(id);
-	},
-	trigger : function(name) {
-		var list = this.events.get(name);
-		var arg;
-		if (arguments.length > 1) {
-		    arg = Array.prototype.slice.call(arguments, 1);
-		} else {
-		    arg = [];
-		}
-		
-		for (var i = 0; i < list.length; i++) {
-			list[i][1].apply(list[i][0], arg);
 		}
 	}
 });
