@@ -140,25 +140,6 @@ mixed find_file( string f, object id ) {
 	object session;
 
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
-#if 0
-		string name = id->variables["nick"];
-
-		if (!stringp(name) || !sizeof(name)) {
-			return Roxen.http_low_answer(404, "You need to enter a nickname.");
-		}
-
-		if (sizeof(name) > 30) {
-			return Roxen.http_low_answer(404, "C'mon, that nickname is too long.");
-		}
-
-		object user = get_user(id);
-
-		if (!user) {
-			werror("404 with love!\n");
-			return Roxen.http_low_answer(404, sprintf("The username %s is already in use.", id->variables["nick"]));
-		}
-#endif
-
 		MMP.Uniform uniform = server->get_temporary();
 		session = get_new_session();
 
@@ -167,7 +148,7 @@ mixed find_file( string f, object id ) {
 
 		string response = sprintf("_id %s_uniform %s", Serialization.Atom("_string", session->client_id)->render(), Serialization.Atom("_string", (string)uniform)->render());
 
-		return Roxen.http_string_answer(response, "text/atom");
+		return Roxen.http_string_answer(Serialization.Atom("_vars", response)->render(), "text/atom");
 	}
 
 
