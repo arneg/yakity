@@ -58,14 +58,18 @@ Yakity.Client = psyc.Base.extend({
 		    delete this.incoming;
 		}
 	},
-	_notice_link : function(p, m) {
-		this.default_vars.set("_source_identification", p.source());
-		this.trigger("link", 1, p.source());
-	},
 	link : function(name) {
 		// use tagging here. we want to allow delegation but also avoid bad stuff
 		var target = this.uniform.get_object("~"+name);
-		this.sendmsg(target, "_request_link");
+		this.sendmsg(target, "_request_link", 0, 0, UTIL.make_method(this, function(p, m) {
+			if (m.method == "_notice_link") {
+				this.default_vars.set("_source_identification", p.source());
+				this.user = p.source();
+				this.trigger("link", 1, p.source());
+			} else {
+				this.trigger("link", 0, p.source());
+			}
+		}));
 	},
 	toString : function() {
 		return "Yakity.Client("+this.connection.url+")";
@@ -89,8 +93,6 @@ Yakity.Client = psyc.Base.extend({
 	incoming : function (data) {
 		var p, wrapper, i, last_id;
 		var source, target;
-
-		meteor.debug(data.length+" bytes of incoming data.");
 
 		if (this.keepalive) {
 			window.clearTimeout(this.keepalive);
@@ -119,7 +121,7 @@ Yakity.Client = psyc.Base.extend({
 				continue;
 			}
 			if (p instanceof mmp.Packet) {
-				if (meteor.debug) meteor.debug("incoming: %o", p);
+				//if (meteor.debug) meteor.debug("incoming: %o", p);
 
 				var target = p.target();
 				var source = p.source();
@@ -244,6 +246,8 @@ Yakity.funky_text = function(p, templates) {
 		}
 		var t;
 
+		if (s == "source") s = p.V("_source_relay") ? "_source_relay" : "_source";
+
 		if (s == "data") {
 			t = Yakity.linky_text(m.data);
 		} else if (s == "method") {
@@ -296,9 +300,10 @@ Yakity.funky_text = function(p, templates) {
 };
 Yakity.Base = UTIL.EventSource.extend({
 	constructor : function(client) {
+		this.base();
 		this.plugins = [];
-		this.sendmsg = client.sendmsg;
-		this.send = client.send;
+		this.sendmsg = UTIL.make_method(client, client.sendmsg);
+		this.send = UTIL.make_method(client, client.send);
 	},
 	msg : function (p, m) {
 		var method = m.method;
@@ -341,8 +346,8 @@ Yakity.Base = UTIL.EventSource.extend({
 	}
 });
 Yakity.ChatWindow = Yakity.Base.extend({
-	constructor : function(id) {
-		this.base();
+	constructor : function(client, id) {
+		this.base(client);
 		this.mlist = new Array();
 		this.mset = new Mapping();
 		this.messages = document.createElement("div");
@@ -379,8 +384,8 @@ Yakity.ChatWindow = Yakity.Base.extend({
 	}
 });
 Yakity.TemplatedWindow = Yakity.ChatWindow.extend({
-	constructor : function(templates, id) {
-		this.base(id);
+	constructor : function(client, templates, id) {
+		this.base(client, id);
 		if (templates) this.setTemplates(templates);
 	},
 	setTemplates : function(t) {
@@ -391,8 +396,8 @@ Yakity.TemplatedWindow = Yakity.ChatWindow.extend({
 	}
 });
 Yakity.RoomWindow = Yakity.TemplatedWindow.extend({
-	constructor : function(templates, id) {
-		this.base(templates, id);
+	constructor : function(client, templates, id) {
+		this.base(client, templates, id);
 		this.members = new TypedTable();
 		this.members.addColumn("members", "Members");
 		this.active = 0;
@@ -537,6 +542,7 @@ Yakity.ProfileData = Yakity.Base.extend({
 		this.profile = m;
 	},
 	getDisplayNode : function(uniform) {
+		// use the user as base here?
 		if (this.client.uniform.host != uniform.host) {
 			return document.createTextNode(uniform.toString());
 		}
@@ -550,15 +556,15 @@ Yakity.ProfileData = Yakity.Base.extend({
 
 		var cb = function(profile) {
 			var name = profile.get("_name_display");
-			node.parentNode.replaceChild(document.createTextNode(name), node);
+			if (node.parentNode) node.parentNode.replaceChild(document.createTextNode(name), node);
 		};
 
-		var self = this;
-		
-		var iefuck = function() {
-			self.getProfileData(uniform, cb);	
-		};
-		window.setTimeout(iefuck, 0);
+		var iefuck = UTIL.make_method(this, function() {
+			this.getProfileData(uniform, cb);	
+		});
+
+		this.getProfileData(uniform, cb);	
+		//window.setTimeout(iefuck, 0);
 		return node;
 	},
 	getProfileData : function(uniform, callback) {
@@ -588,6 +594,8 @@ Yakity.ProfileData = Yakity.Base.extend({
 			for (var i = 0; i < list.length; i++) {
 				list[i](profile);
 			}
+
+			this.requests.remove(source);
 		}
 
 		return psyc.STOP;
@@ -669,7 +677,6 @@ Yakity.Presence = {};
 Yakity.Presence.Typing = Yakity.Base.extend({
 	constructor : function(client, chat) {
 		this.base(client);
-		this.client = client;
 		this.chat = chat;
 		this.ids = new Mapping();
 	},
@@ -680,7 +687,7 @@ Yakity.Presence.Typing = Yakity.Base.extend({
 		if (this.ids.hasIndex(uniform)) {
 			window.clearTimeout(this.ids.get(uniform));
 		} else {
-			this.client.sendmsg(uniform, "_notice_presence_typing");
+			this.sendmsg(uniform, "_notice_presence_typing");
 		}
 		var self = this;
 		var cb = function() {
@@ -705,7 +712,7 @@ Yakity.Presence.Typing = Yakity.Base.extend({
 	idle_event : function(uniform) {
 		window.clearTimeout(this.inactive_id);
 		this.ids.remove(uniform);
-		this.client.sendmsg(uniform, "_notice_presence_idle");
+		this.sendmsg(uniform, "_notice_presence_idle");
 		return true;
 	}
 });
