@@ -142,29 +142,29 @@ var AccChat = Yakity.Chat.extend({
 		toggler.appendChild(infoicon);
 
 
-		if (uniform == this.client.uniform) {
-			win = new Yakity.TemplatedWindow(this.templates, uniform);
+		if (uniform == this.client.uniform || uniform == this.client.user) {
+			win = new Yakity.TemplatedWindow(this.client, this.templates, uniform);
 			toggler.appendChild(document.createTextNode("Welcome to YakityChat"));
 			UTIL.addClass(header, "status");
 			UTIL.addClass(container, "status");
 		} else if (uniform.is_person()) {
-			win = new Yakity.TemplatedWindow(this.templates, uniform);
+			win = new Yakity.TemplatedWindow(this.client, this.templates, uniform);
 			UTIL.addClass(win.getMessagesNode(), "privatechat");
 			UTIL.addClass(header, "private");
 			UTIL.addClass(container, "private");
 			toggler.appendChild(profiles.getDisplayNode(uniform));
 		} else {
-			win = new Yakity.RoomWindow(this.templates, uniform);
+			win = new Yakity.RoomWindow(this.client, this.templates, uniform);
 			UTIL.addClass(header, "public");
 			UTIL.addClass(container, "public");
-			win.register_event("onenter", this, function() {
+			win.registerEvent("onenter", UTIL.make_method(this, function() {
 				UTIL.replaceClass(container, "left", "joined");
 				UTIL.replaceClass(header, "left", "joined");
-			});
-			win.register_event("onleave", this, function() {
+			}));
+			win.registerEvent("onleave", UTIL.make_method(this, function() {
 				UTIL.replaceClass(container, "joined", "left");
 				UTIL.replaceClass(header, "joined", "left");
-			});
+			}));
 			
 			var members = document.createElement("div");
 			UTIL.addClass(members, "membersList");
@@ -195,23 +195,23 @@ var AccChat = Yakity.Chat.extend({
 			UTIL.addClass(win.getMessagesNode(), "roomchat");
 			toggler.appendChild(profiles.getDisplayNode(uniform));
 		}
-		win.register_event("new_message", this, function(win, p, node) {
+		win.registerEvent("new_message", UTIL.make_method(this, function(win, p, node) {
 			if (this.active != win) {
 				UTIL.addClass(header, "unread");
 				UTIL.addClass(container, "unread");
 			}
-		});
-		win.register_event("focus", this, function(win) {
+		}));
+		win.registerEvent("focus", UTIL.make_method(this, function(win) {
 			UTIL.removeClass(header, "unread");
 			UTIL.removeClass(container, "unread");
-		});
+		}));
 
 		UTIL.addClass(header, "idle");
 		UTIL.addClass(container, "idle");
 		UTIL.addClass(header, "header");
 		this.DOMtoWIN.set(toggler, win);
 
-		if (uniform != this.client.uniform) { // not the status window
+		if (uniform != this.client.uniform && uniform != this.client.user) { // not the status window
 			var a;
 			var chat = this;
 
