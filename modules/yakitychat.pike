@@ -79,7 +79,7 @@ int start(int c, Configuration conf) {
 		    base = sprintf("psyc://%s:%d", host, port);
 		}
 
-		server = MMP.Server(([ "bind" : bind ]));
+		server = MMP.Server(([ "bind" : bind, "get_new" : get_user ]));
 
 		root = Yakity.Root(server, to_uniform());
 		root->users = users;
@@ -102,25 +102,18 @@ void logout_callback(object o) {
 	werror("%O logged out.\n", o->uniform);
 };
 
-
-object get_user(RequestID id) {
-	MMP.Uniform uniform;
+object get_user(MMP.Uniform uniform) {
 	object o;
-	string name = id->variables["nick"];
-
-	//werror("get_user %O\n", id);
-
-	uniform = to_uniform('~', name);
-
-	if (has_index(users, uniform)) return 0;
+	string name = uniform->resource;
+	if (name[0] != '~') return 0;
+	name = name[1..];
 
 	object user = Guest(name);
-	server->register_entity(uniform, o = Yakity.User(server, uniform, user, logout_callback));
+	o = Yakity.User(server, uniform, user, logout_callback);
 	users[uniform] = o;
 
 	return o;
 }
-
 function combine(function f1, function f2) {
 	mixed f(mixed ...args) {
 		return f1(f2(@args));
