@@ -4,6 +4,7 @@
     	<title>YakityChat</title>    
     
         <script src="js/Base.js" type="text/javascript"></script>
+        <script src="uize/~source/Uize.js" type="text/javascript"></script>
         <script src="ppp-js/utf8.js" type="text/javascript"></script>
         <script src="ppp-js/util.js" type="text/javascript"></script>
         <script src="ppp-js/widget.js" type="text/javascript"></script>
@@ -46,8 +47,9 @@
 			};
 			
 
-			function onlink(success, uh) {
+			function onlink(success, uniform) {
 				client.onlink = null;
+
 				if (!success) {
 					var error = document.getElementById("linkError");
 					var err_node = document.createTextNode(uh);
@@ -77,7 +79,7 @@
 				}
 
 				var ulink = function (uniform) {
-				    	if (uniform == client.uniform) return profiles.getDisplayNode(uniform);
+					if (uniform == client.uniform) return profiles.getDisplayNode(uniform);
 					var a = document.createElement("a");
 					//a.href = "javascript:void(null)";
 					a.title = "Open private chat with "+uniform.name;
@@ -111,7 +113,7 @@
 					_notice_enter : "[_supplicant] enters [_source].",
 					_notice_leave : "[_supplicant] leaves [_source].",
 					_message_public : "[_timestamp] [_source_relay] [data]",
-					_message_private : "[_timestamp] [_source_relay] [data]",
+					_message_private : "[_timestamp] [source] [data]",
 					//_message_private : Yakity.HtmlTemplate("<strong>[_timestamp]</strong> [_source_relay] [data]"),
 					_echo_message_public : "[_timestamp] [_source_relay] [data]",
 					_echo_message_private : "[_timestamp] [_source_relay] [data]",
@@ -173,7 +175,7 @@
 								UTIL.replaceClass(this.header, "offline", "idle");
 							}
 						});
-						if (bip) win.register_event("new_message", this, function(win, p, node) {
+						if (bip) win.registerEvent("new_message", UTIL.make_method(this, function(win, p, node) {
 							if (p.source() == this.client.uniform 
 							    || p.v("_source_relay") == this.client.uniform 
 							    || ((p.data.isMethod("_notice_enter") || p.data.isMethod("_notice_leave")) && p.data.v("_supplicant") == this.client.uniform)
@@ -182,7 +184,7 @@
 							}
 
 							window.setTimeout(play_bip, 0);
-						});
+						}));
 
 						return win;
 					}
@@ -227,14 +229,41 @@
 			function init() {
 				if (client) return false;
 
+				var states = {
+					hidden : { 
+						opacity : 0, 
+						onDone : function(node) { 
+							UTIL.addClass(node, "hidden"); 
+						} 
+					},
+					start : { 
+						opacity : 1,
+						onStart : function(node) { 
+							UTIL.removeClass(node, "hidden"); 
+						} 
+					}
+				};
+
+				var transitions = {
+					start : { hide : "hidden" },
+					hidden : { unhide : "start" }
+				};
+
+				var prop = {
+					duration : 20,
+				};
+
 				cycle = new Widget.Cycle();
-				cycle.addItem(new Widget.Fader(document.getElementById("connect")));
-				cycle.addItem(new Widget.Fader(document.getElementById("link")));
-				cycle.addItem(new Widget.Fader(document.getElementById("container")));
+				cycle.addItem(new Widget.Fx.CSS(document.getElementById("connect"), states, transitions, prop));
+				cycle.addItem(new Widget.Fx.CSS(document.getElementById("link"), states, transitions, prop));
+				cycle.addItem(new Widget.Fx.CSS(document.getElementById("container"), states, transitions, prop));
+
+				prop.duration = 1000;
+
 
 				client = new Yakity.Client(METEORURL, name);
-				client.onConnect = show_login_prompt;
-				client.onLink = onlink;
+				client.registerEvent("connect", show_login_prompt);
+				client.registerEvent("link", onlink);
 
 				window.onunload = function() {
 					if (client) {
@@ -247,55 +276,67 @@
 				return false;
 			};
 
-			window.onload = init;
+			function link() {
+				try {
+					var name = document.login.name.value;
+					client.link(name);
+				} catch (e) {}
+
+				return false;
+			};
+
+			Uize.module({
+				required : [ 'Uize.Fx' ],
+				builder : init
+			});
 
 		</script>
 		<link rel="stylesheet" type="text/css" href="screen.css">
+
 </head>
 <body>
 <div id="bip" style="width:0px; height:0px;"></div>
-<div id="connect">
-       <div id="connectError"></div>
-       <div id="connectRequest">
-                <form name="login" onSubmit="return init()">
-                        <input type="image" src="images/yak.png" name="submit" tabindex="2" class="inputSubmit">
-                        <input name="name" value="Enter Nickname..." onfocus="this.value=''" size="25" max-length="45" tabindex="1" class="textInput"> 
-                </form>
-       </div> 
-</div>
-<div id="link">
-       <div id="linkError"></div>
-       <div id="linkRequest">
-                <form name="login" onSubmit="return init()">
-                        <input type="image" src="images/yak.png" name="submit" tabindex="2" class="inputSubmit">
-                        <input name="name" value="Enter Nickname..." onfocus="this.value=''" size="25" max-length="45" tabindex="1" class="textInput"> 
-                </form>
-       </div> 
-</div>
-<div id="container">
-        <div id="leftPane">
-			<a href="javascript:void(null)" onclick="soundManager()" title="You browser does not support sound." id="soundLink"><div id="soundIcon" class="no"></div></a>
-			<div id="rooms">
-			        <div class="roomHeader">Available Rooms</div>
-				<emit source="chat_rooms">
-				    <a onclick='return chat.enterRoom(mmp.get_uniform("&_.uniform;"), true);'>&_.name;</a><br>
-				</emit>
+<div id="content">
+	<div id="connect" class=window>
+		   <div id="connectError"></div>
+		   <div id="connectRequest">
+			   Connecting to <meteorurl />.
+		   </div> 
+	</div>
+	<div id="link" class="window hidden">
+		   <div id="linkError"></div>
+		   <div id="linkRequest">
+					<form name="login" onSubmit="return link()">
+							<input type="image" src="images/yak.png" name="submit" tabindex="2" class="inputSubmit">
+							<input name="name" value="Enter Nickname..." onfocus="this.value=''" size="25" max-length="45" tabindex="1" class="textInput"> 
+					</form>
+		   </div> 
+	</div>
+	<div id="container" class="window hidden">
+			<div id="leftPane">
+				<a href="javascript:void(null)" onclick="soundManager()" title="You browser does not support sound." id="soundLink"><div id="soundIcon" class="no"></div></a>
+				<div id="rooms">
+						<div class="roomHeader">Available Rooms</div>
+						<emit source="chat_rooms">
+							<a onclick='return chat.enterRoom(mmp.get_uniform("&_.uniform;"), true);'>&_.name;</a><br>
+						</emit>
+				</div>
 			</div>
-        </div>
-        <div id="rightPane">
-			<div id="YakityChat"></div>
-        </div>
-        <div id="basePane">
-			<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.probable_type_event()" onMouseUp="chat.idle.probable_type_event();">
-                        <div id="inputChats">        
-                                <input type="image" src="images/yak.png" name="submit" tabindex="2" class="chatSubmit">
-				<input name=text value="" size="50" class="chatText" id="chatText" autocomplete="off">
+			<div id="rightPane">
+				<div id="YakityChat"></div>
 			</div>
-			</form>
-        </div>
-        <div class="basePane" style="float:right;"></div>
-        <div class="basePane" style="clear:right;"></div>
+			<div id="basePane">
+				<form name=chat_input onSubmit="return new_input()" onKeyDown="return chat.idle.probable_type_event()" onMouseUp="chat.idle.probable_type_event();">
+							<div id="inputChats">        
+									<input type="image" src="images/yak.png" name="submit" tabindex="2" class="chatSubmit">
+					<input name=text value="" size="50" class="chatText" id="chatText" autocomplete="off">
+				</div>
+				</form>
+			</div>
+			<div class="basePane" style="float:right;"></div>
+			<div class="basePane" style="clear:right;"></div>
+	</div>
 </div>
-<div class="terms">YakityChat&trade; is a trademark owned by Webhaven<sup>&reg;</sup> International ApS, DK<br />
+<div id="terms">YakityChat&trade; is a trademark owned by Webhaven<sup>&reg;</sup> International ApS, DK<br />
 YakityChat&trade; is open source software: <a href="http://yakitychat.com/license.html" target="_blank">License</a></div>
 </body>
