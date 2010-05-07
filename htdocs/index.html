@@ -52,14 +52,12 @@
 
 				if (!success) {
 					var error = document.getElementById("linkError");
-					var err_node = document.createTextNode(uh);
+					var err_node = document.createTextNode(uniform);
 					if (error.firstChild) {
 						error.replaceChild(err_node, error.firstChild);
 					} else {
 						error.appendChild(err_node);
 					}
-					client.abort();
-					client = null;
 					return;
 				} else {
 					cycle.cycle();
@@ -229,10 +227,15 @@
 			function init() {
 				if (client) return false;
 
+				var prop = {
+					duration : 20,
+				};
+
+				cycle = new Widget.Cycle();
 				var states = {
 					hidden : { 
 						opacity : 0, 
-						onDone : function(node) { 
+						onStart : function(node) { 
 							UTIL.addClass(node, "hidden"); 
 						} 
 					},
@@ -249,16 +252,11 @@
 					hidden : { unhide : "start" }
 				};
 
-				var prop = {
-					duration : 20,
-				};
-
-				cycle = new Widget.Cycle();
 				cycle.addItem(new Widget.Fx.CSS(document.getElementById("connect"), states, transitions, prop));
 				cycle.addItem(new Widget.Fx.CSS(document.getElementById("link"), states, transitions, prop));
 				cycle.addItem(new Widget.Fx.CSS(document.getElementById("container"), states, transitions, prop));
 
-				prop.duration = 1000;
+				prop.duration = 1500;
 
 
 				client = new Yakity.Client(METEORURL, name);
