@@ -140,6 +140,7 @@ mixed find_file( string f, object id ) {
 	object session;
 
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
+#if 0
 		string name = id->variables["nick"];
 
 		if (!stringp(name) || !sizeof(name)) {
@@ -156,11 +157,17 @@ mixed find_file( string f, object id ) {
 			werror("404 with love!\n");
 			return Roxen.http_low_answer(404, sprintf("The username %s is already in use.", id->variables["nick"]));
 		}
+#endif
 
+		MMP.Uniform uniform = server->get_temporary();
 		session = get_new_session();
 
-		user->add_session(session);
-		return Roxen.http_string_answer(session->client_id, "text/atom");
+		object temp = PSYC.Proxy(server, uniform, session);
+		server->register_entity(uniform, temp);
+
+		string response = sprintf("_id %s_uniform %s", Serialization.Atom("_string", session->client_id)->render(), Serialization.Atom("_string", (string)uniform)->render());
+
+		return Roxen.http_string_answer(response, "text/atom");
 	}
 
 
