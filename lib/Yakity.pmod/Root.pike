@@ -23,7 +23,7 @@ void create(object server, MMP.Uniform uniform) {
 	::create(server, uniform);
 }
 
-int _request_users(MMP.Packet p) {
+int _request_users(MMP.Packet p, PSYC.Message m, function callback) {
 	MMP.Uniform source = p->source();
 
 	if (users) {
@@ -42,7 +42,7 @@ int _request_users(MMP.Packet p) {
 				  });
 #endif
 
-		sendmsg(source, "_update_users", 0,  ([ "_users" : profiles ]));
+		sendreplymsg(p, "_update_users", 0,  ([ "_users" : profiles ]));
 	}
 
 	return PSYC.STOP;
