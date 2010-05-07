@@ -85,7 +85,7 @@ int _request_link(MMP.Packet p, PSYC.Message m, function callback) {
 		add_client(p->source());
 		sendreplymsg(p, "_notice_link");
 	} else {
-		sendreplymsg(p, "_failure_link");
+		sendreplymsg(p, "_failure_link", "This nickname is already taken.");
 	}
 
 
@@ -93,7 +93,8 @@ int _request_link(MMP.Packet p, PSYC.Message m, function callback) {
 }
 
 int _request_unlink(MMP.Packet p, PSYC.Message m, function callback) {
-	remove_client(p->source());
+	// use the technical source here!
+	remove_client(p->vars["_source"]);
 }
 
 int _request_authentication(MMP.Packet p, PSYC.Message m, function callback) {
