@@ -67,7 +67,7 @@ Yakity.Client = psyc.Base.extend({
 				this.user = p.source();
 				this.trigger("link", 1, p.source());
 			} else {
-				this.trigger("link", 0, p.source());
+				this.trigger("link", 0, p.data.data);
 			}
 		}));
 	},
@@ -77,9 +77,15 @@ Yakity.Client = psyc.Base.extend({
 	logout : function() {
 		if (this.uniform) {
 		    // not connected yet.
-		    this.connection.set_blocking();
-		    this.connection.reconnect = 0;
+			if (this.user) {
+				this.sendmsg(this.user, "_request_unlink");	
+			}
+
+			this.connection.set_blocking();
+			this.connection.reconnect = 0;
+
 		    this.sendmsg(this.uniform, "_request_logout");	
+
 		    this.connection.close();
 		}
 	},
