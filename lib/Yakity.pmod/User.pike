@@ -54,8 +54,8 @@ void remove_client(MMP.Uniform uniform) {
 	if (!sizeof(clients)) call_out(implicit_logout, 3);
 }
 
-int(0..1) is_client(MMP.Uniform uniform) {
-	return has_index(clients, uniform);
+int(0..1) authenticate(MMP.Uniform uniform) {
+	return has_index(clients, uniform) || ::authenticate(uniform);
 }
 
 void logout() {
@@ -64,14 +64,18 @@ void logout() {
 }
 
 void send_to_clients(MMP.Packet p) {
+	if (p->vars["_source_relay"] == uniform) {
+		if (!has_index(p->vars, "_context")) {
+			werror("Someone disguising as us: %O.\n", p->vars["_source"]);
+			return;
+		}
+
+	}
+
+	werror("relaying %s(%s) from %O to users.\n", p->data->type, p->data->render(), p->vars);
+
 	foreach (clients; MMP.Uniform client;) {
-		mapping vars = p->vars + ([
-			"_source_relay" : p->source(),
-			"_target" : client,
-			"_source" : uniform
-		]);
-		MMP.Packet new = MMP.Packet(p->data, vars);
-		server->msg(new);
+		send(client, p->data, ([ "_source_relay" : p->source() ]));
 	}
 }
 
@@ -79,32 +83,45 @@ int _request_link(MMP.Packet p, PSYC.Message m, function callback) {
 	// we have only newbie based linking
 	if (!sizeof(clients)) {
 		add_client(p->source());
+		sendreplymsg(p, "_notice_link");
+	} else {
+		sendreplymsg(p, "_failure_link");
 	}
 
-	sendreplymsg(p, "_notice_link");
+
+	return PSYC.STOP;
 }
 
 int _request_unlink(MMP.Packet p, PSYC.Message m, function callback) {
 	remove_client(p->source());
 }
 
-int _request_logout(MMP.Packet p) {
+int _request_authentication(MMP.Packet p, PSYC.Message m, function callback) {
+	werror("%O requests authentication of %O\n", p->source(), m->vars["_supplicant"]);
+	if (authenticate(m->vars["_supplicant"])) {
+		sendreplymsg(p, "_notice_authentication");
+	} else {
+		sendreplymsg(p, "_failure_authentication");
+	}
+
+	return PSYC.STOP;
+}
+
+int _request_logout(MMP.Packet p, PSYC.Message m, function callback) {
 
 	if (p->source() == uniform) {
 		implicit_logout();
 	}
 
-	return Yakity.STOP;
+	return PSYC.STOP;
 }
 
 int _message_private(MMP.Packet p, PSYC.Message m, function callback) {
 	MMP.Uniform source = p->source();
 
-	// It might be smart to have some kind of smarter detection here.
-	// this might go really wrong if people send bad replies
-	if (source && source != uniform && p->vars["_source_relay"] != uniform) {
-		sendreply(source, p->data, ([ "_source_relay" : source ]));
-	}
+	werror("Generating reply for %O\n", source);
+
+	sendreplymsg(p, "_notice_echo");
 
 	return PSYC.GOON;
 }
@@ -124,14 +141,11 @@ int _request_profile(MMP.Packet p, PSYC.Message m, function callback) {
 }
 
 int msg(MMP.Packet p) {
-
-	if (::msg(p) == PSYC.STOP) return PSYC.STOP;
-
-	send_to_clients(p);
+	return Traverse(({ ::msg, send_to_clients}), ({ p }))->start();
 }
 
 string _sprintf(int type) {
-	if (type == 'O') {
+	if (0 && type == 'O') {
 		return sprintf("User(%s, %O)", uniform, clients);
 	} else {
 		return sprintf("User(%s)", uniform);
