@@ -113,8 +113,6 @@
 					_message_public : "[_timestamp] [_source_relay] [data]",
 					_message_private : "[_timestamp] [source] [data]",
 					//_message_private : Yakity.HtmlTemplate("<strong>[_timestamp]</strong> [_source_relay] [data]"),
-					_echo_message_public : "[_timestamp] [_source_relay] [data]",
-					_echo_message_private : "[_timestamp] [_source_relay] [data]",
 					_source : userlink,
 					_supplicant : userlink,
 					_timestamp : timestamp
@@ -144,8 +142,8 @@
 							}
 						}
 						win.extend({
-							renderMessage : function(p) {
-								var div = this.base(p);
+							renderMessage : function(p, m) {
+								var div = this.base(p, m);
 
 								if (div && p.v("_source_relay") == client.uniform) {
 									UTIL.addClass(div, "self");	
@@ -203,12 +201,23 @@
 			}
 			function new_input() {
 				var str = document.chat_input.text.value;
+				var message;
 				if (str.length == 0) return false;
 
 				try {
 					if (this.chat.active) {
-						var target = this.chat.active.name;
-						this.client.sendmsg(target, target.is_person() ? "_message_private" : "_message_public", str);
+						var win = this.chat.active;
+						var target = win.name;
+						if (target.is_person()) {
+							message = win.sendmsg(target, "_message_private", str, 0, function(p, m) {
+								if (m.method == "_notice_echo") {
+									message.data = client.message_signature.decode(message.data);
+									win._(message, message.data);
+								} else meteor.debug("got strange reply to _message_private: %o", p);
+							});
+						} else {
+							win.sendmsg(target, "_message_public", str);
+						}
 						document.chat_input.text.value = "";
 					} else {
 						//error_fun("You cannot chat to the DEBUG!");
