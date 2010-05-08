@@ -64,6 +64,8 @@ void logout() {
 }
 
 void send_to_clients(MMP.Packet p) {
+#if 0
+	// we deactivate this check until _context routing is implemented
 	if (p->vars["_source_relay"] == uniform) {
 		if (!has_index(p->vars, "_context")) {
 			werror("Someone disguising as us: %O.\n", p->vars["_source"]);
@@ -71,11 +73,17 @@ void send_to_clients(MMP.Packet p) {
 		}
 
 	}
+#endif
 
 	werror("relaying %s(%s) from %O to users.\n", p->data->type, p->data->render(), p->vars);
 
+	mapping vars = ([
+		"_source_relay" : p->source(),
+	]) + (p->vars & ({ "_tag", "_tag_reply" }));
+	
+
 	foreach (clients; MMP.Uniform client;) {
-		send(client, p->data, ([ "_source_relay" : p->source() ]));
+		send(client, p->data, copy_value(vars));
 	}
 }
 
