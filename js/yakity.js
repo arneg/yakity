@@ -252,7 +252,7 @@ Yakity.funky_text = function(p, templates) {
 		}
 		var t;
 
-		if (s == "source") s = p.V("_source_relay") ? "_source_relay" : "_source";
+		if (s == "source") s = p.V("_source_relay") ? "_source_relay" : p.V("_source_identification") ? "_source_identification" : "_source";
 
 		if (s == "data") {
 			t = Yakity.linky_text(m.data);
