@@ -362,20 +362,6 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	}
 
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
-#if 0
-		string name = id->variables["nick"];
-
-		if (!stringp(name) || !sizeof(name)) {
-			answer(r, 404, "You need to enter a nickname.");
-			return;
-		}
-
-		if (sizeof(name) > 30) {
-			answer(r, 404, "C'mon, that nickname is too long.");
-			return;
-		}
-#endif
-
 		MMP.Uniform uniform = server->get_temporary();
 		session = get_new_session();
 
