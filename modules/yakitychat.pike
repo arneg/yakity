@@ -18,8 +18,8 @@ mapping(MMP.Uniform:object) users = ([]);
 mapping(MMP.Uniform:object|int) rooms = ([]);
 
 void stop() {
-	foreach (rooms;;object room) {
-		room->stop();
+	foreach (rooms;;int|object room) {
+		if (objectp(room)) room->stop();
 	}
 	foreach (users;MMP.Uniform u;object o) {
 		m_delete(users, u);
@@ -49,9 +49,6 @@ int start(int c, Configuration conf) {
 	if (!configuration) {
 		this_program::configuration = conf;
 		string bind = query("bind");
-		string host;
-		int port;
-
 
 		server = MMP.Server(([ "bind" : bind, "get_new" : get_user ]));
 
