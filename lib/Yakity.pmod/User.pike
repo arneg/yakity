@@ -75,7 +75,7 @@ void send_to_clients(MMP.Packet p) {
 	}
 #endif
 
-	werror("relaying %s(%s) from %O to users.\n", p->data->type, p->data->render(), p->vars);
+	//werror("relaying %s(%s) from %O to users.\n", p->data->type, p->data->render(), p->vars);
 
 	mapping vars = ([
 		"_source_relay" : p->source(),
@@ -106,7 +106,7 @@ int _request_unlink(MMP.Packet p, PSYC.Message m, function callback) {
 }
 
 int _request_authentication(MMP.Packet p, PSYC.Message m, function callback) {
-	werror("%O requests authentication of %O\n", p->source(), m->vars["_supplicant"]);
+	//werror("%O requests authentication of %O\n", p->source(), m->vars["_supplicant"]);
 	if (authenticate(m->vars["_supplicant"])) {
 		sendreplymsg(p, "_notice_authentication");
 	} else {
@@ -128,7 +128,7 @@ int _request_logout(MMP.Packet p, PSYC.Message m, function callback) {
 int _message_private(MMP.Packet p, PSYC.Message m, function callback) {
 	MMP.Uniform source = p->source();
 
-	werror("Generating reply for %O\n", source);
+	//werror("Generating reply for %O\n", source);
 
 	sendreplymsg(p, "_notice_echo");
 
