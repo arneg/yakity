@@ -14,19 +14,8 @@ inherit Meteor.SessionHandler;
 mixed configuration;
 object server;
 object root;
-string base;
 mapping(MMP.Uniform:object) users = ([]);
 mapping(MMP.Uniform:object|int) rooms = ([]);
-
-MMP.Uniform to_uniform(void|int type, void|string name) {
-    	if (!base) error("Module has not been properly initialized.\n");
-	if (type && name) {
-	    name = Standards.IDNA.to_ascii(name);
-	    return server->get_uniform(sprintf("%s/%c%s", base, type, name));
-	} else {
-	    return server->get_uniform(base);
-	}
-}
 
 void stop() {
 	foreach (rooms;;object room) {
@@ -63,25 +52,10 @@ int start(int c, Configuration conf) {
 		string host;
 		int port;
 
-		switch (sscanf(bind, "%[^:]:%d", host, port)) {
-		case 1:
-		    port = MMP.DEFAULT_PORT;
-		    bind = sprintf("%s:%d", bind, port);
-		case 2:
-		    break;
-		default:
-		    error("Malformed bind address: %s\n", bind);
-		}
-
-		if (port == MMP.DEFAULT_PORT) {
-		    base = sprintf("psyc://%s", host);
-		} else {
-		    base = sprintf("psyc://%s:%d", host, port);
-		}
 
 		server = MMP.Server(([ "bind" : bind, "get_new" : get_user ]));
 
-		root = Yakity.Root(server, to_uniform());
+		root = Yakity.Root(server, server->to_uniform());
 		root->users = users;
 		root->rooms = rooms;
 		server->register_entity(root->uniform, root);
@@ -183,7 +157,7 @@ void changed(Variable.StringList var) {
 		    should[u] = 1;
 		    continue;
 		} else {
-		    u = to_uniform('@', name);
+		    u = server->to_uniform('@', name);
 		}
 
 		should[u] = 1;
@@ -255,7 +229,7 @@ class TagMemberEmit {
 }
 
 string simpletag_user2uniform(string tagname, mapping args, string content, RequestID id) {
-	return (string)to_uniform('~', args["user"]);
+	return (string)server->to_uniform('~', args["user"]);
 }
 
 string simpletag_meteorurl(string tagname, mapping args, string content, RequestID id) {
