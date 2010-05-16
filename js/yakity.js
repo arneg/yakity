@@ -25,6 +25,7 @@ Yakity.Client = psyc.Base.extend({
 	constructor : function(url, name) {
 	    this.base({ 
 			msg : UTIL.make_method(this, function(p) {
+				meteor.debug("sending %s (%o)", p.data.type, p);
 				this.connection.send(this.packet_signature.encode(p).render());	
 			})
 	    }, 0);
@@ -143,6 +144,8 @@ Yakity.Client = psyc.Base.extend({
 						continue;
 					}
 				}
+
+				meteor.debug("received: %s (%o, %o)", p.data.type, p.data, p.vars);
 				
 				this.msg(p);
 			}
@@ -306,6 +309,7 @@ Yakity.funky_text = function(p, templates) {
 };
 Yakity.Base = UTIL.EventSource.extend({
 	constructor : function(client) {
+		this.client = client;
 		this.base();
 		this.plugins = [];
 		this.sendmsg = UTIL.make_method(client, client.sendmsg);
@@ -419,41 +423,15 @@ Yakity.RoomWindow = Yakity.TemplatedWindow.extend({
 			sort *= -1;
 		};
 	},
-	_notice_enter : function(p, m) {
-		var list = m.v("_members");
+	_notice_context_enter : function(p, m) {
+		meteor.debug("_notice_context_enter with %o", m);
 		var supplicant = m.v("_supplicant");
-		var me = p.target();
-
-		if (supplicant === me) {
-			if (this.left) {
-				this.left = 0;
-				this.trigger("onenter", this);
-			} else {
-				return psyc.STOP;
-			}
-		}
-
-
-		if (list instanceof Array) {
-			for (var i = 0; i < list.length; i++) {
-				this.addMember(list[i]);
-			}
-		}
+		var list = m.v("_members");
 
 		this.addMember(supplicant);
 	},
-	_notice_leave : function(p, m) {
+	_notice_context_leave : function(p, m) {
 		var supplicant = m.v("_supplicant");
-		var me = p.target();
-
-		if (supplicant === me) {
-			if (!this.left) {
-				this.left = 1;
-				this.trigger("onleave", this);
-			} else {
-				return psyc.STOP;
-			}
-		}
 
 		this.deleteMember(m.v("_supplicant"));
 	},
@@ -485,6 +463,7 @@ Yakity.Chat = Base.extend({
 	constructor : function(client) {
 		this.windows = new Mapping();
 		this.active = null;
+		this.retransmission_sig = new serialization.Array(client.packet_signature);
 
 		if (client) {
 			client.register_method({ method : "_", source : null, object : this });
@@ -492,9 +471,12 @@ Yakity.Chat = Base.extend({
 		}
 	},
 	msg : function(p, m) {
-		if (!p.vars.hasIndex("_context") || this.windows.hasIndex(p.source())) {
+		if (p.V("_context")) {
+		    this.getWindow(p.v("_context")).msg(p, m);
+		} else {
 		    this.getWindow(p.source()).msg(p, m);
 		}
+
 		return psyc.STOP;
 	},
 	getWindow : function(uniform) {
@@ -518,17 +500,59 @@ Yakity.Chat = Base.extend({
 	 * Requests membership in the given room. If the room has been entered successfully a new tab will be opened automatically.
 	 */
 	enterRoom : function(uniform, history) {
-		this.client.sendmsg(uniform, "_request_enter");
+		var sig = this.retransmission_sig;
+		this.client.sendmsg(this.client.uniform.root(), "_request_context_enter", 0, { _channel : uniform, _supplicant : this.client.user },
+		    UTIL.make_method(this.getWindow(uniform), function (p, m) {
+			var list = m.v("_members");
+			meteor.debug("left: %d %o", this.left, this);
+			
+			if (this.left) {
+				this.left = 0;
+				this.trigger("onenter", this);
+			} else {
+				return psyc.STOP;
+			}
+
+
+			if (list instanceof Array) {
+				for (var i = 0; i < list.length; i++) {
+					this.addMember(list[i]);
+				}
+			}
+
+			var id = m.v("_context_id");
+			var max = m.v("_history_max");
+			var l = [];
+
+			while (max-- > 0 && id >= 0) {
+			    l.push(id--);
+			}
+			if (l.length) this.client.sendmsg(this.client.uniform.root(), "_request_context_retrieval", 0, { _ids : l, _channel : uniform }, UTIL.make_method(this, function (p,m) {
+			    var packets = sig.decode(p.data);
+			    for (var i = 0; i < packets.length; i++) this.client.msg(packets[i]);
+			}));
+
+			return psyc.STOP;
+		    }));
+		/*
 		if (history) {
 		    this.client.sendmsg(uniform, "_request_history");
-		}
+		} */
 	},
 	/**
 	 * @param {Uniform} uniform
 	 * Leaves a room.
 	 */
 	leaveRoom : function(uniform) {
-		this.client.sendmsg(uniform, "_request_leave");
+		this.client.sendmsg(this.client.uniform.root(), "_notice_context_leave", 0, { _channel : uniform, _supplicant : this.client.user }, 
+		    UTIL.make_method(this.getWindow(uniform), function (p, m) {
+			if (!this.left) {
+				this.left = 1;
+				this.trigger("onleave", this);
+			}
+
+			return psyc.STOP;
+		    }));
 		// close window after _notice_leave is there or after double click on close button
 	}
 });
