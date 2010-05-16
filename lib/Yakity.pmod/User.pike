@@ -28,6 +28,8 @@ void create(object server, object uniform, mixed user, function logout) {
 	this_program::user = user;
 	logout_cb = logout;
 	mmp_signature = Packet(Atom());
+
+	call_out(implicit_logout, 3);
 }
 
 void implicit_logout() {
@@ -64,8 +66,15 @@ void logout() {
 }
 
 void send_to_clients(MMP.Packet p) {
-#if 0
-	// we deactivate this check until _context routing is implemented
+
+	if (has_index(p->vars, "_context")) {
+	    Serialization.Atom a = Packet(Atom())->encode(p);
+	    foreach (clients; MMP.Uniform client;) {
+		send(client, a);
+	    }
+	    return;
+	}
+	
 	if (p->vars["_source_relay"] == uniform) {
 		if (!has_index(p->vars, "_context")) {
 			werror("Someone disguising as us: %O.\n", p->vars["_source"]);
@@ -73,7 +82,6 @@ void send_to_clients(MMP.Packet p) {
 		}
 
 	}
-#endif
 
 	//werror("relaying %s(%s) from %O to users.\n", p->data->type, p->data->render(), p->vars);
 
@@ -150,6 +158,15 @@ int _request_profile(MMP.Packet p, PSYC.Message m, function callback) {
 }
 
 int msg(MMP.Packet p) {
+	if (!sizeof(clients) && p->data->type != "_request_link") {
+	    if (has_index(p->vars, "_context")) {
+		sendmsg(server->get_uniform(uniform->root), "_notice_context_leave", 0, ([ "_channel" : p->vars->_context, "_supplicant" : uniform ]));
+		//sendmsg(p->vars->_context, "_failure_delivery_permanent", 0, ([ "_target" : uniform ]));
+	    } else {
+		sendreplymsg(p, "_failure_delivery_permanent", 0, ([ "_target" : uniform ]));
+	    }
+	    return PSYC.STOP;
+	}
 	return Traverse(({ ::msg, send_to_clients}), ({ p }))->start();
 }
 
