@@ -16,62 +16,53 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 inherit PSYC.Base;
+inherit MMP.Plugins.ChannelMaster;
 
 string name;
-multiset(MMP.Uniform) members = (<>);
-ADT.CircularList history = ADT.CircularList(10);
+ADT.CircularList history = ADT.CircularList(20);
 
 void create(object server, MMP.Uniform uniform, string name) {
 	::create(server, uniform);
 	this_program::name = name;
+	get_channel()->on_enter = on_enter;
+	get_channel()->on_leave = on_leave;
 }
 
-void castmsg(string mc, string data, mapping vars) {
+void on_enter(MMP.Uniform u) {
+    castmsg("_notice_context_enter", 0, ([ "_supplicant" : u ]));
+}
+
+void on_leave(MMP.Uniform u) {
+    castmsg("_notice_context_leave", 0, ([ "_supplicant" : u ]));
+}
+
+void castmsg(string mc, string data, mapping vars, void|MMP.Uniform relay) {
     	Serialization.Atom m = message_signature->encode(PSYC.Message(mc, data, vars));
-	foreach (members; MMP.Uniform t;) {
-	    	send(t, m);
-	}
+	get_channel()->groupcast(m, relay ? ([ "_source_relay" : relay ]) : UNDEFINED);
 }
 
-// TODO: We want to use a real psyc multicast here, but we dont have stuff properly
-// 	 set up. This will go when PPP is integrated.
 void groupcast(PSYC.Message|Serialization.Atom m, void|MMP.Uniform relay) {
 	mapping vars = relay ? ([ "_source_relay" : relay ]) : 0;
+
 	if (object_program(m) == PSYC.Message) {
 		m = message_signature->encode(m);
 	}
 
-	foreach (members; MMP.Uniform t;) {
-	    	send(t, m, vars);
-	}
+	get_channel()->groupcast(m, vars);
 }
 
 void stop() {
-	foreach (members; MMP.Uniform target;) {
+	foreach (get_channel()->members; MMP.Uniform target;) {
 		sendmsg(target, "_notice_leave", "Room is being shut down.", ([ "_supplicant" : target ]));
+		get_channel()->remove_member(target);
 	}
-
-	members = (<>);
-}
-
-int _request_enter(MMP.Packet p) {
-	MMP.Uniform source = p->source();
-	sendmsg(source, "_notice_enter", 0,  ([ "_supplicant" : source, "_members" : (array)members ]));
-
-	if (!has_index(members, source)) {
-		castmsg("_notice_enter", 0,  ([ "_supplicant" : source ]));
-		members[source] = 1;
-
-	}
-
-	return PSYC.STOP;
 }
 
 int _request_history(MMP.Packet p) {
 	MMP.Uniform source = p->source();
 
-	if (!has_index(members, source)) {
-		sendmsg(source, "_error_membership_required", "You must join the room first.");
+	if (!get_channel()->has_member(source)) {
+		sendreplymsg(p, "_error_membership_required", "You must join the room first.");
 		return PSYC.STOP;
 	}
 
@@ -82,41 +73,22 @@ int _request_history(MMP.Packet p) {
 	return PSYC.STOP;
 }
 
-int _notice_logout(MMP.Packet p) {
-	MMP.Uniform source = p->source();
-
-	if (has_index(members, source)) {
-		members[source] = 0;
-		castmsg("_notice_leave", "Logout", ([ "_supplicant" : source ]));
-	}
-
-	return PSYC.STOP;
-}
-
-int _request_leave(MMP.Packet p) {
-	MMP.Uniform source = p->source();
-
-	if (has_index(members, source)) {
-		castmsg("_notice_leave", 0, ([ "_supplicant" : source ]));
-		members[source] = 0;
-	} else {
-		sendmsg(source, "_notice_leave", 0, ([ "_supplicant" : source ]));
-	}
-	return PSYC.STOP;
-}
-
 int _request_profile(MMP.Packet p) {
 	MMP.Uniform source = p->source();
 
-	sendmsg(source, "_update_profile", 0, ([ "_profile" : ([ "_name_display" : name ]) ]));
+	sendreplymsg(p, "_update_profile", 0, ([ "_profile" : ([ "_name_display" : name ]) ]));
 	return PSYC.STOP;	
 }
 
+int _request_context_enter(MMP.Packet p, PSYC.Message m, void|function cb) {
+    int ret = ::_request_context_enter(p, m, cb);
+    return ret;
+}
 
 int _message_public(MMP.Packet p) {
 	MMP.Uniform source = p->source();
 
-	if (!has_index(members, source)) {
+	if (!get_channel()->has_member(source)) {
 		sendmsg(source, "_error_membership_required", "You must join the room first.");
 		return PSYC.STOP;
 	}
