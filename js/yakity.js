@@ -473,7 +473,7 @@ Yakity.Chat = Base.extend({
 	msg : function(p, m) {
 		if (p.V("_context")) {
 		    this.getWindow(p.v("_context")).msg(p, m);
-		} else {
+		} else if (this.windows.hasIndex(p.source()) || mmp.is_abbrev(m.method, "_message") || mmp.is_abbrev(m.method, "_notice")) {
 		    this.getWindow(p.source()).msg(p, m);
 		}
 
@@ -527,7 +527,7 @@ Yakity.Chat = Base.extend({
 			while (max-- > 0 && id >= 0) {
 			    l.push(id--);
 			}
-			if (l.length) this.client.sendmsg(this.client.uniform.root(), "_request_context_retrieval", 0, { _ids : l, _channel : uniform }, UTIL.make_method(this, function (p,m) {
+			if (l.length) this.client.sendmsg(this.client.uniform.root(), "_request_context_retrieval", 0, { _ids : l, _channel : uniform, _token : m.v("_token"), _id : m.v("_id") }, UTIL.make_method(this, function (p,m) {
 			    var packets = sig.decode(p.data);
 			    for (var i = 0; i < packets.length; i++) this.client.msg(packets[i]);
 			}));
