@@ -17,6 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 inherit PSYC.Base;
 
+inherit MMP.Plugins.ChannelRouter;
+
 mixed rooms, users;
 
 void create(object server, MMP.Uniform uniform) {
