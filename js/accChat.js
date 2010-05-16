@@ -115,13 +115,12 @@ var AccChat = Yakity.Chat.extend({
 		this.base(uniform);
 	},
 	msg : function(p, m) {
-		if (!p.vars.hasIndex("_context") || this.windows.hasIndex(p.source())) {
-		    var messages = this.getWindow(p.source()).getMessagesNode();
-		    var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
-		    var ret = this.base(p, m);	
-		    if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
-		    return ret;
-		}
+		var win = this.getWindow(p.V("_context") ? p.v("_context") : p.source());
+		var messages = win.getMessagesNode();
+		var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
+		var ret = this.base(p, m);	
+		if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
+		return ret;
 	},
 	enterRoom : function(uniform, history) {
 		var win = this.getWindow(uniform);
