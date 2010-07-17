@@ -9,22 +9,52 @@ constant module_doc = "This is a module to allow for realtime server push and us
 constant module_author = "Arne Goedeke <a href=\"mailto:el@laramies.com\">";
 
 inherit Meteor.SessionHandler;
+inherit Serialization.Signature : SIG;
+inherit Serialization.BasicTypes;
 
 mixed configuration;
 object parser;
 mapping(string:object) channels = ([]);
 
-class Channel {
+class Channel(string name) {
     mapping(object:int) subs = ([]);
 
     void add_session(object session) {
+	subs[session] = 1;
     }
-    void publish(mixed o) {
 
+    void del_session(object session) {
+	m_delete(subs, session);
+    }
+
+    void publish(mixed o) {
+	if (sizeof(subs)) {
+	    string s = parser->encode(({ name, o }))->render();
+	    indices(subs)->send(s);
+	} else {
+	    call_out(m_delete, 0, channels, this);
+	}
+    }
+
+    object session_error(object session, mixed ... args) {
+	m_delete(subs, session);
+	if (!sizeof(subs)) call_out(m_delete, 0, channels, this);
+	return session;
+    }
+}
+
+string query_provides() {
+    return "meteor";
+}
+
+void publish(string channel, mixed o) {
+    if (has_index(channels, channel)) {
+	channels[channel]->publish(o);
     }
 }
 
 void stop() {
+    values(sessions)->close();
 }
 
 string status() {
@@ -32,12 +62,23 @@ string status() {
 }
 
 void create() {
+	SIG::create(Serialization.TypeCache());
 	set_module_creator("Arne Goedeke el@laramies.com");
 	set_module_url("http://yakitychat.com");
 	defvar("location", Variable.Location("/meteor/",
 					     0, "Connection endpoint for js connections", "This is where the "
 					     "module will be inserted in the virtual "
 					     "namespace of your server."));
+	parser = Serialization.Types.PBuilder();
+	parser->register_type("string", "_string");
+	parser->register_type("int", "_integer");
+	parser->register_type("mapping", "_mapping");
+	parser->register_type("array", "_list");
+	parser = parser->optimize();
+	parser->t0 = UTF8String();
+	parser->t1 = Int();
+	parser->t2 = Mapping(parser,parser);
+	parser->t3 = List(parser);
 }
 
 int start(int c, Configuration conf) {
@@ -64,17 +105,15 @@ mixed find_file( string f, object id ) {
 
 	object session;
 
+#if 0
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
-		MMP.Uniform uniform = server->get_temporary();
 		session = get_new_session();
 
-		object temp = PSYC.Proxy(server, uniform, session);
-		server->register_entity(uniform, temp);
-
-		string response = sprintf("_id %s_uniform %s", Serialization.Atom("_string", session->client_id)->render(), Serialization.Atom("_string", (string)uniform)->render());
+		string response = sprintf("_id %s", Serialization.Atom("_string", session->client_id)->render());
 
 		return Roxen.http_string_answer(Serialization.Atom("_vars", response)->render(), "text/atom");
 	}
+#endif
 
 
 	// we should check whether or not this is hitting a max connections limit somewhere.
@@ -101,18 +140,55 @@ mixed find_file( string f, object id ) {
 	return Roxen.http_low_answer(500, "me dont know you\n");
 } 
 
-string simpletag_sendmsg(string tagname, mapping args, string content, RequestID id) {
-	NOCACHE();
-	MMP.Uniform target = server->get_uniform(args["_target"]);
+string string_to_json(string s) {
+#if constant(Public.Standards.JSON)
+    return Public.Standards.JSON.encode(s);
+#else
+    // this is evil, but channel names are expected to be ok
+    return sprintf("%O", s);
+#endif
+}
 
-	mapping vars = ([]);
-	foreach (args; string index; string val) {
-		if (has_prefix(index, "_")) {
-			vars[index] = val;
-		}
+string simpletag_subscribe(string tagname, mapping args, string content, RequestID id) {
+	string channel = args->channel;
+	string cid;
+	string callback = args->callback;
+	object session;
+	if (!stringp(channel) || !sizeof(channel)) error("No channel specified!");
+	if (!stringp(callback) || !sizeof(callback)) error("No callback specified!");
+	if (!has_index(channels, channel)) {
+	    channels[channel] = Channel(channel);
 	}
+	if (!id->misc->meteor) {
+	    id->misc->meteor = session = get_new_session();
+	    session->error_cb = channels[channel]->session_error;
+	    cid = session->client_id;
+	} else {
+	    session = id->misc->meteor;
+	    session->error_cb = combine(channels[channel]->session_error, session->error_cb);
+	}
+	channels[channel]->add_session(session);
+	if (cid) {
+	    return sprintf(#"
+		if (!meteor.default_sub) {
+		    meteor.default_sub = new meteor.Subscriber(new meteor.Connection(%s, { id : %s }, 0, function(){}));
+		    meteor.default_sub.connection.connect_new_incoming();
+		    meteor.default_sub.subscribe(%s, %s);
+		}
+	    ", string_to_json(query("location")), string_to_json(cid), string_to_json(channel), callback);
+	} else {
+	    return sprintf(#"
+		meteor.default_sub.subscribe(%s, %s);
+	    ", string_to_json(channel), callback);
+	}
+}
 
-	root->sendmsg(target, args["method"], content, vars);
+string simpletag_publish(string tagname, mapping args, string content, RequestID id) {
+	NOCACHE();
+	string channel = args->channel;
+	if (has_index(channels, channel)) {
+	    channels[channel]->publish(content);
+	}
 }
 
 TAGDOCUMENTATION;
