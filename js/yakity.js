@@ -64,10 +64,10 @@ Yakity.default_polymorphic = function() {
 	// method and float
 	pol.register_type("_string", "string", new serialization.String());
 	pol.register_type("_integer", "number", new serialization.Integer());
-	pol.register_type("_float", "float", new serialization.Float());
+	pol.register_type("_float", "number", new serialization.Float());
 	pol.register_type("_method", "string", method);
 	//pol.register_type("_message", Yakity.Message, new serialization.Message(method, pol, pol));
-	pol.register_type("_mapping", Yakity.Mapping, new serialization.Mapping(pol, pol));
+	pol.register_type("_mapping", Mapping, new serialization.Mapping(pol, pol));
 	pol.register_type("_list", Array, new serialization.Array(pol));
 	pol.register_type("_time", mmp.Date, new serialization.Date());
 	pol.register_type("_uniform", mmp.Uniform, new serialization.Uniform());
