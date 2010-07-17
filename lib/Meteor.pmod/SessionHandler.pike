@@ -38,6 +38,7 @@ object get_new_session() {
 	return sessions[s];
 }
 
+#if constant(MMP.Uniform)
 MMP.Uniform user_to_uniform(string name) {
 	return to_uniform('~', name);
 }
@@ -48,3 +49,4 @@ MMP.Uniform room_to_uniform(string name) {
 
 
 MMP.Uniform to_uniform(int type, string name);
+#endif
