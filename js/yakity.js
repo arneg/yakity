@@ -17,6 +17,49 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 Yakity = {};
 /**
+ * PSYC message class.
+ * @constructor
+ * @param {String} method PSYC method
+ * @param {mmp#Vars} vars variables
+ * @param {String} data Payload
+ * @property {String} method PSYC method
+ * @property {mmp#Vars} vars variables
+ * @property {String} data Payload
+ */
+Yakity.Message = mmp.Packet.extend({
+	constructor : function(method, data, vars) {
+		this.method = method;
+		this.base(data, vars);
+		// TODO: this is a hack
+		this.vars.remove("_timestamp");
+	},
+	toString : function() {
+		var ret = "Yakity.Message("+this.method+", ([ ";
+		ret += this.vars.toString();
+		ret += "]))";
+		return ret;
+	},
+	isMethod : function(method) {
+		return this.method.indexOf(method) == 0;
+	}
+});
+Yakity.default_polymorphic = function() {
+	var pol = new serialization.Polymorphic();
+	var method = new serialization.Method();
+	// integer and string come first because they should not get overwritten by 
+	// method and float
+	pol.register_type("_string", "string", new serialization.String());
+	pol.register_type("_integer", "number", new serialization.Integer());
+	pol.register_type("_float", "number", new serialization.Float());
+	pol.register_type("_method", "string", method);
+	//pol.register_type("_message", Yakity.Message, new serialization.Message(method, pol, pol));
+	pol.register_type("_mapping", Mapping, new serialization.Mapping(pol, pol));
+	pol.register_type("_list", Array, new serialization.Array(pol));
+	pol.register_type("_time", mmp.Date, new serialization.Date());
+	pol.register_type("_uniform", mmp.Uniform, new serialization.Uniform());
+	return pol;
+}
+/**
  * Holds a Meteor connection and uses it to send and receive Atoms.
  * @constructor
  * @params {String} url Meteor endpoint urls.
