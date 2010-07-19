@@ -106,6 +106,7 @@ mixed find_file( string f, object id ) {
 	object session;
 
 #if 0
+	// This code can be used to allow setting up connections without a <subscribe> tag.
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
 		session = get_new_session();
 
@@ -195,11 +196,14 @@ string simpletag_publish(string tagname, mapping args, string content, RequestID
 TAGDOCUMENTATION;
 #ifdef manual
 constant tagdoc= ([
-"sendmsg":#"
-<desc type='cont'>Send a message to a given entity. All parameters starting with '_' are treated as variables to the packet. The tag content will be used as the packets data element. </desc>
-<attr name=_target value=String><p> The address of the target entity.  </p></attr>
-<attr name=method value=String><p> The method of the packet.  </p></attr> ",
-"emit#chat_entities":#"
-<desc type='cont'>Emits all entities known to the chat server. It offers the two variables 'uniform' and 'name'.</desc> ",
+"subscribe":#"
+<desc type='cont'>Set up javascript to subscribe to the given channel. Will also create a meteor 
+		  session for the client to connect to. Put this into a script tag.</desc>
+<attr name=channel value=String><p> The name of the channel.  </p></attr>
+<attr name=callback value=String><p> The javascript function to be called for messages coming from the server.  </p></attr> ",
+"publish":#"
+<desc type='cont'>Publish something on the given channel. All clients that subscribed to the channel before will receive this message. </desc> 
+<attr name=channel value=String><p> The name of the channel.  </p></attr>
+",
 ]);
 #endif
