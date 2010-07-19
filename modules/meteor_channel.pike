@@ -38,7 +38,7 @@ class Channel(string name) {
 
     object session_error(object session, mixed ... args) {
 	m_delete(subs, session);
-	if (!sizeof(subs)) call_out(m_delete, 0, channels, this);
+	if (!sizeof(subs)) m_delete(channels, name);
 	return session;
     }
 }
@@ -150,6 +150,7 @@ string string_to_json(string s) {
 }
 
 string simpletag_subscribe(string tagname, mapping args, string content, RequestID id) {
+	NOCACHE();
 	string channel = args->channel;
 	string cid;
 	string callback = args->callback;
