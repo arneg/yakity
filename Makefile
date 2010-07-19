@@ -14,6 +14,7 @@ release:
 	cp COPYING $(NAME)
 	mkdir $(NAME)/modules
 	cp modules/yakitychat.pike $(NAME)/modules/
+	cp modules/meteor_channel.pike $(NAME)/modules/
 	mkdir $(NAME)/htdocs
 	cp -r bin $(NAME)/
 	cp -r js $(NAME)/htdocs/
@@ -31,6 +32,7 @@ release:
 	cp htdocs/favicon.ico $(NAME)/htdocs/
 	cp htdocs/index.html $(NAME)/htdocs/
 	cp htdocs/favicon.ico $(NAME)/htdocs/
+	cp -r demos $(NAME)/
 	cp -r htdocs/images $(NAME)/htdocs/
 	cp -r htdocs/sounds $(NAME)/htdocs/
 	cp htdocs/mootools-1.2.3-core-nc.js $(NAME)/htdocs/
