@@ -4,7 +4,7 @@ inherit "module";
 
 constant module_type = MODULE_LOCATION|MODULE_TAG|MODULE_PROVIDER;
 constant module_name = "Meteor";
-constant module_doc = "This is a module to allow for realtime server push and user interaction. It features a simple channel model."
+constant module_doc = "This module allows for realtime server push and user interaction. It features a simple channel model."
 		      "It uses the same libraries as the webchat software <a href=\"http://yakitychat.com\">YakityChat</a>.";
 constant module_author = "Arne Goedeke <a href=\"mailto:el@laramies.com\">";
 
@@ -197,7 +197,7 @@ TAGDOCUMENTATION;
 #ifdef manual
 constant tagdoc= ([
 "subscribe":#"
-<desc type='cont'>Set up javascript to subscribe to the given channel. Will also create a meteor 
+<desc type='tag'>Set up javascript to subscribe to the given channel. Will also create a meteor 
 		  session for the client to connect to. Put this into a script tag.</desc>
 <attr name=channel value=String><p> The name of the channel.  </p></attr>
 <attr name=callback value=String><p> The javascript function to be called for messages coming from the server.  </p></attr> ",
