@@ -1,0 +1,53 @@
+(function($, undefined) {
+    $.widget("ui.oslider", {
+	options : {
+	    effects : [ $().show, $().hide ]
+	},
+	_create : function() {
+	    this.oslider = $("<div></div>").addClass("ui-widget")
+		.bind("mouseout", UTIL.make_method(this, function() {
+		      this.element.blur();
+		      $("iframe").focus();
+		}))
+	    this.hidden = false;
+	    this.element
+		.css({
+		    position : "absolute",
+		    bottom : "0px",
+		    right : "17px"
+		})
+		.find(".oslider-header")
+		    .addClass("ui-widget-header")
+		    .addClass("ui-corner-bl ui-corner-tl ui-corner-tr")
+		    .css("padding", "5px")
+		    .bind("click", UTIL.make_method(this, this.toggle));
+	    this.element.find(".oslider-content")
+		.addClass("ui-widget-content")
+		.addClass("ui-corner-tl")
+		.css("margin-top", "2px")
+		.css("border-bottom", "0px")
+		.css("padding", "5px");
+
+	    this.element.appendTo(this.oslider);
+	    this.oslider.appendTo(document.body);
+	},
+	_init : function() {
+	    this.hide();
+	},
+	toggle : function() {
+	    // we will be the new jquery!
+	    (this.hidden ? this.show : this.hide).apply(this);
+	},
+	hide : function() {
+	    console.log("%o", this.element.find(".oslider-content"));
+	    this.options.effects[1].apply(this.element.find(".oslider-content"), arguments);
+	    this.hidden = true;
+	    this.element.blur();
+	    $("iframe").focus();
+	},
+	show : function() {
+	    this.hidden = false;
+	    this.options.effects[0].apply(this.element.find(".oslider-content"), arguments);
+	}
+    });
+})(jQuery);
