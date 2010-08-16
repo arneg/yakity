@@ -63,6 +63,9 @@ var Amnesty = {
 	    iframe.style.position = "absolute";
 	    iframe.style.top = "0px";
 	    iframe.style.left = "0px;"
+	    iframe.onmouseover = function() {
+		iframe.contentWindow.focus();
+	    };
 
 	    document.body.style.padding = "0";
 	    document.body.style.margin = "0";

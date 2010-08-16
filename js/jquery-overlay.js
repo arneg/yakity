@@ -4,11 +4,7 @@
 	    effects : [ $().show, $().hide ]
 	},
 	_create : function() {
-	    this.oslider = $("<div></div>").addClass("ui-widget")
-		.bind("mouseout", UTIL.make_method(this, function() {
-		      this.element.blur();
-		      $("iframe").focus();
-		}))
+	    this.oslider = $("<div></div>").addClass("ui-widget");
 	    this.hidden = false;
 	    this.element
 		.css({
@@ -42,8 +38,6 @@
 	    console.log("%o", this.element.find(".oslider-content"));
 	    this.options.effects[1].apply(this.element.find(".oslider-content"), arguments);
 	    this.hidden = true;
-	    this.element.blur();
-	    $("iframe").focus();
 	},
 	show : function() {
 	    this.hidden = false;
