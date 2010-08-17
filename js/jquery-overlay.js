@@ -6,6 +6,7 @@
 	_create : function() {
 	    this.oslider = $("<div></div>").addClass("ui-widget");
 	    this.hidden = false;
+	    //this.chat = new Yakity.Chat(this.options.client, this.element.find(".oslider-content")[0]);
 	    this.element
 		.css({
 		    position : "absolute",
@@ -42,6 +43,33 @@
 	show : function() {
 	    this.hidden = false;
 	    this.options.effects[0].apply(this.element.find(".oslider-content"), arguments);
+	}
+    });
+})(jQuery);
+(function($, undefined) {
+    $.widget("ui.ychatbox", {
+	options : {
+	    //maxMessages : 12
+	    templates : new mmp.Vars({
+		_notice_enter : "[_supplicant] enters [_source].",
+		_notice_leave : "[_supplicant] leaves [_source].",
+		_message_public : "[_timestamp] [_source_relay] [data]",
+		_message_private : "[_timestamp] [_source_relay] [data]",
+		_echo_message_public : "[_timestamp] [_source_relay] [data]",
+		_echo_message_private : "[_timestamp] [_source_relay] [data]"
+	    })
+	},
+	_create : function() {
+	    this.displayedMessages = 0;
+	    this.element.css("overflow", "auto");
+	},
+	add_message : function(packet) {
+	    $(Yakity.funky_text(packet, this.options.templates)).appendTo(this.element);
+	    /*
+	    if (++this.displayedMessages > this.options.maxMessages) {
+		this.element.removeChild(this.element.firstChild);
+	    }
+	    */
 	}
     });
 })(jQuery);
