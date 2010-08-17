@@ -15,7 +15,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-inherit Yakity.Base;
+inherit PSYC.Base;
+
+inherit MMP.Plugins.ChannelRouter;
 
 mixed rooms, users;
 
@@ -23,7 +25,7 @@ void create(object server, MMP.Uniform uniform) {
 	::create(server, uniform);
 }
 
-int _request_users(MMP.Packet p) {
+int _request_users(MMP.Packet p, PSYC.Message m, function callback) {
 	MMP.Uniform source = p->source();
 
 	if (users) {
@@ -42,9 +44,9 @@ int _request_users(MMP.Packet p) {
 				  });
 #endif
 
-		sendmsg(source, "_update_users", 0,  ([ "_users" : profiles ]));
+		sendreplymsg(p, "_update_users", 0,  ([ "_users" : profiles ]));
 	}
 
-	return Yakity.STOP;
+	return PSYC.STOP;
 }
 

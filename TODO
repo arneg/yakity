@@ -1,3 +1,9 @@
+Session/Meteor
+ * meteor.Connection is currently expecting Strings whereas Meteor.Session is
+   sending and receiving atoms. This should be changed to allow for other 
+   transmission encodings
+
+
 TODO for 0.1
 * NOTIFICATIOn
 	* new message (beep)

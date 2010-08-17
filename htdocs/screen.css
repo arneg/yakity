@@ -1,0 +1,489 @@
+body {
+	font-family: 'Andale Mono', FreeSans, sans-serif;
+	margin: 5px 5px 5px 5px;
+	background-color: #007fc2;
+}
+
+.hidden {
+	display: none;
+}
+			
+
+div.header a {
+	text-align: left;
+}
+
+div.error {
+	font-family: monospace;
+	font-size: small;
+	height: 350px;
+	color: black;
+	overflow:auto;
+}
+
+div._notice_enter span._supplicant, div._notice_leave span._supplicant {
+	float: left;
+	margin-right: 3px;
+}
+			
+div.status div.messages, div.public div.messages, div.private div.messages {
+	height: 250px;
+	overflow: auto;
+}
+
+div.chatwindow {
+	background-color: #dddddd;
+	border-right: 1px #ccc solid;
+	border-left: 1px #ccc solid;
+	position: relative;
+}
+
+div.membersList {
+	height: 150px;
+	overflow: none;
+	overflow-x: none;
+	overflow-y: auto;
+}
+			
+div.membersContainer
+{
+
+		background-color: #eee; 
+		opacity: .9; 
+					filter:alpha(opacity=90);
+	display: block; 
+	border-left: 1px solid rgb(102, 102, 102); 
+	border-bottom: 1px solid rgb(102, 102, 102); 
+	border-right: 1px solid rgb(102, 102, 102); 
+	-moz-border-radius-bottomleft: 10px; 
+					-webkit-border-bottom-left-radius: 10px;
+	width: 50%;
+	position:absolute;
+	top: 0px;
+	right: 15px;
+	min-height: 18px;
+}
+
+div.blur div.membersContainer {
+	display: none;
+}
+
+a.membersToggler {
+	position: absolute;
+	bottom: 2px;
+	left: 3px;
+	width: 100%;
+}
+
+div.membersContainer a.focus div.Button {
+		background-image: url(images/arrowup.png);
+	background-position: left bottom;
+	background-repeat: no-repeat;
+}
+
+div.membersContainer a.blur div.Button{
+		background-image: url(images/arrowdown.png);
+	background-position: left bottom;
+	background-repeat: no-repeat;
+}
+	
+div.Button {
+	display: block;
+	width: 13px;
+	height: 14px;
+	line-height: 14px;
+}
+
+
+div.membersList table {
+	width: 100%;
+}
+
+div.membersList table th {
+	font-size: 10pt;
+}
+
+div.membersList * td {
+	font-size: 8pt;
+	text-align: right;
+	padding-right: 15px;
+}
+
+div.membersList * a {
+	color: #528CE0;
+}
+
+a.toggleInfo, div.infoIcon {
+	width: 25px;
+	height: 24px;
+	line-height: 24px;
+	float:left;
+}
+
+a.toggler {
+	font-size: 9pt;
+	font-family: 'Andale-Mono', sans-serif;
+	display: block;
+	height: 24px;
+}
+
+div.public div.infoIcon {
+	background: url(images/yakgroup.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+div.unread[class~="public"] div.infoIcon {
+	background: url(images/yakgroup-waiting.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+div.left[class~="public"] div.infoIcon {
+	background: url(images/yakgroup-left.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+div.private div.infoIcon {
+	background: url(images/member-icon.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+div.unread[class~="private"] div.infoIcon {
+	background: url(images/member-icon-waiting.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+div.typing[class~="private"] div.infoIcon {
+	background: url(images/member-icon-typing.gif);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+div.offline[class~="private"] div.infoIcon {
+	background: url(images/member-icon-left.gif);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+div.messages {
+	background-color: #dddddd;
+}
+
+div.typing div.messages {
+	background-color: #eedddd;
+}
+
+div.offline div.messages, div.left div.messages {
+	background-color: #bbbbbb;
+}
+
+div.header {
+	cursor: pointer;
+	height: 25px;
+	line-height: 25px;
+	border-right: 1px #ccc solid;
+	border-left: 1px #ccc solid;
+	border-top: 1px #FFF solid;
+	border-bottom: 1px #999 solid;
+	font-family: 'Andale Mono', FreeSans, sans-serif;
+	font-size: 9pt;
+	background: url(images/yakitytab.gif);
+	color: #528CE0;
+	margin: 0;
+	padding: 3px 5px 1px;
+}
+
+div.closeButton, div.leaveButton, div.enterButton {
+	display: block;
+	width: 20px;
+	height: 24px;
+	line-height: 24px;
+	float: right;
+}
+			
+div.closeButton {
+	background: url(images/cross-icon-red.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+			
+div.joined div.closeButton {
+	display: none;
+}
+			
+div.leaveButton {
+	background: url(images/cross-icon-grey.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+			
+div.left div.leaveButton {
+	display: none;
+}
+			
+div.enterButton {
+	background: url(images/yak-icon.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+			
+div.joined div.enterButton {
+	display: none;
+}
+			
+
+span._user_realname {
+	color: #00f;
+	font-variant: small-caps;
+}
+
+
+div._ {
+	font-family: 'Andale Mono', FreeSans, sans-serif;
+	color: #000;
+	font-size: 9pt;
+	line-height: 120%;
+}
+
+div._timestamp {
+	float: right;
+	font-size: 8pt;
+	color: #999;
+	margin-right: 5px;
+}
+
+div._echo_message_private {
+	padding: 5px;
+}
+			
+div._message, div._notice {
+	text-decoration: none;
+	color: #999; 
+	padding: 5px;
+}
+
+div._message .data {
+	color: #000;
+	white-space: -moz-pre-wrap;
+	white-space: -pre-wrap;
+	white-space: -o-pre-wrap;
+	word-wrap: break-word;
+	white-space: normal;
+}
+
+span._supplicant, span._source {
+	color: #528CE0;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+div.self span._source_relay {
+	color: #000;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+div._message span._source, div.self span._source_relay {
+	float: left;
+	margin-right: 10px;
+}
+
+
+br.clearall {
+	clear:both;
+}
+
+div#inputChats {
+		position: relative;
+}
+
+#inputChats input.chatText { 
+	position: absolute;
+	height: 26px; 
+	width: 89%; 
+	font-size: 14pt; 
+	left: 5px;
+}
+
+#inputChats input.chatSubmit { 
+	position: absolute;
+	right: 5px;
+	margin-left: 5px;
+	padding-left: 5px;
+}
+			
+#leftPane {
+	background-image: url(images/yakitychat_icon.png);
+	background-repeat: no-repeat;
+	background-position: 5px 5px;				
+					position: absolute;
+					left: 5px;        
+					width: 29%;
+					padding-right: 10px;
+}
+
+#rightPane
+{
+					background-color: #ddd; 
+	min-height: 250px;
+	margin: 0 0px 0 34%;
+}
+
+#YakityChat {
+		min-height: 250px;
+}
+
+#rooms {
+	height: 65px;
+	width: 100%
+	overflow: auto;
+	padding-top: 55px;
+	padding-right: 5px;
+}
+
+#rooms div.roomHeader {
+	text-align: center;
+	font-size: 10pt;
+	font-weight: bold;
+}
+
+#rooms a, span._source a, span._supplicant a, span._target a, td a {
+	font-size: 8pt;
+	cursor: pointer;
+	cursor: hand;
+	color: #528CE0;
+}
+
+div.userList
+{
+	height: 150px;
+	width: 100%;
+	overflow: auto;
+}
+
+div.userList table
+{
+	width: 100%;
+}
+
+div.userList table thead th
+{
+	font-size: 10pt;
+}
+
+div.userList table tbody td
+{
+	font-size: 8pt;
+}
+div.userList * a {
+	color: #528CE0;
+}
+
+#basePane {
+	height: 50px;
+	background: #efefef;
+	line-height: 50px;
+	padding: 20px;
+	clear:both;
+	-moz-border-radius-bottomright: 10px;
+	-webkit-border-bottom-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+	-moz-border-radius-bottomleft: 10px;
+	-webkit-border-bottom-left-radius: 10px;
+	border-bottom-left-radius: 10px;
+					
+}
+
+.window {
+	background: #fff;
+	border: 2px solid #555;
+	position: relative;
+}
+
+#container {
+	min-width: 450px;
+	max-width: 780px;
+	margin: 0px auto 0px auto;
+	-moz-border-radius-topleft: 10px;
+	-webkit-border-top-left-radius: 10px;
+	border-top-left-radius: 10px;
+	white-space: nowrap;
+}
+
+#content {
+	margin-top: 100px;
+}
+			
+#link,#connect {
+	width: 400px;
+	padding: 10px;
+	margin-left: auto;
+	margin-right: auto;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+}
+
+
+input.inputSubmit {
+	float:right; 
+	margin-top: 55px;
+}
+
+#link .textInput {
+	height: 26px; 
+	width: 200px; 
+	font-size: 16pt; 
+	margin-right: 10px;
+}
+
+#linkRequest
+{
+	height: 145px;
+	line-height: 145px;
+	padding-left: 135px;
+	background-image: url(images/yakitychat.png);
+	background-repeat: no-repeat;
+	background-position: left 0px;
+}
+
+#terms {
+	margin-top: 10px;
+	font-size: 6.5pt;
+	text-align: center;
+	font-family: 'Andale Mono', FreeSans, sans-serif;
+	color: white;
+}
+
+.introDiv {
+		padding: 10px;
+}
+
+.introDiv img {
+		margin-right: 10px;
+}
+
+div#soundIcon {
+		width: 16px;
+		height: 16px;
+		position: absolute;
+		right: 0px;
+		top: 10px;
+}
+div#soundIcon[class~="on"] {
+	background-image: url(images/sound-on.png);
+}
+div#soundIcon[class~="off"] {
+	background-image: url(images/sound-off.png);
+}
+div#soundIcon[class~="no"] {
+	background-image: url(images/sound-no.png);
+}
+
+a {
+		outline-style:none;
+					outline-width:0px;
+}
+
+h1 {
+		font-size: 14px;
+		padding: 10px;
+}

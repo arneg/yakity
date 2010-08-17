@@ -15,20 +15,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-/**
- * Set this to a mapping of templates that should be used automatically when displaying messages inside Chat tabs. PSYC method inheritance is used when accessing the templates. Hence a template for "_message" will also be used for "_message_public" if there is no template for it. Therefore setting a template for "_" effectively sets a default template for all methods.
- * @type mmp#Vars
- * @name psyc.templates
- * @field
- * @example
- * psyc.templates = new Vars("_message_public", 
- * "[_source_relay] says in [_source]: [data]", 
- * "_", "[_source] sends [method]: [data]");
- */
-psyc = {
-	STOP : 1,
-	GOON : 0	
-};
 Yakity = {};
 /**
  * PSYC message class.
@@ -78,29 +64,36 @@ Yakity.default_polymorphic = function() {
  * @constructor
  * @params {String} url Meteor endpoint urls.
  */
-Yakity.Client = function(url, name) {
-	this.callbacks = new Mapping();
-	var self = this;
-	var errorcb = function(error) {
-		if (!self.uniform) { // we are not connected yet.
-			if (self.onconnect) self.onconnect(0, error);
-		}
+Yakity.Client = psyc.Base.extend({
+	constructor : function(url, name) {
+	    this.base({ 
+			msg : UTIL.make_method(this, function(p) {
+				meteor.debug("sending %s (%o)", p.data.type, p);
+				this.connection.send(this.packet_signature.encode(p).render());	
+			})
+	    }, 0);
+	    var errorcb = UTIL.make_method(this, function(error) {
+		    if (!this.uniform) { // we are not connected yet.
+				this.trigger("connect", 0, error);	
+		    }
 
-		if (meteor.debug) meteor.debug(error);
-	};
-	this.connection = new meteor.Connection(url, { nick : name }, UTIL.make_method(this, this.incoming), errorcb);
-	this.connection.init();
-	var method = new serialization.Method();
-	var poly = Yakity.default_polymorphic();
-	this.msig = new serialization.Message(method, new serialization.OneTypedVars(poly), poly);
-	this.psig = new serialization.Packet(this.msig);
-	this.parser = new serialization.AtomParser();
-	this.icount = 0;
-	this.name = name;
-};
-// params = ( method : "_message", source : Uniform }
-Yakity.Client.prototype = {
-    	abort : function() {
+		    if (meteor.debug) meteor.debug(error);
+	    });
+	    this.connection = new meteor.Connection(url, { nick : name }, UTIL.make_method(this, this.incoming), errorcb);
+	    this.connection.init();
+	    this.connection.onconnect = UTIL.make_method(this, function(v) {
+			this.uniform = mmp.get_uniform(v._uniform);
+			this.default_vars.set("_source", this.uniform);
+			if (!this.uniform) {
+				throw("no _uniform in initialization mapping from server.");
+			}
+			this.trigger("connect", 1);
+	    });
+	    this.packet_signature = new serialization.Packet(new serialization.Any());
+	    this.parser = new serialization.AtomParser();
+	    this.name = name;
+	},
+	abort : function() {
 		if (this.connection) {
 		    this.connection.close();
 		    delete this.connection;
@@ -109,32 +102,34 @@ Yakity.Client.prototype = {
 		    delete this.incoming;
 		}
 	},
+	link : function(name) {
+		// use tagging here. we want to allow delegation but also avoid bad stuff
+		var target = this.uniform.get_object("~"+name);
+		this.sendmsg(target, "_request_link", 0, 0, UTIL.make_method(this, function(p, m) {
+			if (m.method == "_notice_link") {
+				this.default_vars.set("_source_identification", p.source());
+				this.user = p.source();
+				this.trigger("link", 1, p.source());
+			} else {
+				this.trigger("link", 0, p.data.data);
+			}
+		}));
+	},
 	toString : function() {
 		return "Yakity.Client("+this.connection.url+")";
-	},
-	/**
-	 * Register for certain incoming messages. This can be used to implement chat tabs or handlers for certain message types.
-	 * @params {Object} params Object containing the properties "method", "callback" and optionally "source". For all incoming messages matching "method" and "source" the callback is called. The "source" property should be of type mmp.Uniform.
-	 * @returns A wrapper object of type meteor.CallbackWrapper. It can be used to unregister the handler.
-	 */
-	register_method : function(params) {
-		var wrapper = new meteor.CallbackWrapper(params, this.callbacks);
-		
-		if (this.callbacks.hasIndex(params.method)) {
-			var list = this.callbacks.get(params.method);
-			list.push(wrapper);
-		} else {
-			this.callbacks.set(params.method, new Array( wrapper ) );
-		}
-
-		return wrapper;
 	},
 	logout : function() {
 		if (this.uniform) {
 		    // not connected yet.
-		    this.connection.set_blocking();
-		    this.connection.reconnect = 0;
+			if (this.user) {
+				this.sendmsg(this.user, "_request_unlink");	
+			}
+
+			this.connection.set_blocking();
+			this.connection.reconnect = 0;
+
 		    this.sendmsg(this.uniform, "_request_logout");	
+
 		    this.connection.close();
 		}
 	},
@@ -142,61 +137,20 @@ Yakity.Client.prototype = {
 		this.connection.close();
 		delete this.connection;
 	},
- 	sendmsg : function(target, method, data, vars) {
-		var m = new Yakity.Message(method, data, vars);
-		var p = new mmp.Packet(m, { _target : target, _source : this.uniform });
-		this.send(p);
-	},
-	/**
-	 * Send a packet. This should be of type Yakity.Message.
-	 * @params {Object} packet Message to send.
-	 */
-	send : function(p) {
-		if (!p.V("_target")) throw("Message without _target is baaad!");
-		if (!p.V("_source")) p.source(this.uniform);
-
-		try {
-			this.connection.send(this.psig.encode(p).render());
-		} catch (error) {
-			if (meteor.debug) {
-				if (UTIL.objectp(error)) {
-					var str = "";
-					for (var i in error) {
-						str += i+" "+error[i]+"\n";
-					}
-					meteor.debug("send() failed: "+str);
-				} else meteor.debug("send() failed: "+error);
-			}
-			return;
-		}
-	},
-	/**
-	 * Request all messages up to id count from the PSYC user. This is done automatically if missing messages are detected during handshake with the user.
-	 * @params {Integer} count Message to send.
-	 */
-	sync : function(count) {
-		var list = new Array(count - this.icount);
-		for (var i = 0; this.icount+i+1 <= count; i++) {
-			list[i] = this.icount+i+1;
-		}
-		this.sendmsg(this.uniform, "_request_history", 0, { _messages : list });
-	},
 	_notice_logout : function (m) {
 		this.client.reconnect = 0;	
 	},
 	incoming : function (data) {
-		var self, method, count, p, m, wrapper, i, last_id;
-		var source, target, context;
-
-		meteor.debug(data.length+" bytes of incoming data.");
+		var p, wrapper, i, last_id;
+		var source, target;
 
 		if (this.keepalive) {
 			window.clearTimeout(this.keepalive);
 		}
-		self = this;
-		wrapper = function() {
-			self.connection.reconnect_incoming();
-		};
+
+		wrapper = UTIL.make_method(this, function() {
+			this.connection.reconnect_incoming();
+		});
 		this.keepalive = window.setTimeout(wrapper, 45*1000);
 
 		try {
@@ -204,91 +158,43 @@ Yakity.Client.prototype = {
 		} catch (error) {
 			if (meteor.debug) meteor.debug("failed to parse: "+data+"\nERROR: "+error);
 		}
-MESSAGES: for (i = 0; i < data.length; i++) {
+
+		MESSAGES: for (i = 0; i < data.length; i++) {
 			if (data[i].type == "_keepalive") {
 				// dont try to decode the keepalive packet
 				continue MESSAGES;
 			}
 			try {
-				p = this.psig.decode(data[i]);
+				p = this.packet_signature.decode(data[i]);
 			} catch (error) {
 				if (meteor.debug) meteor.debug("failed to decode: "+data[i]+"\nERROR: "+error);
 				continue;
 			}
-			if (p instanceof mmp.Packet && (m = p.data) instanceof Yakity.Message) {
-				method = m.method;
-				if (meteor.debug) meteor.debug("incoming: %o", p);
-				count = p.v("_id");	
-				target = p.target();
-				source = p.source();
-				context = p.v("_context");
+			if (p instanceof mmp.Packet) {
+				//if (meteor.debug) meteor.debug("incoming: %o", p);
 
-				if (method == "_status_circuit") {
-					last_id = m.v("_last_id");
-					this.uniform = source;
+				var target = p.target();
+				var source = p.source();
 
-					if (UTIL.intp(last_id) && this.icount < last_id) {
-						this.sync(last_id);
-						this.icount = count;
-					}
-					if (this.onconnect) {
-						this.onconnect(1, this);
-					}
-				} else if (!context) {
-					if (target != this.uniform) {
+				if (!p.V("_context")) {
+					if (!this.uniform && target != this.uniform) {
 						if (meteor.debug) meteor.debug("received message for "+target+", not for us!");
 						continue;
-					} else if (!source) {
+					}
+
+					if (!source) {
 						if (meteor.debug) meteor.debug("received message without source.\n");
 						continue;
 					}
 				}
+
+				meteor.debug("received: %s (%o, %o)", p.data.type, p.data, p.vars);
 				
-				if (UTIL.intp(count)) {
-					if (this.icount+1 < count) {
-						// request all up to count-1
-						this.sync(count-1);
-
-					} else if (this.icount == count - 1) {
-						this.icount = count;
-					}
-				}
-
-				var none = 1;
-
-				for (var t = method; t; t = mmp.abbrev(t)) {
-					if (this.hasOwnProperty(t) && UTIL.functionp(this[t])) {
-						this[t].call(this, m);
-					}
-					if (!this.callbacks.hasIndex(t)) continue;
-
-					none = 0;
-					var list = this.callbacks.get(t);
-					var stop = 0;
-
-					for (var j = 0; j < list.length; j++) {
-						try {
-							if (psyc.STOP == list[j].msg(p, m)) {
-								stop = 1;
-							}
-						} catch (error) {
-							if (meteor.debug) meteor.debug(error);
-						}
-					}
-
-					// we do this to stop only after all callbacks on the same level have been handled.
-					if (stop) {
-						continue MESSAGES;
-					}
-				}
-
-				if (meteor.debug && none) meteor.debug("No callback registered for "+method);
-			} else {
-				if (meteor.debug) meteor.debug("Got non _message atom from "+connection.toString());
+				this.msg(p);
 			}
 		}
 	}
-};
+});
 Yakity.linky_text = function(text) {
     //var reg = /(https?|ftp|imap|irc|ldap|nfs|nntp|sips?|telnet|xmpp):\/\/(\w+(:\w+)?@)?[\w\.\-]+(:\d+)?(\/[\w\$\-_.\+!\*'\(\),]+|\/?)?/g;
     var reg = /(https?|ftp|imap|irc|ldap|nfs|nntp|sips?|telnet|xmpp):\/\/([-;:&=\+\$,\w]+@{1})?([-A-Za-z0-9\.]+)+:?(\d+)?((\/[-\+~%\/\.\w]+)?\??([-\+=&;%@\.\w]+)?#?([\w]+)?)?/g;
@@ -392,6 +298,8 @@ Yakity.funky_text = function(p, templates) {
 		}
 		var t;
 
+		if (s == "source") s = p.V("_source_relay") ? "_source_relay" : p.V("_source_identification") ? "_source_identification" : "_source";
+
 		if (s == "data") {
 			t = Yakity.linky_text(m.data);
 		} else if (s == "method") {
@@ -442,25 +350,28 @@ Yakity.funky_text = function(p, templates) {
 
 	return div;
 };
-Yakity.Base = Base.extend({
-	constructor : function() {
+Yakity.Base = UTIL.EventSource.extend({
+	constructor : function(client) {
+		this.client = client;
+		this.base();
 		this.plugins = [];
-		this.events = new HigherDMapping();
+		this.sendmsg = UTIL.make_method(client, client.sendmsg);
+		this.send = UTIL.make_method(client, client.send);
 	},
 	msg : function (p, m) {
 		var method = m.method;
 		var none = 1;
 
-		if (method.search("_") != 0) {
-			if (meteor.debug) meteor.debug("Bad method "+method);
-			return psyc.STOP;
-		}
-
+		// same is happening
 		for (var t = method; t; t = mmp.abbrev(t)) {
 			if (UTIL.functionp(this[t])) {
 				none = 0;
-				if (psyc.STOP == this[t].call(this, p, m)) {
-					return psyc.STOP;
+				try {
+				    if (psyc.STOP == this[t].call(this, p, m)) {
+					    return psyc.STOP;
+				    }
+				} catch (error) {
+				    if (meteor.debug) meteor.debug("error when calling "+t+" in "+this+": %o", error);
 				}
 			}
 		}
@@ -475,9 +386,6 @@ Yakity.Base = Base.extend({
 
 		return psyc.GOON;
 	},
-	sendmsg : function(target, method, data, vars) {
-		this.client.sendmsg(target, method, data, vars);
-	},
 	register_plugin : function(o) {
 		this.plugins.push(o);
 	},
@@ -488,30 +396,11 @@ Yakity.Base = Base.extend({
 				return;
 			}
 		}
-	},
-	register_event : function(name, o, fun) {
-		return this.events.set(name, [o, fun]);	
-	},
-	unregister_event : function(id) {
-		return this.events.remove(id);
-	},
-	trigger : function(name) {
-		var list = this.events.get(name);
-		var arg;
-		if (arguments.length > 1) {
-		    arg = Array.prototype.slice.call(arguments, 1);
-		} else {
-		    arg = [];
-		}
-		
-		for (var i = 0; i < list.length; i++) {
-			list[i][1].apply(list[i][0], arg);
-		}
 	}
 });
 Yakity.ChatWindow = Yakity.Base.extend({
-	constructor : function(id) {
-		this.base();
+	constructor : function(client, id) {
+		this.base(client);
 		this.mlist = new Array();
 		this.mset = new Mapping();
 		this.messages = document.createElement("div");
@@ -548,8 +437,8 @@ Yakity.ChatWindow = Yakity.Base.extend({
 	}
 });
 Yakity.TemplatedWindow = Yakity.ChatWindow.extend({
-	constructor : function(templates, id) {
-		this.base(id);
+	constructor : function(client, templates, id) {
+		this.base(client, id);
 		if (templates) this.setTemplates(templates);
 	},
 	setTemplates : function(t) {
@@ -560,8 +449,8 @@ Yakity.TemplatedWindow = Yakity.ChatWindow.extend({
 	}
 });
 Yakity.RoomWindow = Yakity.TemplatedWindow.extend({
-	constructor : function(templates, id) {
-		this.base(templates, id);
+	constructor : function(client, templates, id) {
+		this.base(client, templates, id);
 		this.members = new TypedTable();
 		this.members.addColumn("members", "Members");
 		this.active = 0;
@@ -577,41 +466,15 @@ Yakity.RoomWindow = Yakity.TemplatedWindow.extend({
 			sort *= -1;
 		};
 	},
-	_notice_enter : function(p, m) {
-		var list = m.v("_members");
+	_notice_context_enter : function(p, m) {
+		meteor.debug("_notice_context_enter with %o", m);
 		var supplicant = m.v("_supplicant");
-		var me = p.target();
-
-		if (supplicant === me) {
-			if (this.left) {
-				this.left = 0;
-				this.trigger("onenter", this);
-			} else {
-				return psyc.STOP;
-			}
-		}
-
-
-		if (list instanceof Array) {
-			for (var i = 0; i < list.length; i++) {
-				this.addMember(list[i]);
-			}
-		}
+		var list = m.v("_members");
 
 		this.addMember(supplicant);
 	},
-	_notice_leave : function(p, m) {
+	_notice_context_leave : function(p, m) {
 		var supplicant = m.v("_supplicant");
-		var me = p.target();
-
-		if (supplicant === me) {
-			if (!this.left) {
-				this.left = 1;
-				this.trigger("onleave", this);
-			} else {
-				return psyc.STOP;
-			}
-		}
 
 		this.deleteMember(m.v("_supplicant"));
 	},
@@ -643,6 +506,7 @@ Yakity.Chat = Base.extend({
 	constructor : function(client) {
 		this.windows = new Mapping();
 		this.active = null;
+		this.retransmission_sig = new serialization.Array(client.packet_signature);
 
 		if (client) {
 			client.register_method({ method : "_", source : null, object : this });
@@ -650,9 +514,12 @@ Yakity.Chat = Base.extend({
 		}
 	},
 	msg : function(p, m) {
-		if (!p.vars.hasIndex("_context") || this.windows.hasIndex(p.source())) {
+		if (p.V("_context")) {
+		    this.getWindow(p.v("_context")).msg(p, m);
+		} else if (this.windows.hasIndex(p.source()) || mmp.is_abbrev(m.method, "_message") || mmp.is_abbrev(m.method, "_notice")) {
 		    this.getWindow(p.source()).msg(p, m);
 		}
+
 		return psyc.STOP;
 	},
 	getWindow : function(uniform) {
@@ -676,23 +543,65 @@ Yakity.Chat = Base.extend({
 	 * Requests membership in the given room. If the room has been entered successfully a new tab will be opened automatically.
 	 */
 	enterRoom : function(uniform, history) {
-		this.client.sendmsg(uniform, "_request_enter");
+		var sig = this.retransmission_sig;
+		this.client.sendmsg(this.client.uniform.root(), "_request_context_enter", 0, { _channel : uniform, _supplicant : this.client.user },
+		    UTIL.make_method(this.getWindow(uniform), function (p, m) {
+			var list = m.v("_members");
+			meteor.debug("left: %d %o", this.left, this);
+			
+			if (this.left) {
+				this.left = 0;
+				this.trigger("onenter", this);
+			} else {
+				return psyc.STOP;
+			}
+
+
+			if (list instanceof Array) {
+				for (var i = 0; i < list.length; i++) {
+					this.addMember(list[i]);
+				}
+			}
+
+			var id = m.v("_context_id");
+			var max = m.v("_history_max");
+			var l = [];
+
+			while (max-- > 0 && id >= 0) {
+			    l.push(id--);
+			}
+			if (l.length) this.client.sendmsg(this.client.uniform.root(), "_request_context_retrieval", 0, { _ids : l, _channel : uniform, _token : m.v("_token"), _id : m.v("_id") }, UTIL.make_method(this, function (p,m) {
+			    var packets = sig.decode(p.data);
+			    for (var i = 0; i < packets.length; i++) this.client.msg(packets[i]);
+			}));
+
+			return psyc.STOP;
+		    }));
+		/*
 		if (history) {
 		    this.client.sendmsg(uniform, "_request_history");
-		}
+		} */
 	},
 	/**
 	 * @param {Uniform} uniform
 	 * Leaves a room.
 	 */
 	leaveRoom : function(uniform) {
-		this.client.sendmsg(uniform, "_request_leave");
+		this.client.sendmsg(this.client.uniform.root(), "_notice_context_leave", 0, { _channel : uniform, _supplicant : this.client.user }, 
+		    UTIL.make_method(this.getWindow(uniform), function (p, m) {
+			if (!this.left) {
+				this.left = 1;
+				this.trigger("onleave", this);
+			}
+
+			return psyc.STOP;
+		    }));
 		// close window after _notice_leave is there or after double click on close button
 	}
 });
 Yakity.ProfileData = Yakity.Base.extend({
 	constructor : function(client) {
-		this.base();
+		this.base(client);
 		this.client = client;
 		this.cache = new Mapping();
 		this.requests = new Mapping();
@@ -706,6 +615,10 @@ Yakity.ProfileData = Yakity.Base.extend({
 		this.profile = m;
 	},
 	getDisplayNode : function(uniform) {
+		// use the user as base here?
+		if (this.client.uniform.host != uniform.host) {
+			return document.createTextNode(uniform.toString());
+		}
 
 		if (this.cache.hasIndex(uniform)) {
 			var name = this.cache.get(uniform).get("_name_display");
@@ -716,15 +629,15 @@ Yakity.ProfileData = Yakity.Base.extend({
 
 		var cb = function(profile) {
 			var name = profile.get("_name_display");
-			node.parentNode.replaceChild(document.createTextNode(name), node);
+			if (node.parentNode) node.parentNode.replaceChild(document.createTextNode(name), node);
 		};
 
-		var self = this;
-		
-		var iefuck = function() {
-			self.getProfileData(uniform, cb);	
-		};
-		window.setTimeout(iefuck, 0);
+		var iefuck = UTIL.make_method(this, function() {
+			this.getProfileData(uniform, cb);	
+		});
+
+		this.getProfileData(uniform, cb);	
+		//window.setTimeout(iefuck, 0);
 		return node;
 	},
 	getProfileData : function(uniform, callback) {
@@ -743,6 +656,7 @@ Yakity.ProfileData = Yakity.Base.extend({
 	},
 	_update_profile : function(p, m) {
 		var source = p.source();
+		if (!m.V("_profile")) throw("no profile in _update_profile.\n");
 		var profile = m.v("_profile");
 
 		this.cache.set(source, profile);
@@ -753,6 +667,8 @@ Yakity.ProfileData = Yakity.Base.extend({
 			for (var i = 0; i < list.length; i++) {
 				list[i](profile);
 			}
+
+			this.requests.remove(source);
 		}
 
 		return psyc.STOP;
@@ -787,7 +703,7 @@ Yakity.ProfileData = Yakity.Base.extend({
 });
 Yakity.UserList = Yakity.Base.extend({
 	constructor : function(client, profiles) {
-		this.base();
+		this.base(client);
 		this.client = client;
 		this.profiles = profiles;
 		client.register_method({ method : "_update_users", source : this.client.uniform.root(), object : this });
@@ -833,8 +749,7 @@ Yakity.UserList = Yakity.Base.extend({
 Yakity.Presence = {};
 Yakity.Presence.Typing = Yakity.Base.extend({
 	constructor : function(client, chat) {
-		this.base();
-		this.client = client;
+		this.base(client);
 		this.chat = chat;
 		this.ids = new Mapping();
 	},
@@ -845,7 +760,7 @@ Yakity.Presence.Typing = Yakity.Base.extend({
 		if (this.ids.hasIndex(uniform)) {
 			window.clearTimeout(this.ids.get(uniform));
 		} else {
-			this.client.sendmsg(uniform, "_notice_presence_typing");
+			this.sendmsg(uniform, "_notice_presence_typing");
 		}
 		var self = this;
 		var cb = function() {
@@ -870,7 +785,7 @@ Yakity.Presence.Typing = Yakity.Base.extend({
 	idle_event : function(uniform) {
 		window.clearTimeout(this.inactive_id);
 		this.ids.remove(uniform);
-		this.client.sendmsg(uniform, "_notice_presence_idle");
+		this.sendmsg(uniform, "_notice_presence_idle");
 		return true;
 	}
 });
@@ -910,3 +825,33 @@ Yakity.HtmlTemplate = function(html) {
 		return div;
 	});
 };
+Yakity.UI = {};
+Yakity.UI.TextInput = Widget.Base.extend({
+	constructor : function(node, buttons) {
+		var actions = {};
+		this.typing_callout = 0;	
+		this.lastinput = "";
+
+		if (buttons.submit) buttons.registerEvent("click", UTIL.make_method(this, function() {
+			var t = this.node.value;
+			this.node.value = "";
+			this.submit(t);
+		}));
+		actions.keyup = UTIL.make_method(this, function(t, ev) {
+			if (this.node.value != this.lastinput) {
+				this.lastinput = this.node.value;
+				this.typing(ev.keyCode);
+			}
+		});
+		actions.mouseup = UTIL.make_method(this, function(t, ev) {
+			if (this.node.value != this.lastinput) {
+				this.lastinput = this.node.value;
+				this.typing(ev.which);
+			}
+		});
+		this.base(node, {}, actions);
+	}, 
+	// dummies if not overloaded.
+	typing : function(key) { },
+	submit : function(text) { }
+});

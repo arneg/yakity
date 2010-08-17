@@ -54,7 +54,7 @@ float lasthrtime;
 int bcastcnt; // immanuel kant
 #endif
 
-void broadcast(MMP.Packet p) {
+int broadcast(MMP.Packet p) {
 	// TODO, this is seriously not good. time to revive
 	// some psyc legacy using channels, etc. But for the
 	// small scale webchat this is alright.
@@ -70,6 +70,8 @@ void broadcast(MMP.Packet p) {
 #endif
 		o->msg(p);
 	}
+
+	return -1;
 }
 
 #ifdef PROGRESSBAR
@@ -78,6 +80,10 @@ float lasthrtime2;
 int bcastcnt2; // immanuel kant
 #endif
 
+
+void msg(MMP.Packet p) {
+    deliver(p);
+}
 
 void deliver(MMP.Packet p) {
 	//werror("deliver(%O)\n", m);

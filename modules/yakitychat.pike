@@ -15,22 +15,11 @@ mixed configuration;
 object server;
 object root;
 mapping(MMP.Uniform:object) users = ([]);
-mapping(MMP.Uniform:object) rooms = ([]);
-
-MMP.Uniform to_uniform(void|int type, void|string name) {
-	string domain = configuration->query("Domain");
-	if (domain == "nowhere") domain = roxen->get_domain();
-	if (type && name) {
-		name = Standards.IDNA.to_ascii(name);
-		return server->get_uniform(sprintf("psyc://%s/%c%s", domain, type, name));
-	} else {
-		return server->get_uniform(sprintf("psyc://%s", domain));
-	}
-}
+mapping(MMP.Uniform:object|int) rooms = ([]);
 
 void stop() {
-	foreach (rooms;;object room) {
-		room->stop();
+	foreach (rooms;;int|object room) {
+		if (objectp(room)) room->stop();
 	}
 	foreach (users;MMP.Uniform u;object o) {
 		m_delete(users, u);
@@ -41,6 +30,7 @@ void stop() {
 
 string status() {
 	return sprintf("<br>sessions: <br><pre>%O</pre>", sessions)
+			+ sprintf("<br> uniforms: <br><pre>%O\n<pre>", server->uniform_cache) 
 			+ sprintf("<br> users: <br><pre>%O\n<pre>", users) 
 			+ sprintf("<br> rooms: <br><pre>%O</pre>", rooms) 
 			+ sprintf("<br> entities: <br><pre>%O</pre>", server->entities);
@@ -48,23 +38,26 @@ string status() {
 
 void create() {
 	defvar("location", Variable.Location("/meteor/",
-										 0, "Connection endpoint for js connections", "This is where the "
-										 "module will be inserted in the virtual "
-										 "namespace of your server."));
+					     0, "Connection endpoint for js connections", "This is where the "
+					     "module will be inserted in the virtual "
+					     "namespace of your server."));
 	defvar("rooms", Variable.StringList(({}), 0, "List of Rooms", "This is the list of rooms that users may join."));
-
+	defvar("bind", "NONE", "PSYC port", TYPE_STRING|VAR_INITIAL|VAR_NO_DEFAULT, "Port to bind for interserver connections.");
 }
 
 int start(int c, Configuration conf) {
 	if (!configuration) {
 		this_program::configuration = conf;
-		server = Yakity.Server(Serialization.TypeCache());
-		root = Yakity.Root(server, to_uniform());
+		string bind = query("bind");
+
+		server = MMP.Server(([ "bind" : bind, "get_new" : get_user ]));
+
+		root = Yakity.Root(server, server->to_uniform());
 		root->users = users;
 		root->rooms = rooms;
 		server->register_entity(root->uniform, root);
-		server->root = root;
 	}
+
 	if (!c) {
 		getvar("rooms")->set_changed_callback(changed);
 	}
@@ -80,25 +73,18 @@ void logout_callback(object o) {
 	werror("%O logged out.\n", o->uniform);
 };
 
-
-object get_user(RequestID id) {
-	MMP.Uniform uniform;
+object get_user(MMP.Uniform uniform) {
 	object o;
-	string name = id->variables["nick"];
-
-	//werror("get_user %O\n", id);
-
-	uniform = to_uniform('~', name);
-
-	if (has_index(users, uniform)) return 0;
+	string name = uniform->resource;
+	if (name[0] != '~') return 0;
+	name = name[1..];
 
 	object user = Guest(name);
-	server->register_entity(uniform, o = Yakity.User(server, uniform, user, logout_callback));
+	o = Yakity.User(server, uniform, user, logout_callback);
 	users[uniform] = o;
 
 	return o;
 }
-
 function combine(function f1, function f2) {
 	mixed f(mixed ...args) {
 		return f1(f2(@args));
@@ -118,27 +104,15 @@ mixed find_file( string f, object id ) {
 	object session;
 
 	if (id->method == "GET" && !has_index(id->variables, "id")) {
-		string name = id->variables["nick"];
-
-		if (!stringp(name) || !sizeof(name)) {
-			return Roxen.http_low_answer(404, "You need to enter a nickname.");
-		}
-
-		if (sizeof(name) > 30) {
-			return Roxen.http_low_answer(404, "C'mon, that nickname is too long.");
-		}
-
-		object user = get_user(id);
-
-		if (!user) {
-			werror("404 with love!\n");
-			return Roxen.http_low_answer(404, sprintf("The username %s is already in use.", id->variables["nick"]));
-		}
-
+		MMP.Uniform uniform = server->get_temporary();
 		session = get_new_session();
 
-		user->add_session(session);
-		return Roxen.http_string_answer(session->client_id, "text/atom");
+		object temp = PSYC.Proxy(server, uniform, session);
+		server->register_entity(uniform, temp);
+
+		string response = sprintf("_id %s_uniform %s", Serialization.Atom("_string", session->client_id)->render(), Serialization.Atom("_string", (string)uniform)->render());
+
+		return Roxen.http_string_answer(Serialization.Atom("_vars", response)->render(), "text/atom");
 	}
 
 
@@ -173,8 +147,18 @@ void changed(Variable.StringList var) {
 	foreach (var->query(); ; string name) {
 		if (!sizeof(name)) continue;
 
-		MMP.Uniform u = to_uniform('@', name);
+		MMP.Uniform u;
+		if (has_prefix(name, "psyc://")) {
+		    u = server->get_uniform(name);
+		    rooms[u] = 1;
+		    should[u] = 1;
+		    continue;
+		} else {
+		    u = server->to_uniform('@', name);
+		}
+
 		should[u] = 1;
+
 		if (!has_index(rooms, u)) {
 			object r = Yakity.Room(server, u, name);
 			rooms[u] = r;
@@ -183,10 +167,12 @@ void changed(Variable.StringList var) {
 	}
 
 	// sort out the old ones
-	foreach (rooms; MMP.Uniform u; object room) {
+	foreach (rooms; MMP.Uniform u; int|object room) {
 		if (!has_index(should, u)) {
-			room->stop();
-			server->unregister_entity(u);
+		    	if (objectp(room)) {
+			    room->stop();
+			    server->unregister_entity(u);
+			}
 			m_delete(rooms, u);
 		}
 	}
@@ -232,7 +218,7 @@ class TagMemberEmit {
 
 		room = rooms[server->get_uniform(room)];
 
-		if (!room) {
+		if (!room || !objectp(room)) {
 			return ({});
 		}
 		return map(indices(room->members), cb);
@@ -240,7 +226,7 @@ class TagMemberEmit {
 }
 
 string simpletag_user2uniform(string tagname, mapping args, string content, RequestID id) {
-	return (string)to_uniform('~', args["user"]);
+	return (string)server->to_uniform('~', args["user"]);
 }
 
 string simpletag_meteorurl(string tagname, mapping args, string content, RequestID id) {
@@ -285,26 +271,17 @@ class TagEntitiesEmit {
 }
 
 string simpletag_sendmsg(string tagname, mapping args, string content, RequestID id) {
-	MMP.Uniform target = server->get_uniform(args["_target"]);
-	object user;
 	NOCACHE();
+	MMP.Uniform target = server->get_uniform(args["_target"]);
 
-	if (!(user = server->get_entity(target))) {
-		werror("sendmsg to unknown user %s.\n", args["_target"]);
-		return "";
-	}
-
-	Yakity.Message m = Yakity.Message();
-	m->method = args["method"];
-	m->vars = ([]);
-	m->data = content;
+	mapping vars = ([]);
 	foreach (args; string index; string val) {
 		if (has_prefix(index, "_")) {
-			m->vars[index] = val;
+			vars[index] = val;
 		}
 	}
 
-	user->msg(m);
+	root->sendmsg(target, args["method"], content, vars);
 }
 
 TAGDOCUMENTATION;
