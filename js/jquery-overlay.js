@@ -45,8 +45,7 @@
 	}
     });
 })(jQuery);
-<<<<<<< HEAD
-=======
+/*
 (function($, undefined) {
     $.widget("ui.ychatbox", {
 	options : {
@@ -66,12 +65,7 @@
 	},
 	add_message : function(packet) {
 	    $(Yakity.funky_text(packet, this.options.templates)).appendTo(this.element);
-	    /*
-	    if (++this.displayedMessages > this.options.maxMessages) {
-		this.element.removeChild(this.element.firstChild);
-	    }
-	    */
 	}
     });
 })(jQuery);
->>>>>>> el/foo
+*/
