@@ -1,9 +1,54 @@
+var URL = Base.extend({
+    constructor : function(url) {
+	if (url) {
+	    this.host = url.host;
+	    this.pathname = url.pathname;
+	    this.hash = url.hash;
+	    this.protocol = url.protocol;
+	    this.search = url.search;
+	}
+    },
+    from : function(url) {
+	if (this.protocol != url.protocol ||
+	    this.hostname != url.hostname) {
+	    return this.toString();
+	}
+	var ret = [];
+	var a = url.hostname.split("/");
+	var b = this.hostname.split("/");
+	var i = 0;
+
+	while (i < Math.min(a.length, b.length) && a[i] == b[i]) {
+	    i++;
+	}
+
+	for (var j = i; j < a.length; j++) {
+	    ret.push("../");
+	}
+
+	for (var j = i; j < b.length; j++) {
+	    ret.push(b[j]);
+	}
+
+	ret = ret.join("/");
+	ret += this.search;
+	ret += this.hash;
+	return ret;
+    },
+    to : function(url) {
+	return (url instanceof URL ? url : new URL(url)).from(this);	
+    },
+    toString : function() {
+	return this.protocol + "//" + this.host + this.pathname + this.search + this.hash;
+    }
+});
 var Amnesty = {
     instances : new Mapping(),
     Instance : UTIL.EventSource.extend({
 	constructor : function(iframe) {
 	    this.base();
 	    this.iframe = iframe;
+	    this.url = window.location;
 	    //console.log("window: %o", iframe.contentWindow);
 	},
 	is_parent : function(win) {
@@ -26,6 +71,7 @@ var Amnesty = {
 	if (window.parent && window.parent.Amnesty && window.parent.Amnesty.n) {
 	    Amnesty.n = window.parent.Amnesty.n;
 	    Amnesty.n.win = window;
+	    Amnesty.n.trigger("child_load", window, window.location.href);
 	} else {
 	    var iframe;
 
