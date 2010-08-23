@@ -10,12 +10,12 @@ var URL = Base.extend({
     },
     from : function(url) {
 	if (this.protocol != url.protocol ||
-	    this.hostname != url.hostname) {
+	    this.host!= url.host) {
 	    return this.toString();
 	}
 	var ret = [];
-	var a = url.hostname.split("/");
-	var b = this.hostname.split("/");
+	var a = url.pathname.split("/");
+	var b = this.pathname.split("/");
 	var i = 0;
 
 	while (i < Math.min(a.length, b.length) && a[i] == b[i]) {
@@ -30,16 +30,42 @@ var URL = Base.extend({
 	    ret.push(b[j]);
 	}
 
-	ret = ret.join("/");
-	ret += this.search;
-	ret += this.hash;
-	return ret;
+	return ret.join("/") + this.search + this.hash;
     },
     to : function(url) {
 	return (url instanceof URL ? url : new URL(url)).from(this);	
     },
     toString : function() {
 	return this.protocol + "//" + this.host + this.pathname + this.search + this.hash;
+    },
+    apply : function(path) {
+	var url = new URL(this);
+	var a = url.pathname.split("/");
+	var t = path.split("?");
+	console.log("t: %o", t);
+	var b = t.shift().split("/");
+
+	url.hash = "";
+
+	if (t.length) {
+	    t = t.join("?").split("#");
+	    console.log("t: %o", t);
+	    url.search = "?" + t.shift();
+	    if (t.length) url.hash = "#" + t.join("#");
+	    
+	}
+
+	for (var i = 0; i < b.length; i++) {
+	    if (b[i] == "..") {
+		a.pop();
+	    } else {
+		a.push(b[i]);
+	    }
+	}
+
+	url.pathname = a.join("/");
+
+	return url;
     }
 });
 var Amnesty = {
@@ -48,13 +74,31 @@ var Amnesty = {
 	constructor : function(iframe) {
 	    this.base();
 	    this.iframe = iframe;
-	    this.url = window.location;
 	    //console.log("window: %o", iframe.contentWindow);
+	    iframe.onload = UTIL.make_method(this, function() {
+		this.trigger("child_load", iframe.contentWindow, iframe.contentWindow.location);
+		iframe.contentWindow.onhashchange = UTIL.make_method(this, this.child_load);
+	    });
+	    window.onhashchange = UTIL.make_method(this, function() {
+		console.log("hash changed to %s", window.location.hash);
+		if (window.location.hash != this.url.hash) {
+		    this.iframe.src = this.url.apply(window.location.hash.substr(1)).toString();
+		}
+	    });
+	    this.url = new URL(window.location);
+	    this.wire("child_load", UTIL.make_method(this, function(win, loc) {
+		console.log("child_load: " + loc.href);
+		this.url.hash = "#" + this.url.to(loc);
+		window.location.hash = this.url.hash;
+		//window.location.replace(this.url.toString());
+	    }));
 	},
 	is_parent : function(win) {
 	    return this.win != win;
 	}
     }),
+    child_load : function() {
+    },
     get_instance : function(win) {
 	return Amnesty.instances.get(win);
     },
@@ -71,22 +115,22 @@ var Amnesty = {
 	if (window.parent && window.parent.Amnesty && window.parent.Amnesty.n) {
 	    Amnesty.n = window.parent.Amnesty.n;
 	    Amnesty.n.win = window;
-	    Amnesty.n.trigger("child_load", window, window.location.href);
+	    //Amnesty.n.trigger("child_load", window, window.location);
 	} else {
 	    var iframe;
 
-	    if (true || UTIL.App.is_opera) {
-		iframe = UTIL.create("iframe", { src : window.location.href+"?a" });
-		window.onresize = function() {
-		    var h = document.documentElement.clientHeight;
-		    var w = document.documentElement.clientWidth;
-		    iframe.width = w;
-		    iframe.height = h;
-		};
-		document.body.style.overflow = "hidden";
-	    } else {
-		iframe = UTIL.create("frameset", {rows:"100"}, UTIL.create("frame", { src : window.location.href+"?a" }));
-	    }
+	    var url = new URL(window.location);
+	    url.hash = "";
+	    url.search += ((url.search.length && url.search(/_amnesty=1/) == -1) ? "&" : "?") + "_amnesty=1";
+	    iframe = UTIL.create("iframe", { src : url.toString() });
+	    window.onresize = function() {
+		var h = document.documentElement.clientHeight;
+		var w = document.documentElement.clientWidth;
+		iframe.width = w;
+		iframe.height = h;
+	    };
+	    document.body.style.overflow = "hidden";
+
 	    var head = document.getElementsByTagName("head")[0];
 	    //iframe.src = "data:text/html;base64,PGh0bWw+PC9odG1sPg==";
 	    //iframe.src = window.location.href.substring(0, window.location.href.length-window.location.search.length) + "?a";
