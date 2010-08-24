@@ -7,7 +7,7 @@
 	<script type="text/javascript" src="ppp-js/Base.js"></script>
 	<script type="text/javascript" src="ppp-js/util.js"></script>
 	<script type="text/javascript" src="ppp-js/mapping.js"></script>
-	<script type="text/javascript" src="js/insite.js"></script>
+	<script type="text/javascript" src="js/amnesty.js"></script>
 	<script type="text/javascript">
 	    function foo() {
 		Amnesty.n.trigger("foobar");
@@ -20,7 +20,7 @@
 			
 		    });
 		    Amnesty.n.wire("ready", function(what) {
-			console.log("ready: %o", what);
+			//console.log("ready: %o", what);
 			if (what == "jquery-ui") {
 			    $("<div><div class=oslider-header>fooooo</div><div class=oslider-content> skdhfs <br><br><br><br>jfklsdjf dcontent</div></div>")
 				.width(300)
@@ -28,7 +28,7 @@
 				    effects : [ UTIL.curry($().fadeIn, 1000), UTIL.curry($().effect, "puff") ],
 				 });
 			}
-			console.log("alive: %o", what);
+			//console.log("alive: %o", what);
 		    });
 		}
 	    }
@@ -42,7 +42,9 @@
 	<div id="slogan">
 	    <img src="http://fickzoo.com/graph/deadly.png" alt="fickzoo slogan" />
 	</div>
-	<a href="javascript:void(null)" onclick="foo()"> test </a>
+	<a href="?foosdfkj"> test </a>
+	<a href="?foosdfkj#df"> test </a>
+	<a href="?foosdfkj=1"> test </a>
 
 	<h1>No-Privacy for humans only</h1>
 	<h2>on the 16th of december 2006, by Larry</h2>
