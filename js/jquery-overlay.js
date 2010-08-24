@@ -35,7 +35,7 @@
 	    (this.hidden ? this.show : this.hide).apply(this);
 	},
 	hide : function() {
-	    console.log("%o", this.element.find(".oslider-content"));
+	    //console.log("%o", this.element.find(".oslider-content"));
 	    this.options.effects[1].apply(this.element.find(".oslider-content"), arguments);
 	    this.hidden = true;
 	},
