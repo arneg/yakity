@@ -42,14 +42,14 @@ var URL = Base.extend({
 	var url = new URL(this);
 	var a = url.pathname.split("/");
 	var t = path.split("?");
-	console.log("t: %o", t);
+	//console.log("t: %o", t);
 	var b = t.shift().split("/");
 
 	url.hash = "";
 
 	if (t.length) {
 	    t = t.join("?").split("#");
-	    console.log("t: %o", t);
+	    //console.log("t: %o", t);
 	    url.search = "?" + t.shift();
 	    if (t.length) url.hash = "#" + t.join("#");
 	    
@@ -58,13 +58,15 @@ var URL = Base.extend({
 	for (var i = 0; i < b.length; i++) {
 	    if (b[i] == "..") {
 		a.pop();
-	    } else {
+	    } else if (b[i].length) {
 		a.push(b[i]);
 	    }
 	}
 
+	//console.log("a: %o", a);
 	url.pathname = a.join("/");
 
+	console.log("%o", url);
 	return url;
     }
 });
@@ -76,20 +78,24 @@ var Amnesty = {
 	    this.iframe = iframe;
 	    //console.log("window: %o", iframe.contentWindow);
 	    iframe.onload = UTIL.make_method(this, function() {
-		this.trigger("child_load", iframe.contentWindow, iframe.contentWindow.location);
-		iframe.contentWindow.onhashchange = UTIL.make_method(this, this.child_load);
+		(iframe.contentWindow.onhashchange = UTIL.make_method(this, function() {
+		    this.trigger("child_load", iframe.contentWindow, iframe.contentWindow.location);
+		}))();
 	    });
 	    window.onhashchange = UTIL.make_method(this, function() {
-		console.log("hash changed to %s", window.location.hash);
 		if (window.location.hash != this.url.hash) {
+		    console.log("hash changed to %s", window.location.hash);
 		    this.iframe.src = this.url.apply(window.location.hash.substr(1)).toString();
 		}
 	    });
 	    this.url = new URL(window.location);
 	    this.wire("child_load", UTIL.make_method(this, function(win, loc) {
-		console.log("child_load: " + loc.href);
-		this.url.hash = "#" + this.url.to(loc);
-		window.location.hash = this.url.hash;
+		var nhash = "#" + this.url.to(loc);
+		if (this.url.hash != nhash) {
+		    console.log("child_load: " + loc.href);
+		    this.url.hash = nhash;
+		    window.location.hash = nhash;
+		}
 		//window.location.replace(this.url.toString());
 	    }));
 	},
@@ -120,9 +126,11 @@ var Amnesty = {
 	    var iframe;
 
 	    var url = new URL(window.location);
-	    url.hash = "";
-	    url.search += ((url.search.length && url.search(/_amnesty=1/) == -1) ? "&" : "?") + "_amnesty=1";
-	    iframe = UTIL.create("iframe", { src : url.toString() });
+	    // is there no other solution? this sux!
+	    if (url.search.search(/_amnesty=1/) == -1) {
+		url.search += ((url.search.length) ? "&" : "?") + "_amnesty=1";
+	    }
+	    iframe = UTIL.create("iframe", { src : ((url.hash.length) ? url.apply(url.hash.substr(1)) : url).toString() });
 	    window.onresize = function() {
 		var h = document.documentElement.clientHeight;
 		var w = document.documentElement.clientWidth;
