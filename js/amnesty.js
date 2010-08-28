@@ -66,11 +66,23 @@ var URL = Base.extend({
 	//console.log("a: %o", a);
 	url.pathname = a.join("/");
 
-	console.log("%o", url);
+	//console.log("%o", url);
 	return url;
     }
 });
 var Amnesty = {
+    print_history : function() {
+	var ret = "";
+	for (var i = 0; i < window.history.length; i++) {
+	    try {
+		ret += window.history[i] + "<br>";
+	    } catch(e) {
+		ret += "permission denied.<br>";
+	    }
+	}
+
+	return ret;
+    },
     instances : new Mapping(),
     Instance : UTIL.EventSource.extend({
 	constructor : function(iframe) {
@@ -79,22 +91,32 @@ var Amnesty = {
 	    //console.log("window: %o", iframe.contentWindow);
 	    iframe.onload = UTIL.make_method(this, function() {
 		(iframe.contentWindow.onhashchange = UTIL.make_method(this, function() {
+		    console.log("iframe hash change.");
 		    this.trigger("child_load", iframe.contentWindow, iframe.contentWindow.location);
 		}))();
 	    });
 	    window.onhashchange = UTIL.make_method(this, function() {
 		if (window.location.hash != this.url.hash) {
-		    console.log("hash changed to %s", window.location.hash);
-		    this.iframe.src = this.url.apply(window.location.hash.substr(1)).toString();
+		    var nhash = window.location.hash;
+		    this.url.hash = nhash;
+		    console.log("hash changed to %s", nhash);
+		    console.log("history has %d entries\n", window.history.length);
+		    if (nhash.length) {
+			this.iframe.src = this.url.apply(nhash.substr(1)).toString();
+			console.log("setting iframe url to %s", this.iframe.src);
+		    }
 		}
 	    });
 	    this.url = new URL(window.location);
 	    this.wire("child_load", UTIL.make_method(this, function(win, loc) {
+		console.log("potential child load.");
 		var nhash = "#" + this.url.to(loc);
 		if (this.url.hash != nhash) {
+		    this.trigger("hashchange", window.location.hash, this.url.hash);
+		    console.log("history has %d entries\n", window.history.length);
 		    console.log("child_load: " + loc.href);
 		    this.url.hash = nhash;
-		    window.location.hash = nhash;
+		    window.location.replace(this.url.toString());
 		}
 		//window.location.replace(this.url.toString());
 	    }));
@@ -115,6 +137,7 @@ var Amnesty = {
 	return Amnesty.instances.hasIndex(win);
     },
     destroy : function() {
+	console.log("destroy");
 	window.location.replace(Amnesty.n.win.location.href);
     },
     init : function() {
@@ -177,13 +200,13 @@ var Amnesty = {
 	    }
 	    window.onresize();
 	    Amnesty.n = new Amnesty.Instance(iframe);
-	    UTIL.load_js("js/jquery-1.4.2.min.js", UTIL.make_method(Amnesty.n, Amnesty.n.trigger, "ready", "jquery"));
-	    UTIL.load_js("jquery-ui/js/jquery-ui-1.8.4.custom.min.js");
-	    UTIL.load_js("js/jquery-overlay.js", UTIL.make_method(Amnesty.n, Amnesty.n.trigger, "ready", "jquery-ui"));
+	    UTIL.load_js("/js/jquery-1.4.2.min.js", UTIL.make_method(Amnesty.n, Amnesty.n.trigger, "ready", "jquery"));
+	    UTIL.load_js("/jquery-ui/js/jquery-ui-1.8.4.custom.min.js");
+	    UTIL.load_js("/js/jquery-overlay.js", UTIL.make_method(Amnesty.n, Amnesty.n.trigger, "ready", "jquery-ui"));
 
 	    head.appendChild(UTIL.create("link", {
 		rel : "stylesheet",
-		href : "jquery-ui/css/smoothness/jquery-ui-1.8.4.custom.css"
+		href : "/jquery-ui/css/smoothness/jquery-ui-1.8.4.custom.css"
 	    }));
 	    Amnesty.n.wire("ready", function(what) {
 		if (what == "jquery") {

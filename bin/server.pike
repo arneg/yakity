@@ -311,6 +311,21 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 
 	object session;
 
+	if (has_prefix(r->not_query, "/cgi-bin/")) {
+	    if (Stdio.exist(r->not_query[1..])) {
+		program p = (program)(".."+r->not_query);
+		object o = p(this);
+
+		o->parse(r);
+	    } else {
+		r->response_and_finish(([ "error" : 404,
+					  "type" : "text/html",
+					  "data" : sprintf("<h1>You broke <pre>%O</pre>, you buy it!", r->not_query) ]));
+	    }
+
+	    return;
+	}
+
 	switch (r->not_query) {
 	    case "/":
 	    {
