@@ -246,7 +246,8 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	int parsing_time = gethrvtime(1) - r->parsing_start;
 	werror("parsing time for HTTP request: %O ms\n", parsing_time*1E-6);
 #endif
-	string f = basename(r->not_query);
+	string path = Stdio.simplify_path(r->not_query);
+	string f = basename(path);
 	mapping id = ([
 		"request_headers" : r->request_headers,
 		"misc" : ([ 
@@ -270,7 +271,7 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 
 	object session;
 
-	switch (r->not_query) {
+	switch (path) {
 	    case "/":
 	    {
 		string fname = sprintf("%s/index.html", (BASE_PATH));
@@ -304,13 +305,13 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	    }
 	}
 
-	if (search(r->not_query, ".") != -1) {
-	    string fname = sprintf("%s/%s", (BASE_PATH), r->not_query);
+	if (search(path, ".") != -1) {
+	    string fname = sprintf("%s/%s", (BASE_PATH), path);
 
 	    if (Stdio.exist(fname)) {
 		r->response_and_finish(([ "error" : 200,
 					  "file" : Stdio.File(fname),
-					  "type" : ext2type((r->not_query / ".")[-1]),
+					  "type" : ext2type((path / ".")[-1]),
 					  ]));
 		return;
 	    } else {
