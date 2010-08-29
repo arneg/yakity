@@ -94,18 +94,20 @@ var Amnesty = {
 		    console.log("iframe hash change.");
 		    this.trigger("child_load", iframe.contentWindow, iframe.contentWindow.location);
 		}))();
+		return true;
 	    });
 	    window.onhashchange = UTIL.make_method(this, function() {
 		if (window.location.hash != this.url.hash) {
 		    var nhash = window.location.hash;
 		    this.url.hash = nhash;
 		    console.log("hash changed to %s", nhash);
-		    console.log("history has %d entries\n", window.history.length);
+		    console.log("history %o\n", window.history);
 		    if (nhash.length) {
 			this.iframe.src = this.url.apply(nhash.substr(1)).toString();
 			console.log("setting iframe url to %s", this.iframe.src);
 		    }
 		}
+		return true;
 	    });
 	    this.url = new URL(window.location);
 	    this.wire("child_load", UTIL.make_method(this, function(win, loc) {
@@ -113,7 +115,7 @@ var Amnesty = {
 		var nhash = "#" + this.url.to(loc);
 		if (this.url.hash != nhash) {
 		    this.trigger("hashchange", window.location.hash, this.url.hash);
-		    console.log("history has %d entries\n", window.history.length);
+		    console.log("history %o\n", window.history);
 		    console.log("child_load: " + loc.href);
 		    this.url.hash = nhash;
 		    window.location.replace(this.url.toString());
@@ -159,6 +161,7 @@ var Amnesty = {
 		var w = document.documentElement.clientWidth;
 		iframe.width = w;
 		iframe.height = h;
+		return true;
 	    };
 	    document.body.style.overflow = "hidden";
 
