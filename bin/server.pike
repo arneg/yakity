@@ -139,40 +139,42 @@ int main(int argc, array(string) argv) {
 	mapping m = ([]);
 	string domain;
 
-	if (psyc_bind) m->bind = sprintf("%s:%d", psyc_bind, psyc_port);
+	if (psyc_bind) {
+	    m->bind = sprintf("%s:%d", psyc_bind||"0.0.0.0", psyc_port);
 
-	if (options->domain) {
-	    int port;
+	    if (options->domain) {
+		int port;
 
-	    switch (sscanf(options->domain, "%[^:]:%d", domain, port)) {
-	    case 0: if (!sizeof(domain)) ERROR("Malformed domain '%s'. Expected <host>[:<port>]\n", options->domain);
-	    case 1: port = MMP.DEFAULT_PORT; break;
+		switch (sscanf(options->domain, "%[^:]:%d", domain, port)) {
+		case 0: if (!sizeof(domain)) ERROR("Malformed domain '%s'. Expected <host>[:<port>]\n", options->domain);
+		case 1: port = MMP.DEFAULT_PORT; break;
+		}
+		if (domain != psyc_bind || port != psyc_port) m->vhosts = ({ sprintf("%s:%d", domain, port) });
+	    } else domain = psyc_bind || http_bind;
+	    werror("Using domain %s\n", domain||options->domain);
+
+	    if (psyc_bind) werror("Starting WZTZ server on %s:%d\n", psyc_bind, psyc_port);
+	    m->get_new = get_user;
+
+	    server = MMP.Server(m);
+
+	    if (has_index(options, "rooms")) {
+		foreach (options["rooms"]/",";; string name) {
+		    name = String.trim_all_whites(name);
+		    MMP.Uniform u = server->to_uniform('@', name);
+		    object r = Yakity.Room(server, u, name);
+		    rooms[u] = r;
+		    server->register_entity(u, r);
+		}
+		werror("Created Rooms:\t%s\n", (array(string))indices(rooms) * "\n\t\t\t" );
 	    }
-	    if (domain != psyc_bind || port != psyc_port) m->vhosts = ({ sprintf("%s:%d", domain, port) });
-	} else domain = psyc_bind || http_bind;
-	werror("Using domain %s\n", domain||options->domain);
 
-	if (psyc_bind) werror("Starting WZTZ server on %s:%d\n", psyc_bind, psyc_port);
-	m->get_new = get_user;
 
-	server = MMP.Server(m);
-
-	if (has_index(options, "rooms")) {
-	    foreach (options["rooms"]/",";; string name) {
-		name = String.trim_all_whites(name);
-		MMP.Uniform u = server->to_uniform('@', name);
-		object r = Yakity.Room(server, u, name);
-		rooms[u] = r;
-		server->register_entity(u, r);
-	    }
-	    werror("Created Rooms:\t%s\n", (array(string))indices(rooms) * "\n\t\t\t" );
+	    root = Yakity.Root(server, server->to_uniform());
+	    root->users = users;
+	    root->rooms = rooms;
+	    server->register_entity(root->uniform, root);
 	}
-
-
-	root = Yakity.Root(server, server->to_uniform());
-	root->users = users;
-	root->rooms = rooms;
-	server->register_entity(root->uniform, root);
 	werror("Ready for clients.\n");
 #if defined(TRACE) && !constant(get_profiling_info)
 	WARN("Warning: TRACE can only be used if pike has been compile --with-profiling.\n");
