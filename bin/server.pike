@@ -289,7 +289,8 @@ string index;
 int ctime;
 
 void handle_request(Protocols.HTTP.Server.Request r) {
-	string f = basename(r->not_query);
+	string path = Stdio.simplify_path(r->not_query);
+	string f = basename(path);
 	mapping id = ([
 		"request_headers" : r->request_headers,
 		"misc" : ([ 
@@ -313,22 +314,22 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 
 	object session;
 
-	if (has_prefix(r->not_query, "/cgi-bin/")) {
-	    if (Stdio.exist(r->not_query[1..])) {
-		program p = (program)(".."+r->not_query);
+	if (has_prefix(path, "/cgi-bin/")) {
+	    if (Stdio.exist(path[1..])) {
+		program p = (program)(".."+path);
 		object o = p(this);
 
 		o->parse(r);
 	    } else {
 		r->response_and_finish(([ "error" : 404,
 					  "type" : "text/html",
-					  "data" : sprintf("<h1>You broke <pre>%O</pre>, you buy it!", r->not_query) ]));
+					  "data" : sprintf("<h1>You broke <pre>%O</pre>, you buy it!", path) ]));
 	    }
 
 	    return;
 	}
 
-	switch (r->not_query) {
+	switch (path) {
 	    case "/":
 	    {
 		string fname = sprintf("%s/index.html", (BASE_PATH));
@@ -362,13 +363,13 @@ void handle_request(Protocols.HTTP.Server.Request r) {
 	    }
 	}
 
-	if (search(r->not_query, ".") != -1) {
-	    string fname = sprintf("%s/%s", (BASE_PATH), r->not_query);
+	if (search(path, ".") != -1) {
+	    string fname = sprintf("%s/%s", (BASE_PATH), path);
 
 	    if (Stdio.exist(fname)) {
 		r->response_and_finish(([ "error" : 200,
 					  "file" : Stdio.File(fname),
-					  "type" : ext2type((r->not_query / ".")[-1]),
+					  "type" : ext2type((path / ".")[-1]),
 					  ]));
 		return;
 	    } else {
