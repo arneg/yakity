@@ -2,11 +2,16 @@ var URL = Base.extend({
     constructor : function(url) {
 	if (url) {
 	    this.host = url.host;
-	    this.pathname = url.pathname;
+	    this.pathname = UTIL.simplify_path(url.pathname);
 	    this.hash = url.hash;
 	    this.protocol = url.protocol;
 	    this.search = url.search;
 	}
+    },
+    hash_cmp : function(hash) {
+	if (UTIL.objectp(hash)) hash = hash.hash;
+	if (Math.max(hash.length, this.hash.length) <= 1) return true;
+	return hash == this.hash;
     },
     from : function(url) {
 	if (this.protocol != url.protocol ||
@@ -106,7 +111,7 @@ var Amnesty = {
 			if (this.iframe.contentWindow) {
 			    this.iframe.contentWindow.location.replace(this.url.apply(nhash.substr(1)).toString());
 			} else this.iframe.src = this.url.apply(nhash.substr(1)).toString();
-			console.log("setting iframe url to %s", this.iframe.src);
+			console.log("setting iframe url to %s", this.url.apply(nhash.substr(1)).toString());
 		    }
 		}
 		return true;
@@ -115,7 +120,7 @@ var Amnesty = {
 	    this.wire("child_load", UTIL.make_method(this, function(win, loc) {
 		console.log("potential child load.");
 		var nhash = "#" + this.url.to(loc);
-		if (this.url.hash != nhash) {
+		if (!this.url.hash_cmp(nhash)) {
 		    this.trigger("hashchange", window.location.hash, this.url.hash);
 		    console.log("history %o\n", window.history);
 		    console.log("child_load: " + loc.href);
@@ -153,10 +158,7 @@ var Amnesty = {
 	    var iframe;
 
 	    var url = new URL(window.location);
-	    // is there no other solution? this sux!
-	    if (url.search.search(/_amnesty=1/) == -1) {
-		url.search += ((url.search.length) ? "&" : "?") + "_amnesty=1";
-	    }
+	    url.pathname = "/" + url.pathname;
 	    iframe = UTIL.create("iframe", { src : ((url.hash.length) ? url.apply(url.hash.substr(1)) : url).toString() });
 	    window.onresize = function() {
 		var h = document.documentElement.clientHeight;
