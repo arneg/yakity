@@ -103,7 +103,9 @@ var Amnesty = {
 		    console.log("hash changed to %s", nhash);
 		    console.log("history %o\n", window.history);
 		    if (nhash.length) {
-			this.iframe.src = this.url.apply(nhash.substr(1)).toString();
+			if (this.iframe.contentWindow) {
+			    this.iframe.contentWindow.location.replace(this.url.apply(nhash.substr(1)).toString());
+			} else this.iframe.src = this.url.apply(nhash.substr(1)).toString();
 			console.log("setting iframe url to %s", this.iframe.src);
 		    }
 		}
