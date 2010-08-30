@@ -22,6 +22,7 @@
 		.addClass("ui-corner-tl")
 		.css("margin-top", "2px")
 		.css("border-bottom", "0px")
+		.css("overflow", "auto")
 		.css("padding", "5px");
 
 	    this.element.appendTo(this.oslider);

@@ -4,6 +4,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
 	<title>the zoo</title>
+	<style type="text/css">
+	    div.oslider-content {
+		max-height:100px;
+		max-width:400px;
+		overflow:auto;
+	     }
+	</style>
 	<script type="text/javascript" src="/ppp-js/Base.js"></script>
 	<script type="text/javascript" src="/ppp-js/util.js"></script>
 	<script type="text/javascript" src="/ppp-js/mapping.js"></script>
@@ -23,11 +30,9 @@
 			//console.log("ready: %o", what);
 			if (what == "jquery-ui") {
 			    $("<div><div class=oslider-header>fooooo</div><div class=oslider-content>"+Amnesty.print_history()+"</div></div>")
-				.width(300)
 				.oslider({
-				    effects : [ UTIL.curry($().fadeIn, 1000), UTIL.curry($().effect, "puff") ],
+				    effects : [ UTIL.curry($().fadeIn, 1000), UTIL.curry($().effect, "puff") ]
 				 });
-
 			}
 			//console.log("alive: %o", what);
 		    });
