@@ -40,8 +40,8 @@ Serialization.AtomParser parser = Serialization.AtomParser();
 mixed kid, lid;
 
 // we keep the new id and the current and one stream
-object connection_id;
-object new_id;
+object|mapping connection_id;
+object|mapping new_id;
 object stream;
 
 void create(string client_id, void|function cb, void|function error) {
