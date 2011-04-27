@@ -1,6 +1,7 @@
 object session;
 string name;
 function cb, errorcb;
+Serialization.AtomParser par = Serialization.AtomParser();
 
 void create(string name, object session) {
     this_program::name = name;
@@ -29,7 +30,11 @@ void send(string|MMP.Utils.Cloak|Serialization.Atom atom) {
 }
 
 void incoming(string atom) {
-    if (cb) cb(atom);
+    par->feed(atom);
+
+    while (object a = par->parse()) {
+	if (cb) cb(this, a);
+    }
 }
 
 void close() { // should this do anything?

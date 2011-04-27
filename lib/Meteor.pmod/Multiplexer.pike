@@ -1,5 +1,7 @@
 mapping(string:object) channels = set_weak_flag(([]), Pike.WEAK);
 
+function new_con;
+
 mixed session;
 
 object get_new_channel(string name) {
@@ -29,4 +31,27 @@ void close_channel(string name) {
 void create(mixed session) {
     this_program::session = session;
     call_out(session->send, 0, "_multiplex 0 ");
+    session->cb = my_in;
+}
+
+void my_in(object session, object atom) {
+    string name, data;
+
+    switch (atom->type) {
+	case "_channel":
+	    if (2 != sscanf(atom->data, "%s %s", name, data)) {
+		werror("totally fcked up multiplex client: %O\n", session);
+		return;
+	    }
+	    get_channel(name)->incoming(data);
+	    break;
+	case "_connect":
+	    name = atom->data;
+	    if (new_con) {
+		new_con(this, name, get_channel(name));
+	    }
+	    break;
+	default:
+	    error("Invalid type %O on multiplexed base connection.\n");
+    }
 }
