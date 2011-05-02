@@ -36,10 +36,10 @@ Thread.Mutex m = Thread.Mutex();
 #endif
 
 // remove all references and callbacks.
-#define CLOSE(reason)	do { close_cb(this, reason); connection->set_close_callback(0); connection->set_write_callback(0); \
+#define CLOSE(reason)	do { close_cb(this, reason); connection->set_close_callback(0); connection->set_read_callback(0); \
 							 connection = 0;  \
 							 close_cb = error_cb = 0; } while(0)
-#define ERROR(reason)	do { error_cb(this, reason); connection->set_close_callback(0); connection->set_write_callback(0);\
+#define ERROR(reason)	do { error_cb(this, reason); connection->set_close_callback(0); connection->set_read_callback(0);\
 							 connection = 0;\
 							 close_cb = error_cb = 0; } while(0)
 
