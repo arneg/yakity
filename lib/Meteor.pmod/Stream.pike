@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 function close_cb, error_cb;
 // we dont want to close before we get the first write
 int autoclose = 0;
-MMP.Utils.BufferedStream connection;
+MMP.Utils.BufferedStream2 connection;
 
 #ifdef ENABLE_THREADS
 Thread.Mutex m = Thread.Mutex();
@@ -44,8 +44,7 @@ Thread.Mutex m = Thread.Mutex();
 							 close_cb = error_cb = 0; } while(0)
 
 void create(Stdio.File connection, function cb, function error, int|void autoclose) {
-	object o = MMP.Utils.BufferedStream();
-	o->assign(connection);
+	object o = MMP.Utils.BufferedStream2(connection);
 	this_program::connection = o;
 	this_program::close_cb = cb;
 	this_program::error_cb = error;
