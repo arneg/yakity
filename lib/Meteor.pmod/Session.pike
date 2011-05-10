@@ -176,16 +176,16 @@ void register_new_id() {
 void handle_id(object id) {
 	LOCK;
 
-	//werror("%s: data: %O\n", id->method, id->data);
+	werror("%s: data: %O\n", id->method, id->data);
 
 	if (id->method == "POST" && stringp(id->data) && sizeof(id->data)) {
 
 		if (id->request_headers["content-type"] == "application/octet-stream") {
-			//werror("Feeding %d bytes of data.\n", sizeof(id->data));
+			werror("Feeding %d bytes of data.\n", sizeof(id->data));
 			parser->feed(id->data);
 		} else {
 			string s = utf8_to_string(id->data);
-			//werror("Feeding %d bytes of data in utf8.\n", sizeof(s));
+			werror("Feeding %d bytes of data in utf8.\n", sizeof(s));
 			parser->feed(s);
 		}
 
@@ -196,7 +196,7 @@ void handle_id(object id) {
 		Serialization.Atom a;
 		mixed err = catch {
 			while (a = parser->parse()) {
-				//werror("%O: incoming(%O)\n", this, a);
+				werror("%O: incoming(%O)\n", this, a);
 				call_out(cb, 0, this, a);
 			}
 		};
