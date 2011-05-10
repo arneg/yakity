@@ -176,27 +176,27 @@ void register_new_id() {
 void handle_id(object id) {
 	LOCK;
 
-	//werror("%s: data: %O\n", id->method, id->data);
+	werror("%s: data: %O\n", id->method, id->data);
 
 	if (id->method == "POST" && stringp(id->data) && sizeof(id->data)) {
 
 		if (id->request_headers["content-type"] == "application/octet-stream") {
-			//werror("Feeding %d bytes of data.\n", sizeof(id->data));
+			werror("Feeding %d bytes of data.\n", sizeof(id->data));
 			parser->feed(id->data);
 		} else {
 			string s = utf8_to_string(id->data);
-			//werror("Feeding %d bytes of data in utf8.\n", sizeof(s));
+			werror("Feeding %d bytes of data (%O)in utf8.\n", sizeof(s), utf8_to_string(s));
 			parser->feed(s);
 		}
 
 		if (lower_case(id->request_headers["connection"]) != "keep-alive") {
-			//werror("data from non keep-alive connection: %O\n", id->request_headers);
+			werror("data from non keep-alive connection: %O\n", id->request_headers);
 		}
 
 		Serialization.Atom a;
 		mixed err = catch {
 			while (a = parser->parse()) {
-				//werror("%O: incoming(%O)\n", this, a);
+				werror("%O: incoming(%O) to %O\n", this, a, cb);
 				call_out(cb, 0, this, a);
 			}
 		};
@@ -210,7 +210,7 @@ void handle_id(object id) {
 
 		id->answer(200, "ok");
 	} else {
-		//werror("%O: New connection from %O.\n", this, id->connection()->query_address());
+		werror("%O: New connection from %O.\n", this, id->connection()->query_address());
 
 		// TODO: change internal timeout from 180 s to infinity for Request
 		new_id = id;
@@ -226,10 +226,11 @@ void handle_id(object id) {
 				stream = 0;
 				call_out(register_new_id, 0);
 			} else {
+				werror("SESSION: closing %O\n", stream);
 				stream->close();
 			}
 		} else {
-			//werror("There is no stream, starting to use the new one.\n");
+			werror("There is no stream, starting to use the new one.\n");
 			call_out(register_new_id, 0);
 		}
 	}

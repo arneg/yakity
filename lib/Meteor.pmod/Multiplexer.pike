@@ -37,12 +37,15 @@ void create(mixed session) {
 void my_in(object session, object atom) {
     string name, data;
 
+    werror("MULTIPLEXER: %O %O\n", session, atom);
+
     switch (atom->type) {
 	case "_channel":
 	    if (2 != sscanf(atom->data, "%s %s", name, data)) {
 		werror("totally fcked up multiplex client: %O\n", session);
 		return;
 	    }
+	    werror("MULTIPLEXER: calling %O->incoming(%O)\n", get_channel(name), data);
 	    get_channel(name)->incoming(data);
 	    break;
 	case "_connect":
