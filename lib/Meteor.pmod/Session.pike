@@ -16,7 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 constant keepalive_interval = 30;
-constant timeout = 5;
+constant timeout = 30;
 constant keepalive_packet = "_keepalive 0 ";
 string client_id;
 function cb, error_cb;
@@ -70,7 +70,7 @@ void end_stream() {
 
 void die(string reason) {
 	LOCK;
-	//werror("DIE\n");
+	werror("DIE %O\n", reason);
 	lid = 0;
 
 	call_out(error_cb, 0, this, reason);
@@ -105,7 +105,7 @@ void stream_close(Meteor.Stream s, string reason) {
 
 void stream_error(Meteor.Stream s, string reason) {
 	LOCK;
-	lid = call_out(die, 0, sprintf("Timed out after error: %s.\n", reason));
+	lid = call_out(die, 1, sprintf("Timed out after error: %s.\n", reason));
 	// TODO: do something about this. probably remove the stream.
 	// get rid of the stream and start keeping messages in the queue and
 	// wait for a new one
