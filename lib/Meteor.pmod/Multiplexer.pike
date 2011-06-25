@@ -42,7 +42,8 @@ void callback(object channel, string name) {
 void create(mixed session, function|void callback,
 	    function|void may_channel) {
     this_program::session = session;
-    call_out(session->send, 0, "_multiplex 0 ");
+    //call_out(session->send, 0, "_multiplex 0 ");
+    session->send("_multiplex 0 ");
     session->cb = my_in;
     _callback = callback;
     _may_channel = may_channel;
