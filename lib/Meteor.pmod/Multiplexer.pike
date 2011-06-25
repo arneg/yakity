@@ -67,14 +67,15 @@ void my_in(object session, object atom) {
 		name = atom->data;
 		if (name && sizeof(name) && !has_channel(name)) {
 		    int|string msg;
-		    channel = .Channel(name, session);
 		    msg = may_channel(name);
 		    if (msg && intp(msg)) {
 			msg = "ok";
+			channel = get_new_channel(name);
 			channel->send(sprintf("_channel %d %s", sizeof(msg), msg));
 			callback(channel, name);
 		    } else {
 			if (!stringp(msg)) msg = "You are not welcome here.";
+			channel = .Channel(name, session);
 			channel->send(sprintf("_channel %d %s", sizeof(msg), msg));
 		    }
 		}
