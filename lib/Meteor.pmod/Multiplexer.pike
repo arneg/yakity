@@ -1,6 +1,7 @@
-mapping(string:object) channels = set_weak_flag(([]), Pike.WEAK);
+//mapping(string:object) channels = set_weak_flag(([]), Pike.WEAK);
+mapping(string:object) channels = ([]);
 
-function new_con;
+function new_con, _callback, _may_channel;
 
 mixed session;
 
@@ -28,25 +29,60 @@ void close_channel(string name) {
     m_delete(channels, name)->close();
 }
 
-void create(mixed session) {
+int(0..1)|string may_channel(string name) {
+    werror("may_channel(%O)\n", name);
+    if (_may_channel) return _may_channel(name);
+    return 1;
+}
+
+void callback(object channel, string name) {
+    if (_callback) _callback(channel, name);
+}
+
+void create(mixed session, function|void callback,
+	    function|void may_channel) {
     this_program::session = session;
     call_out(session->send, 0, "_multiplex 0 ");
     session->cb = my_in;
+    _callback = callback;
+    _may_channel = may_channel;
 }
 
 void my_in(object session, object atom) {
     string name, data;
+    int res;
+    object channel;
 
     werror("MULTIPLEXER: %O %O\n", session, atom);
 
     switch (atom->type) {
 	case "_channel":
-	    if (2 != sscanf(atom->data, "%s %s", name, data)) {
-		werror("totally fcked up multiplex client: %O\n", session);
+	    res = sscanf(atom->data, "%s %s", name, data);
+	    switch (res) {
+	    case 2:
+		werror("MULTIPLEXER: calling %O->incoming(%O)\n", get_channel(name), data);
+		get_channel(name)->incoming(data);
+		break;
+	    case 0:
+		name = atom->data;
+		if (name && sizeof(name) && !has_channel(name)) {
+		    int|string msg;
+		    channel = .Channel(name, session);
+		    msg = may_channel(name);
+		    if (msg && intp(msg)) {
+			msg = "ok";
+			channel->send(sprintf("_channel %d %s", sizeof(msg), msg));
+			callback(channel, name);
+		    } else {
+			if (!stringp(msg)) msg = "You are not welcome here.";
+			channel->send(sprintf("_channel %d %s", sizeof(msg), msg));
+		    }
+		}
+		break;
+	    default:
+		werror("totally fcked up multiplex client: %O(%d)(%O)\n", session, res, atom->data);
 		return;
 	    }
-	    werror("MULTIPLEXER: calling %O->incoming(%O)\n", get_channel(name), data);
-	    get_channel(name)->incoming(data);
 	    break;
 	case "_connect":
 	    name = atom->data;
