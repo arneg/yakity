@@ -62,18 +62,22 @@ void my_in(object session, object atom) {
 	    switch (res) {
 	    case 2:
 		werror("MULTIPLEXER: calling %O->incoming(%O)\n", get_channel(name), data);
-		get_channel(name)->incoming(data);
+		if (has_channel(name)) && get_channel(name)->incoming(data);
 		break;
 	    case 0:
 		name = atom->data;
-		if (name && sizeof(name) && !has_channel(name)) {
-		    int|string msg;
-		    msg = may_channel(name);
+	    case 1:
+		if (name && sizeof(name)) {
+		    int|string msg = 1;
+		    int init = !has_channel(name);
+		    if (init)
+			msg = may_channel(name);
 		    if (msg && intp(msg)) {
 			msg = "ok";
-			channel = get_new_channel(name);
+			channel = get_channel(name);
 			channel->send(sprintf("_channel %d %s", sizeof(msg), msg));
-			callback(channel, name);
+			if (init)
+			    callback(channel, name);
 		    } else {
 			if (!stringp(msg)) msg = "You are not welcome here.";
 			channel = .Channel(name, session);
