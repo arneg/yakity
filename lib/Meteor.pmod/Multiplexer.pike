@@ -62,7 +62,7 @@ void my_in(object session, object atom) {
 	    switch (res) {
 	    case 2:
 		werror("MULTIPLEXER: calling %O->incoming(%O)\n", get_channel(name), data);
-		if (has_channel(name)) && get_channel(name)->incoming(data);
+		if (has_channel(name) && get_channel(name)->incoming(data));
 		break;
 	    case 0:
 		name = atom->data;
