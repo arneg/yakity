@@ -1,5 +1,6 @@
 //mapping(string:object) channels = set_weak_flag(([]), Pike.WEAK);
 mapping(string:object) channels = ([]);
+mapping callbacks = ([]);
 
 function new_con, _callback, _may_channel;
 
@@ -20,6 +21,22 @@ object get_channel(string name) {
 
 int(0..1) has_channel(string name) {
     return has_index(channels, name);
+}
+
+int(0..1) register_callback(string name, function|object|program cb) {
+    if (has_channel(name) || has_index(callbacks, name))
+	return 0;
+
+    callbacks[name] = cb;
+
+    return 1;
+}
+
+int(0..1) unregister_callback(string name) {
+    if (!has_index(callbacks, name)) return 0;
+    m_delete(callbacks, 1);
+
+    return 1;
 }
 
 void close_channel(string name) {
@@ -69,7 +86,7 @@ void my_in(object session, object atom) {
 	    case 1:
 		if (name && sizeof(name)) {
 		    int|string msg = 1;
-		    int init = !has_channel(name);
+		    int init = !has_channel(name) && !has_index(callbacks, name);
 		    if (init)
 			msg = may_channel(name);
 		    if (msg && intp(msg)) {
@@ -78,6 +95,8 @@ void my_in(object session, object atom) {
 			channel->send(sprintf("_channel %d %s", sizeof(msg), msg));
 			if (init)
 			    callback(channel, name);
+			else if (has_index(callbacks, name))
+			    m_delete(callbacks, name)(channel);
 		    } else {
 			if (!stringp(msg)) msg = "You are not welcome here.";
 			channel = .Channel(name, session);
