@@ -8,7 +8,8 @@ class Auth {
     int expiry;
 
     int(0..1) verify(object provider) {
-	return String.string2hex(provider->hmac(sprintf("%s,%d", token, expiry))) == hmac;
+	return String.string2hex(provider->hmac(sprintf("%s,%d", token, expiry))) == hmac
+		&& expiry <= time();
     }
 
     string _sprintf(int c) {
@@ -51,14 +52,14 @@ void _incoming(object channel, object atom) {
     Auth data = AuthInfo->decode(atom);
 
     if (data->verify(authProvider)) {
-	channel->send(FailInfo->encode(Success()));
+	channel->send(FailInfo->encode(Success())->render());
 	channel->cb = 0;
 	call_out(cb, 0, channel, channel->name);
 	werror("Connection authenticated. will call callback.\n");
 	return;
     }
 
-    werror("Connection was not authenticated.");
+    werror("Connection was not authenticated.\n");
 
-    channel->send(FailInfo->encode(Fail("Authentication failed")));
+    channel->send(FailInfo->encode(Fail("Authentication failed"))->render());
 }
