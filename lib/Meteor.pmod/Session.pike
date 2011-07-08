@@ -112,6 +112,14 @@ void stream_error(Meteor.Stream s, string reason) {
     RETURN;
 }
 
+void set_cb(function cb) {
+    this_program::cb = cb;
+}
+
+function get_cb() {
+    return cb;
+}
+
 void register_new_id() {
     LOCK;
     //werror("%O: register_new_id(%O)\n", this, new_id);
