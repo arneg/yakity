@@ -120,6 +120,14 @@ function get_cb() {
     return cb;
 }
 
+void set_errorcb(function cb) {
+    this_program::error_cb = cb;
+}
+
+function get_errorcb() {
+    return error_cb;
+}
+
 void register_new_id() {
     LOCK;
     //werror("%O: register_new_id(%O)\n", this, new_id);
