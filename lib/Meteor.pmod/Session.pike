@@ -209,7 +209,8 @@ void handle_id(object id) {
 	    parser->feed(id->data);
 	} else {
 	    string s = utf8_to_string(id->data);
-	    werror("Feeding %d bytes of data (%O)in utf8.\n", sizeof(s), utf8_to_string(s));
+	    //werror("Feeding %d bytes of data (%O)in utf8.\n", sizeof(s), utf8_to_string(s));
+	    werror("Feeding %d bytes of data (%O)in utf8.\n", sizeof(s), s);
 	    parser->feed(s);
 	}
 
