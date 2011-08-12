@@ -61,7 +61,7 @@ void keepalive() {
 
 void end_stream() {
     //werror("ending http stream.\n");
-    connection_id->end();
+    catch { connection_id->end(); };
     connection_id = 0;
     closing = 1;
     stream = 0;
