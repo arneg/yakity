@@ -37,14 +37,14 @@ Thread.Mutex m = Thread.Mutex();
 
 // remove all references and callbacks.
 #define CLOSE(reason)	do {		\
-    close_cb(this, reason);		\
+    call_out(close_cb, 0, this, reason);\
     connection->set_close_callback(0);	\
     connection->set_read_callback(0);	\
     connection = 0;			\
     close_cb = error_cb = 0;		\
 } while(0)
 #define ERROR(reason)	do {		\
-    error_cb(this, reason);		\
+    call_out(error_cb, 0, this, reason);\
     connection->set_close_callback(0);	\
     connection->set_read_callback(0);	\
     connection = 0;			\
@@ -80,8 +80,10 @@ void _close() {
 }
 
 void close() {
-    autoclose = 1;
-    write("0\r\n\r\n");
+    if (connection && connection->is_open()) {
+	autoclose = 1;
+	write("0\r\n\r\n");
+    } else CLOSE("close() called.");
 }
 
 void write(MMP.Utils.Cloak|string data) {
