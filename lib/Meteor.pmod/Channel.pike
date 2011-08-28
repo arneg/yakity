@@ -25,16 +25,16 @@ function get_errorcb() {
 }
 
 void send(string|MMP.Utils.Cloak|Serialization.Atom atom) {
+    werror("CHANNEL(%s)->send(%O).\n", name, atom);
     atom = (string)atom;
     session->send(sprintf("_channel %d %s %s", sizeof(atom)+sizeof(name)+1, name, atom));
 }
 
 void incoming(string atom) {
-    werror("CHANNEL(%s): %O\n", name, atom);
+    werror("CHANNEL(%s)->incoming(%O)\n", name, atom);
     par->feed(atom);
 
     while (object a = par->parse()) {
-	werror("CHANNEL(%s): calling %O(%O, %O)\n", name, cb, this, a);
 	if (cb) cb(this, a);
     }
 }
