@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 inherit Meteor.Stream;
 
 void write(MMP.Utils.Cloak|string data) {
-    ::write(stringp(data) ? data : string_to_utf8(data));
+    ::write(stringp(data) ? string_to_utf8(data) : data);
 }
 
 #ifdef WRITEV
