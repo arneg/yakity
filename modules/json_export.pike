@@ -25,7 +25,11 @@ mixed find_file(string file, RequestID id) {
 	int time1 = gethrtime();
 	array(mapping) res = get_my_sql()->query("SELECT website,email,id,postal_street,name,lastname,firstname,status,postal_city,phone_main from companies;");
 	int time2 = gethrtime();
+#if constant(Standards.JSON)
+	string json = string_to_utf8(Standards.JSON.encode(res));
+#else
 	string json = Public.Parser.JSON2.render_utf8(res);
+#endif
 	int time3 = gethrtime();
 	return Roxen.http_string_answer(sprintf("var dbtime = %d; var jsontime = %d; var data = %s;", time3 - time2, time2 - time1, json), "text/javascript");	
 }

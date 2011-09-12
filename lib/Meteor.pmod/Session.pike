@@ -151,7 +151,7 @@ void register_new_id() {
 		       "Transfer-Encoding" : "chunked",
 		       ]);
 
-    if (connection_id->misc->content_type_type == "application/octet-stream") {
+    if (!connection_id->variables["utf8"]) {
 	//werror("creating binary stream\n");
 	headers["Content-Type"] = "application/octet-stream";
 	stream = Meteor.Stream(connection_id->connection(), stream_close,
