@@ -66,7 +66,7 @@ string encode(string s) {
 }
 
 void feed(string ... data) {
-    connection->write(@data);
+    connection->write(data*"");
 }
 
 void _close() {
