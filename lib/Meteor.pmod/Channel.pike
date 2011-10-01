@@ -1,5 +1,6 @@
 object session;
 string name;
+mapping misc = ([ ]);
 function cb, errorcb;
 Serialization.AtomParser par = Serialization.AtomParser();
 
