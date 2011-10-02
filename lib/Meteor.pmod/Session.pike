@@ -174,8 +174,8 @@ void register_new_id() {
 	connection_id->send_chunk(keepalive_packet);
     } else {
 	stream->feed(connection_id->make_response_headers(headers)
-		     + sprintf("%x\r\n%s\r\n", sizeof(keepalive_packet),
-			       keepalive_packet));
+		     + sprintf("%x\r\n%s\r\n", 20*sizeof(keepalive_packet),
+			       keepalive_packet*20));
     }
     // we append a keepalive packet to trigger readyState 3
 
