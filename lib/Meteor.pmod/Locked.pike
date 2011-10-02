@@ -8,8 +8,11 @@ class Auth {
     int expiry;
 
     int(0..1) verify(object provider) {
-	return String.string2hex(provider->hmac(sprintf("%s,%d", token, expiry))) == hmac
-		&& expiry <= time();
+	if (provider->authenticate)
+	    return provider->authenticate(channel, token, expiry, hmac);
+	else 
+	    return String.string2hex(provider->hmac(sprintf("%s,%d", token, expiry))) == hmac
+		    && expiry <= time();
     }
 
     string _sprintf(int c) {
