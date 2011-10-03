@@ -1,5 +1,6 @@
 object session;
 string name;
+mapping misc = ([ ]);
 function cb, errorcb;
 Serialization.AtomParser par = Serialization.AtomParser();
 
@@ -26,7 +27,9 @@ function get_errorcb() {
 
 void send(string|MMP.Utils.Cloak|Serialization.Atom atom) {
     werror("CHANNEL(%s)->send(%O).\n", name, atom);
-    atom = (string)atom;
+    if (object_program(atom) == Serialization.Atom)
+	atom = atom->render();
+    else atom = (string)atom;
     session->send(sprintf("_channel %d %s %s", sizeof(atom)+sizeof(name)+1, name, atom));
 }
 
