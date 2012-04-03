@@ -40,10 +40,11 @@ Yakity = {};
  * @property {mmp#Vars} vars variables
  * @property {String} data Payload
  */
-Yakity.Message = mmp.Packet.extend({
-	constructor : function(method, data, vars) {
+Yakity.Message = new Class({
+	Extends : mmp.Packet,
+	initialize : function(method, data, vars) {
 		this.method = method;
-		this.base(data, vars);
+		this.parent(data, vars);
 		// TODO: this is a hack
 		this.vars.remove("_timestamp");
 	},
@@ -442,8 +443,8 @@ Yakity.funky_text = function(p, templates) {
 
 	return div;
 };
-Yakity.Base = Base.extend({
-	constructor : function() {
+Yakity.Base = new Class({
+	initialize : function() {
 		this.plugins = [];
 		this.events = new HigherDMapping();
 	},
@@ -509,9 +510,10 @@ Yakity.Base = Base.extend({
 		}
 	}
 });
-Yakity.ChatWindow = Yakity.Base.extend({
-	constructor : function(id) {
-		this.base();
+Yakity.ChatWindow = new Class({
+	Extends : Yakity.Base,
+	initialize : function(id) {
+		this.parent();
 		this.mlist = new Array();
 		this.mset = new Mapping();
 		this.messages = document.createElement("div");
@@ -547,9 +549,10 @@ Yakity.ChatWindow = Yakity.Base.extend({
 		return this.messages;
 	}
 });
-Yakity.TemplatedWindow = Yakity.ChatWindow.extend({
-	constructor : function(templates, id) {
-		this.base(id);
+Yakity.TemplatedWindow = new Class({
+	Extends : Yakity.ChatWindow,
+	initialize : function(templates, id) {
+		this.parent(id);
 		if (templates) this.setTemplates(templates);
 	},
 	setTemplates : function(t) {
@@ -559,9 +562,10 @@ Yakity.TemplatedWindow = Yakity.ChatWindow.extend({
 		return Yakity.funky_text(p, this.templates);
 	}
 });
-Yakity.RoomWindow = Yakity.TemplatedWindow.extend({
-	constructor : function(templates, id) {
-		this.base(templates, id);
+Yakity.RoomWindow = new Class({
+	Extends : Yakity.TemplatedWindow,
+	initialize : function(templates, id) {
+		this.parent(templates, id);
 		this.members = new TypedTable();
 		this.members.addColumn("members", "Members");
 		this.active = 0;
@@ -639,8 +643,8 @@ Yakity.RoomWindow = Yakity.TemplatedWindow.extend({
  * @param {Object} div DOM div object to put the Chat into.
  * @constructor
  */
-Yakity.Chat = Base.extend({
-	constructor : function(client) {
+Yakity.Chat = new Class({
+	initialize : function(client) {
 		this.windows = new Mapping();
 		this.active = null;
 
@@ -690,9 +694,10 @@ Yakity.Chat = Base.extend({
 		// close window after _notice_leave is there or after double click on close button
 	}
 });
-Yakity.ProfileData = Yakity.Base.extend({
-	constructor : function(client) {
-		this.base();
+Yakity.ProfileData = new Class({
+	Extends : Yakity.Base,
+	initialize : function(client) {
+		this.parent();
 		this.client = client;
 		this.cache = new Mapping();
 		this.requests = new Mapping();
@@ -785,9 +790,10 @@ Yakity.ProfileData = Yakity.Base.extend({
 		return psyc.STOP;
 	}
 });
-Yakity.UserList = Yakity.Base.extend({
-	constructor : function(client, profiles) {
-		this.base();
+Yakity.UserList = new Class({
+	Extends : Yakity.Base,
+	initialize : function(client, profiles) {
+		this.parent();
 		this.client = client;
 		this.profiles = profiles;
 		client.register_method({ method : "_update_users", source : this.client.uniform.root(), object : this });
@@ -831,9 +837,10 @@ Yakity.UserList = Yakity.Base.extend({
 	}
 });
 Yakity.Presence = {};
-Yakity.Presence.Typing = Yakity.Base.extend({
-	constructor : function(client, chat) {
-		this.base();
+Yakity.Presence.Typing = new Class({
+	Extends : Yakity.Base,
+	initialize : function(client, chat) {
+		this.parent();
 		this.client = client;
 		this.chat = chat;
 		this.ids = new Mapping();
@@ -874,8 +881,8 @@ Yakity.Presence.Typing = Yakity.Base.extend({
 		return true;
 	}
 });
-Yakity.InputHistory = Base.extend({
-	constructor : function() {
+Yakity.InputHistory = new Class({
+	initialize : function() {
 		this.history = [];
 		this.pos = -1;
 	},

@@ -24,20 +24,21 @@ function elink(name,fun,title) {
 	if (title) a.title = title;
 	return a;
 }
-var AccChat = Yakity.Chat.extend({
-	constructor : function (client, templates, target_id, input) {
+var AccChat = new Class({
+	Extends : Yakity.Chat,
+	initialize : function (client, templates, target_id, input) {
 		this.target_id = target_id;
 		this.input = input;
-		this.base(client, templates);
+		this.parent(client, templates);
 		this.DOMtoWIN = new Mapping();
 		this.templates = templates;
 		this.active = undefined;
 		var self = this;
-		this.accordion = new Accordion(document.getElementById(this.target_id), 'a.toggler', 'div.chatwindow', {
-			onActive: function(toggler, element){
-				var chatwin = self.DOMtoWIN.get(toggler);
+		this.accordion = new Fx.Accordion('div.header', 'div.chatwindow', {
+			onActive: function(header, element){
+				var chatwin = self.DOMtoWIN.get(header);
 				if (chatwin && self.active != chatwin) {
-					toggler.setStyle('color', '#41464D');
+					UTIL.addClass(header, 'active');
 					self.active = chatwin;
 					chatwin.trigger("focus", chatwin);
 					chatwin.getMessagesNode().style.overflow="auto";
@@ -46,15 +47,25 @@ var AccChat = Yakity.Chat.extend({
 				}
 
 			},
-			onBackground: function(toggler, element){
-				toggler.setStyle('color', '#528CE0');
-				var chatwin = self.DOMtoWIN.get(toggler);
+			onBackground: function(header, element){
+				UTIL.removeClass(header, 'active');
+				var chatwin = self.DOMtoWIN.get(header);
 				if (chatwin) {
 					chatwin.trigger("blur", chatwin);
 					chatwin.getMessagesNode().style.overflow="hidden";
 				}
-			}
-			//opacity : false
+			},
+			
+			initialDisplayFx: false, // don't show transition for initial item
+			
+			/* Don't suppress hide/show action on addSection
+			 * The default is "ignore" and that means if an item is inserted
+			 * while some transition is running, the hiding of the new item
+			 * will be suppressed, resulting in two items being shown. This
+			 * will of course happen whenever you batch-insert multiple items.
+			 * Stupid mootools ...
+			 */
+			link: "chain"
 		});
 	},
 	removeWindow : function(uniform) {
@@ -75,59 +86,45 @@ var AccChat = Yakity.Chat.extend({
 		    this.DOMtoWIN.get(this.accordion.togglers[i]).pos = i;
 		}
 
+		this.DOMtoWIN.remove(win.header);
 		document.getElementById(this.target_id).removeChild(win.header);
 		document.getElementById(this.target_id).removeChild(win.container);
-		this.DOMtoWIN.remove(win.header.firstChild);
 
 		if (win.pos < this.accordion.previous) {
 		    this.accordion.previous--;
 		}
 
 		if (this.active == win) {
-		    	this.accordion.previous = -1;
+		    this.accordion.previous = -1;
 
 			if (win.pos < this.accordion.elements.length) {
 				this.accordion.display(win.pos, false);
-				//this.active = this.DOMtoWIN.get(this.accordion.togglers[win.pos]);
 			} else if (win.pos > 0) {
 				this.accordion.display(win.pos-1, false);
-				//this.active = this.DOMtoWIN.get(this.accordion.togglers[win.pos-1]);
 			}
 		}
-
-		/*
-		 * TODO: this is deactivated until the server message history is working again properly
-		var messages = win.getMessages();
-
-		for (i = 0; i < messages.length; i++) {
-			var id = messages[i].id();
-
-			if (id != undefined) {
-				messages[i] = id;	
-			} else { // we assume that this wont happen often
-				messages.splice(i, 1);
-				i--;
-			}
-		}
-
-		this.client.sendmsg(this.client.uniform, "_request_history_delete", 0, { _messages : messages });
-		*/
-		this.base(uniform);
+		this.parent(uniform);
 	},
 	msg : function(p, m) {
 		if (!p.vars.hasIndex("_context") || this.windows.hasIndex(p.source())) {
-		    var messages = this.getWindow(p.source()).getMessagesNode();
-		    var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
-		    var ret = this.base(p, m);	
-		    if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
-		    return ret;
+			var win = this.getWindow(p.source());
+			if (win == null) {
+				/* Chat didn't want to open the window. */
+				return psyc.STOP;
+			} else {
+				var messages = win.getMessagesNode();
+				var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
+				var ret = this.parent(p, m);	
+				if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
+				return ret;
+			}
 		}
 	},
 	enterRoom : function(uniform, history) {
 		var win = this.getWindow(uniform);
 		this.accordion.display(win.pos);
 		if (!win.left) return;
-		this.base(uniform, history);
+		this.parent(uniform, history);
 	},
 	createWindow : function(uniform) {
 		var win;
@@ -139,7 +136,7 @@ var AccChat = Yakity.Chat.extend({
 		var header = document.createElement("div");
 		var infoicon = document.createElement("div");
 		UTIL.addClass(infoicon, "infoIcon");
-		toggler.appendChild(infoicon);
+		header.appendChild(infoicon);
 
 
 		if (uniform == this.client.uniform) {
@@ -209,7 +206,7 @@ var AccChat = Yakity.Chat.extend({
 		UTIL.addClass(header, "idle");
 		UTIL.addClass(container, "idle");
 		UTIL.addClass(header, "header");
-		this.DOMtoWIN.set(toggler, win);
+		this.DOMtoWIN.set(header, win);
 
 		if (uniform != this.client.uniform) { // not the status window
 			var a;
@@ -253,11 +250,21 @@ var AccChat = Yakity.Chat.extend({
 		UTIL.addClass(win.getMessagesNode(), "messages");
 		container.appendChild(win.getMessagesNode());
 
-
 		var pos = this.accordion.elements.length;
+
+		/* Assign some unique IDs to make new item available for addSection() */
+		header.id = this.target_id + '_header_' + pos;
+		container.id = this.target_id + '_container_' + pos;
+		/* mootools expects containers to be initially hidden. Otherwise two items
+		 * are shown.
+		 */
+		container.setStyle('height', '0px');
+
 		document.getElementById(this.target_id).appendChild(header);
 		document.getElementById(this.target_id).appendChild(container);
-		this.accordion.addSection(toggler, container, pos);
+
+		/* stupid mootools accepting _only_ IDs for addSection... */
+		this.accordion.addSection(header.id, container.id);
 
 
 		// fixes the flicker bug. dont know why mootools is f*cking with the styles
@@ -272,8 +279,8 @@ var AccChat = Yakity.Chat.extend({
 
 		if (!this.active) {
 			this.active = win;
-			this.accordion.display(1);
-			this.accordion.display(pos);
+			this.accordion.display(1, false);
+			this.accordion.display(pos, false);
 		}
 
 		return win;
