@@ -46,7 +46,7 @@ void create() {
 }
 
 int start(int c, Configuration conf) {
-	if (!configuration) {
+	if (!configuration || !server) {
 		this_program::configuration = conf;
 		string bind = query("bind");
 
