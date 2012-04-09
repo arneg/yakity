@@ -122,6 +122,23 @@ void create(mixed session, function|void callback,
 	"_channel_success" : Success(),
 	"_channel_fail" : Fail(),
     ]));
+    session->set_errorcb(MMP.Utils.combine_functions(sesserr, session->get_errorcb()));
+}
+
+void sesserr(mixed ... args) {
+    array es = ({ });
+
+    foreach (channels;; object channel) {
+	mixed e = catch {
+	    function|object|program f = channel->get_errorcb();
+	    if (f) f(@args);
+	};
+	if (e) es += ({ e });
+    }
+
+    session = channels = callbacks = _may_channel = _callback = 0;
+
+    if (sizeof(es)) werror("Multiplexer#sesser(%O) encountered the following errors: %O\n");
 }
 
 void my_in(object session, object atom) {
