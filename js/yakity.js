@@ -69,7 +69,7 @@ Yakity.Client = psyc.Base.extend({
 	constructor : function(url, name) {
 	    this.base({ 
 			msg : UTIL.make_method(this, function(p) {
-				meteor.debug("sending %s (%o)", p.data.type, p);
+				if (meteor.debug) meteor.debug("sending %s (%o)", p.data.type, p);
 				this.connection.send(this.packet_signature.encode(p).render());	
 			})
 	    }, 0);
@@ -189,7 +189,7 @@ Yakity.Client = psyc.Base.extend({
 					}
 				}
 
-				meteor.debug("received: %s (%o, %o)", p.data.type, p.data, p.vars);
+				if (meteor.debug) meteor.debug("received: %s (%o, %o)", p.data.type, p.data, p.vars);
 				
 				this.msg(p);
 			}
@@ -472,7 +472,7 @@ Yakity.RoomWindow = new Class({
 		};
 	},
 	_notice_context_enter : function(p, m) {
-		meteor.debug("_notice_context_enter with %o", m);
+		if (meteor.debug) meteor.debug("_notice_context_enter with %o", m);
 		var supplicant = m.v("_supplicant");
 		var list = m.v("_members");
 
@@ -519,11 +519,13 @@ Yakity.Chat = new Class({
 		}
 	},
 	msg : function(p, m) {
+		var win = null;
 		if (p.V("_context")) {
-		    this.getWindow(p.v("_context")).msg(p, m);
+			win = this.getWindow(p.v("_context"));		    
 		} else if (this.windows.hasIndex(p.source()) || mmp.is_abbrev(m.method, "_message") || mmp.is_abbrev(m.method, "_notice")) {
-		    this.getWindow(p.source()).msg(p, m);
+			win = this.getWindow(p.source());
 		}
+		if (win) win.msg(p, m);
 
 		return psyc.STOP;
 	},
@@ -552,7 +554,7 @@ Yakity.Chat = new Class({
 		this.client.sendmsg(this.client.uniform.root(), "_request_context_enter", 0, { _channel : uniform, _supplicant : this.client.user },
 		    UTIL.make_method(this.getWindow(uniform), function (p, m) {
 			var list = m.v("_members");
-			meteor.debug("left: %d %o", this.left, this);
+			if (meteor.debug) meteor.debug("left: %d %o", this.left, this);
 			
 			if (this.left) {
 				this.left = 0;

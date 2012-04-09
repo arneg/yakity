@@ -73,7 +73,7 @@
 					document.getElementById("soundLink").title = "Toggle sound off.";
 					bip.on = true;
 				    } catch (e) {
-					meteor.debug("sound wont work: %o", e);
+					if (meteor.debug) meteor.debug("sound wont work: %o", e);
 				    };
 				}
 
@@ -215,7 +215,7 @@
 								if (m.method == "_notice_echo") {
 									message.data = client.message_signature.decode(message.data);
 									win._(message, message.data);
-								} else meteor.debug("got strange reply to _message_private: %o", p);
+								} else if (meteor.debug) meteor.debug("got strange reply to _message_private: %o", p);
 							});
 						} else {
 							win.sendmsg(target, "_message_public", str);
