@@ -273,6 +273,7 @@ class TagEntitiesEmit {
 string simpletag_sendmsg(string tagname, mapping args, string content, RequestID id) {
 	NOCACHE();
 	MMP.Uniform target = server->get_uniform(args["_target"]);
+	if (!args["method"]) error("sendmsg tag needs a method.\n");
 
 	mapping vars = ([]);
 	foreach (args; string index; string val) {

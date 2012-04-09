@@ -289,6 +289,10 @@ string index;
 int ctime;
 
 void handle_request(Protocols.HTTP.Server.Request r) {
+#if defined(HTTP_TRACE)
+	int parsing_time = gethrvtime(1) - r->parsing_start;
+	werror("parsing time for HTTP request: %O ms\n", parsing_time*1E-6);
+#endif
 	string path = Stdio.simplify_path(r->not_query);
 	string f = basename(path);
 	mapping id = ([
