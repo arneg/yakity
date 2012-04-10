@@ -162,8 +162,10 @@ int msg(MMP.Packet p) {
 	    if (has_index(p->vars, "_context")) {
 		sendmsg(server->get_uniform(uniform->root), "_notice_context_leave", 0, ([ "_channel" : p->vars->_context, "_supplicant" : uniform ]));
 		//sendmsg(p->vars->_context, "_failure_delivery_permanent", 0, ([ "_target" : uniform ]));
-	    } else {
+	    } else if (PSYC.abbrev(p->data->method, "_message")) {
 		sendreplymsg(p, "_failure_delivery_permanent", 0, ([ "_target" : uniform ]));
+	    } else {
+		werror("Dropping packet %O that cannot be delivered.\n");
 	    }
 	    return PSYC.STOP;
 	}
