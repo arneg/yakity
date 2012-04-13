@@ -24,12 +24,11 @@ function elink(name,fun,title) {
 	if (title) a.title = title;
 	return a;
 }
-var AccChat = new Class({
-	Extends : Yakity.Chat,
-	initialize : function (client, templates, target_id, input) {
+var AccChat = Yakity.Chat.extend({
+	constructor : function (client, templates, target_id, input) {
 		this.target_id = target_id;
 		this.input = input;
-		this.parent(client, templates);
+		this.base(client, templates);
 		this.DOMtoWIN = new Mapping();
 		this.templates = templates;
 		this.active = undefined;
@@ -103,7 +102,7 @@ var AccChat = new Class({
 				this.accordion.display(win.pos-1, false);
 			}
 		}
-		this.parent(uniform);
+		this.base(uniform);
 	},
 	msg : function(p, m) {
 		if (!p.V("_context") || this.windows.hasIndex(p.source())) {
@@ -114,7 +113,7 @@ var AccChat = new Class({
 			} else {
 				var messages = win.getMessagesNode();
 				var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
-				var ret = this.parent(p, m);	
+				var ret = this.base(p, m);	
 				if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
 				return ret;
 			}
@@ -124,7 +123,7 @@ var AccChat = new Class({
 		var win = this.getWindow(uniform);
 		this.accordion.display(win.pos);
 		if (!win.left) return;
-		this.parent(uniform, history);
+		this.base(uniform, history);
 	},
 	createWindow : function(uniform) {
 		var win;
