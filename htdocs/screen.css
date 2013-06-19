@@ -27,7 +27,7 @@ div._notice_enter span._supplicant, div._notice_leave span._supplicant {
 }
 			
 div.status div.messages, div.public div.messages, div.private div.messages {
-	height: 250px;
+	height: 400px;
 	overflow: auto;
 }
 
@@ -48,9 +48,9 @@ div.membersList {
 div.membersContainer
 {
 
-		background-color: #eee; 
-		opacity: .9; 
-					filter:alpha(opacity=90);
+	background-color: #eee; 
+	opacity: .9; 
+	filter:alpha(opacity=90);
 	display: block; 
 	border-left: 1px solid rgb(102, 102, 102); 
 	border-bottom: 1px solid rgb(102, 102, 102); 
@@ -76,13 +76,13 @@ a.membersToggler {
 }
 
 div.membersContainer a.focus div.Button {
-		background-image: url(images/arrowup.png);
+	background-image: url(images/arrowup.png);
 	background-position: left bottom;
 	background-repeat: no-repeat;
 }
 
 div.membersContainer a.blur div.Button{
-		background-image: url(images/arrowdown.png);
+	background-image: url(images/arrowdown.png);
 	background-position: left bottom;
 	background-repeat: no-repeat;
 }
@@ -292,7 +292,7 @@ br.clearall {
 }
 
 div#inputChats {
-		position: relative;
+	position: relative;
 }
 
 #inputChats input.chatText { 
@@ -314,21 +314,21 @@ div#inputChats {
 	background-image: url(images/yakitychat_icon.png);
 	background-repeat: no-repeat;
 	background-position: 5px 5px;				
-					position: absolute;
-					left: 5px;        
-					width: 29%;
-					padding-right: 10px;
+	position: absolute;
+	left: 5px;        
+	width: 29%;
+	padding-right: 10px;
 }
 
 #rightPane
 {
-					background-color: #ddd; 
+	background-color: #ddd; 
 	min-height: 250px;
 	margin: 0 0px 0 34%;
 }
 
 #YakityChat {
-		min-height: 250px;
+	min-height: 250px;
 }
 
 #rooms {
@@ -409,7 +409,7 @@ div.userList * a {
 }
 
 #content {
-	margin-top: 100px;
+	margin-top: 40px;
 }
 			
 #link,#connect {
@@ -454,19 +454,19 @@ input.inputSubmit {
 }
 
 .introDiv {
-		padding: 10px;
+	padding: 10px;
 }
 
 .introDiv img {
-		margin-right: 10px;
+	margin-right: 10px;
 }
 
 div#soundIcon {
-		width: 16px;
-		height: 16px;
-		position: absolute;
-		right: 0px;
-		top: 10px;
+	width: 16px;
+	height: 16px;
+	position: absolute;
+	right: 0px;
+	top: 10px;
 }
 div#soundIcon[class~="on"] {
 	background-image: url(images/sound-on.png);
@@ -479,11 +479,11 @@ div#soundIcon[class~="no"] {
 }
 
 a {
-		outline-style:none;
-					outline-width:0px;
+	outline-style:none;
+	outline-width:0px;
 }
 
 h1 {
-		font-size: 14px;
-		padding: 10px;
+	font-size: 14px;
+	padding: 10px;
 }
