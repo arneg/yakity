@@ -261,6 +261,10 @@
 		return false;
 	    };
 
+	    function enter(uniform) {
+		chat.enterRoom(mmp.get_uniform(uniform));
+	    }
+
 	    meteor.debug = UTIL.log;
 	    window.addEvent("domready", init);
 	</script>
@@ -289,6 +293,9 @@
 	    <a href="javascript:void(null)" onclick="soundManager()" title="You browser does not support sound." id="soundLink"><div id="soundIcon" class="no"></div></a>
 	    <div id="rooms">
 		<div class="roomHeader">Available Rooms</div>
+		<emit scope=room source=chat_rooms>
+		    <a href="javascript:enter('&room.uniform;')" data-uniform="&room.uniform;">&room.name;</a>
+		</emit>
 	    </div>
 	</div>
 	<div id="rightPane">
