@@ -1,6 +1,7 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html>
     <head>
+	<meta charset="UTF-8">
     	<title>YakityChat</title>    
         <script src="ppp-js/Base.js" type="text/javascript"></script>
         <script src="ppp-js/utf8.js" type="text/javascript"></script>
@@ -107,6 +108,11 @@
 		    }
 		    return span;
 		});
+		var channellink = (function(type, key, value, p) {
+		    var span = document.createElement("span");
+		    span.appendChild(profiles.getDisplayNode(value));
+		    return span;
+		});
 		var templates = new mmp.Vars({
 		    _status_circuit :  Yakity.HtmlTemplate("<h1>Instructions</h1><div class='introDiv'><img src='images/yakgroup.png' align='left'> Room chat icon.</div><div class='introDiv'><img src='images/yakgroup-waiting.png' align='left'> Group chat, unread message waiting.</div><div class='introDiv'><img src='images/member-icon.png' align='left'> Private chat icon.</div><div class='introDiv'><img src='images/member-icon-waiting.png' align='left'> Private chat, unread message.</div><div class='introDiv'><img src='images/sound-on.png' align='left'> Message notification, click to toggle sound on/off.</div>"),
 		    _notice_context_enter : "[_supplicant] enters [_context].",
@@ -115,6 +121,7 @@
 		    _message_private : "[_timestamp] [source] [data]",
 		    //_message_private : Yakity.HtmlTemplate("<strong>[_timestamp]</strong> [_source_relay] [data]"),
 		    _source : userlink,
+		    _context : channellink,
 		    _supplicant : userlink,
 		    _timestamp : timestamp
 		});
