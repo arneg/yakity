@@ -54,9 +54,9 @@ var AccChat = Yakity.Chat.extend({
 					chatwin.getMessagesNode().style.overflow="hidden";
 				}
 			},
-			
+
 			initialDisplayFx: false, // don't show transition for initial item
-			
+
 			/* Don't suppress hide/show action on addSection
 			 * The default is "ignore" and that means if an item is inserted
 			 * while some transition is running, the hiding of the new item
@@ -105,18 +105,22 @@ var AccChat = Yakity.Chat.extend({
 		this.base(uniform);
 	},
 	msg : function(p, m) {
-		if (!p.V("_context") || this.windows.hasIndex(p.source())) {
-			var win = this.getWindow(p.source());
-			if (win == null) {
-				/* Chat didn't want to open the window. */
-				return psyc.STOP;
-			} else {
-				var messages = win.getMessagesNode();
-				var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
-				var ret = this.base(p, m);	
-				if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
-				return ret;
-			}
+		if (p.V("_context")) {
+		    source = p.v("_context");
+		    if (!this.windows.hasIndex(source)) return;
+		} else {
+		    source = p.source();
+		}
+		var win = this.getWindow(source);
+		if (win == null) {
+			/* Chat didn't want to open the window. */
+			return psyc.STOP;
+		} else {
+			var messages = win.getMessagesNode();
+			var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
+			var ret = this.base(p, m);
+			if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
+			return ret;
 		}
 	},
 	enterRoom : function(uniform, history) {
@@ -130,7 +134,7 @@ var AccChat = Yakity.Chat.extend({
 		var toggler = document.createElement("a");
 		toggler.title = "toggle pane";
 		UTIL.addClass(toggler, "toggler");
-		
+
 		var container = document.createElement("div");
 		var header = document.createElement("div");
 		var infoicon = document.createElement("div");
@@ -161,7 +165,7 @@ var AccChat = Yakity.Chat.extend({
 				UTIL.replaceClass(container, "joined", "left");
 				UTIL.replaceClass(header, "joined", "left");
 			}));
-			
+
 			var members = document.createElement("div");
 			UTIL.addClass(members, "membersList");
 			var membersc = document.createElement("div");
@@ -180,14 +184,14 @@ var AccChat = Yakity.Chat.extend({
 			togglemembers.href = "javascript:void(null)";
 			togglemembers.onclick = function() {
 				if (members.style.display=="none") {
-					members.style.display="block";	
+					members.style.display="block";
 					UTIL.replaceClass(togglemembers, "blur", "focus");
 				} else {
-					members.style.display="none";	
+					members.style.display="none";
 					UTIL.replaceClass(togglemembers, "focus", "blur");
 				}
 			};
-			
+
 			UTIL.addClass(win.getMessagesNode(), "roomchat");
 			toggler.appendChild(profiles.getDisplayNode(uniform));
 		}
@@ -218,7 +222,7 @@ var AccChat = Yakity.Chat.extend({
 				a = elink(a, function() {
 					chat.removeWindow(uniform);
 				}, "close window");
-				
+
 				header.appendChild(a);
 			} else {
 				a = document.createElement("div");
@@ -227,7 +231,7 @@ var AccChat = Yakity.Chat.extend({
 				UTIL.addClass(b, "closeButton");
 				var c = document.createElement("div");
 				UTIL.addClass(c, "enterButton");
-				
+
 				b = elink(b, function() {
 					chat.removeWindow(uniform);
 				}, "close window");
@@ -237,7 +241,7 @@ var AccChat = Yakity.Chat.extend({
 				c = elink(c, function() {
 					chat.enterRoom(uniform);
 				}, "enter room");
-				
+
 				header.appendChild(b);
 				header.appendChild(a);
 				header.appendChild(c);
