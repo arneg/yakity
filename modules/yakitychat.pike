@@ -26,6 +26,10 @@ void stop() {
 		server->unregister_entity(u);
 		o->logout();
 	}
+	if (server) {
+	    server->shutdown();
+	    server = 0;
+	}
 }
 
 string status() {
@@ -46,22 +50,27 @@ void create() {
 }
 
 int start(int c, Configuration conf) {
-	if (!configuration || !server) {
-		this_program::configuration = conf;
-		string bind = query("bind");
+    if (!configuration || !server) {
+	    this_program::configuration = conf;
+	    string bind = query("bind");
+	    mapping conf = ([ "get_new" : get_user ]);
 
-		server = MMP.Server(([ "bind" : bind, "get_new" : get_user ]));
+	    if (bind && sizeof(bind) && bind != "NONE") {
+		conf->bind = bind;
+	    }
 
-		root = Yakity.Root(server, server->to_uniform());
-		root->users = users;
-		root->rooms = rooms;
-		server->register_entity(root->uniform, root);
-	}
+	    server = MMP.Server(conf);
 
-	if (!c) {
-		getvar("rooms")->set_changed_callback(changed);
-	}
-	changed(getvar("rooms"));
+	    root = Yakity.Root(server, server->to_uniform());
+	    root->users = users;
+	    root->rooms = rooms;
+	    server->register_entity(root->uniform, root);
+    }
+
+    if (!c) {
+	    getvar("rooms")->set_changed_callback(changed);
+    }
+    changed(getvar("rooms"));
 }
 
 class Guest(string real_name) {
