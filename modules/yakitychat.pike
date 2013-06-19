@@ -239,7 +239,7 @@ string simpletag_user2uniform(string tagname, mapping args, string content, Requ
 }
 
 string simpletag_meteorurl(string tagname, mapping args, string content, RequestID id) {
-	return query("location");
+	return Roxen.make_absolute_url(query("location"), id);
 }
 
 
