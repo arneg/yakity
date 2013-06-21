@@ -51,12 +51,12 @@ Thread.Mutex m = Thread.Mutex();
     close_cb = error_cb = 0;		\
 } while(0)
 
-void create(Stdio.File connection, function cb, function error,
-	    int|void autoclose) {
+void create(Stdio.File connection, function cb, function error, int|void autoclose) {
     object o = MMP.Utils.BufferedStream2(connection);
     this_program::connection = o;
     this_program::close_cb = cb;
     this_program::error_cb = error;
+    this_program::autoclose = autoclose;
 
     connection->set_close_callback(_close);
 }
