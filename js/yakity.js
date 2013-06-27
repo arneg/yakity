@@ -111,7 +111,7 @@ Yakity.Client = psyc.Base.extend({
 		this.user = p.source();
 		this.trigger("link", 1, p.source());
 	    } else {
-		this.trigger("link", 0, p.data.data);
+		this.trigger("link", 0, m.data);
 	    }
 	}));
     },
@@ -713,20 +713,24 @@ Yakity.UserList = Yakity.Base.extend({
 	    this.table = new TypedTable();
 	    this.table.addColumn("users", "Users");
 	    this.sendmsg(client.uniform.root(), "_request_users");
+	    this.sortfun = function(td1, td2) {
+		return strcmp(td1.innerHTML, td2.innerHTML);
+	    };
 	},
-	_notice_logout : function(p) {
-	    var source = p.source();
-	    if (this.table.getRow(source)) {
-		this.table.deleteRow(source);
+	_notice_logout : function(p, m) {
+	    var user = m.v("_user");
+	    if (this.table.getRow(user)) {
+		this.table.deleteRow(user);
 	    }
 
 	    return psyc.GOON;
 	},
-	_notice_login : function(p) {
-	    var source = p.source();
-	    if (!this.table.getRow(source)) {
-		this.table.addRow(source);
-		this.table.addCell(source, "users", this.profiles.getDisplayNode(source));
+	_notice_login : function(p, m) {
+	    var user = m.v("_user");
+	    if (!this.table.getRow(user)) {
+		this.table.addRow(user);
+		this.table.addCell(user, "users", this.profiles.getDisplayNode(user));
+		this.table.sortByColumn("users", this.sortfun);
 	    }
 
 	    return psyc.GOON;
@@ -743,6 +747,7 @@ Yakity.UserList = Yakity.Base.extend({
 		    this.table.addCell(list[i], "users", this.profiles.getDisplayNode(list[i]));
 		}
 	    }
+	    this.table.sortByColumn("users", this.sortfun);
 	    
 	    return psyc.STOP;
 	}
