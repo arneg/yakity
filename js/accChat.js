@@ -105,8 +105,8 @@ var AccChat = Yakity.Chat.extend({
 		this.base(uniform);
 	},
 	msg : function(p, m) {
-		if (p.V("_context")) {
-		    source = p.v("_context");
+		if (p.V("_context") || p.v("_source").is_room()) {
+		    source = p.V("_context") ? p.v("_context") : p.v("_source");
 		    if (!this.windows.hasIndex(source)) return;
 		} else {
 		    source = p.source();

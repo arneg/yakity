@@ -102,10 +102,14 @@ Yakity.Client = psyc.Base.extend({
 	    delete this.incoming;
 	}
     },
-    link : function(name) {
+    link : function(name, password) {
 	// use tagging here. we want to allow delegation but also avoid bad stuff
 	var target = this.uniform.get_object("~"+name);
-	this.sendmsg(target, "_request_link", 0, 0, UTIL.make_method(this, function(p, m) {
+	var psyc_vars;
+	if (password) {
+	    psyc_vars = { _password : password };
+	}
+	this.sendmsg(target, "_request_link", 0, psyc_vars, UTIL.make_method(this, function(p, m) {
 	    if (m.method == "_notice_link") {
 		this.default_vars.set("_source_identification", p.source());
 		this.user = p.source();
