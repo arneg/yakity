@@ -19,7 +19,8 @@ constant keepalive_interval = 30;
 constant timeout = 30;
 constant keepalive_packet = "_keepalive 0 ";
 string client_id;
-function cb, error_cb;
+function cb;
+array error_cb = ({});
 int closing = 1;
 MMP.Utils.Queue queue = MMP.Utils.Queue();
 
@@ -47,7 +48,7 @@ object stream;
 void create(string client_id, void|function cb, void|function error) {
     this_program::client_id = client_id;
     this_program::cb = cb;
-    this_program::error_cb = error;
+    this_program::error_cb += ({ error });
 
     lid = call_out(die, timeout, "No Stream connected.");
 }
@@ -72,9 +73,10 @@ void die(string reason) {
     LOCK;
     werror("DIE %O\n", reason);
     lid = 0;
-    call_out(error_cb, 0, this, reason);
+    foreach (error_cb;; function cb)
+	call_out(cb, 0, this, reason);
     cb = 0;
-    error_cb = 0;
+    error_cb = ({ });
 
     RETURN;
 }
@@ -121,11 +123,11 @@ function get_cb() {
 }
 
 void set_errorcb(function cb) {
-    this_program::error_cb = cb;
+    this_program::error_cb += ({ cb });
 }
 
 function get_errorcb() {
-    return error_cb;
+    return error_cb[0];
 }
 
 void register_new_id() {
