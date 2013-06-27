@@ -151,7 +151,7 @@ mixed find_file( string f, object id ) {
 		return Roxen.http_pipe_in_progress();
 	}
 
-	werror("'%s' not in sessions %O\n", id->variables["id"], sessions);
+	werror("'%O' not in sessions %O\n", id->variables["id"], sessions);
 	
 	return Roxen.http_low_answer(500, "me dont know you\n");
 } 
