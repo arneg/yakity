@@ -19,14 +19,16 @@ inherit PSYC.Base;
 
 mixed user;
 function logout_cb; // logout callback
+function login_cb;
 object mmp_signature;
 
 mapping(MMP.Uniform:int) clients = ([]);
 
-void create(object server, object uniform, mixed user, function logout) {
+void create(object server, object uniform, mixed user, function logout, function login) {
 	::create(server, uniform);
 	this_program::user = user;
 	logout_cb = logout;
+	login_cb = login;
 	mmp_signature = Packet(Atom());
 
 	call_out(implicit_logout, 3);
@@ -99,6 +101,7 @@ int _request_link(MMP.Packet p, PSYC.Message m, function callback) {
 	// we have only newbie based linking
 	if (!sizeof(clients)) {
 		add_client(p->source());
+		call_out(login_cb, 0, this);
 		sendreplymsg(p, "_notice_link");
 	} else {
 		sendreplymsg(p, "_failure_link", "This nickname is already taken.");
@@ -160,12 +163,14 @@ int _request_profile(MMP.Packet p, PSYC.Message m, function callback) {
 int msg(MMP.Packet p) {
 	if (!sizeof(clients) && p->data->type != "_request_link") {
 	    if (has_index(p->vars, "_context")) {
-		sendmsg(server->get_uniform(uniform->root), "_notice_context_leave", 0, ([ "_channel" : p->vars->_context, "_supplicant" : uniform ]));
+		mapping v = ([ "_channel" : p->vars->_context, "_supplicant" : uniform ]);
+		//sendmsg(p->vars->_context, "_notice_context_leave", 0, ([ "_supplicant" : uniform ]));
+		sendmsg(server->get_uniform(uniform->root), "_notice_context_leave", 0, v);
 		//sendmsg(p->vars->_context, "_failure_delivery_permanent", 0, ([ "_target" : uniform ]));
 	    } else if (PSYC.abbrev(p->data->type, "_message")) {
 		sendreplymsg(p, "_failure_delivery_permanent", 0, ([ "_target" : uniform ]));
 	    } else {
-		werror("Dropping packet %O that cannot be delivered.\n");
+		werror("%O: Dropping packet %O that cannot be delivered.\n", uniform, p);
 	    }
 	    return PSYC.STOP;
 	}

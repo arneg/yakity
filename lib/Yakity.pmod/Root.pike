@@ -50,3 +50,22 @@ int _request_users(MMP.Packet p, PSYC.Message m, function callback) {
 	return PSYC.STOP;
 }
 
+void add_user(MMP.Uniform u, object o) {
+    PSYC.Message m = PSYC.Message("_notice_login", 0, ([ "_user" : u ]));
+
+    mcast(m);
+
+    get_channel(uniform)->add_route(u, o);
+    users[u] = o;
+}
+
+void delete_user(MMP.Uniform u) {
+    object o = m_delete(users, u);
+
+    get_channel(uniform)->remove_route(u, o);
+
+    if (!o) return;
+    PSYC.Message m = PSYC.Message("_notice_logout", 0, ([ "_user" : u ]));
+
+    mcast(m);
+}

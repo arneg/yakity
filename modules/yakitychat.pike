@@ -77,10 +77,14 @@ class Guest(string real_name) {
 }
 
 void logout_callback(object o) {
-	m_delete(users, o->uniform);
+	root->delete_user(o->uniform);
 	server->unregister_entity(o->uniform);
 	werror("%O logged out.\n", o->uniform);
 };
+
+void login_callback(object o) {
+	root->add_user(o->uniform, o);
+}
 
 object get_user(MMP.Uniform uniform) {
 	object o;
@@ -89,8 +93,7 @@ object get_user(MMP.Uniform uniform) {
 	name = name[1..];
 
 	object user = Guest(name);
-	o = Yakity.User(server, uniform, user, logout_callback);
-	users[uniform] = o;
+	o = Yakity.User(server, uniform, user, logout_callback, login_callback);
 
 	return o;
 }
@@ -106,6 +109,10 @@ string make_response_headers(mapping headers) {
 	return "HTTP/1.1 200 OK\r\n" + Roxen.make_http_headers(headers);
 }
 
+void end_proxy(MMP.Uniform u) {
+    server->unregister_entity(u);
+}
+
 mixed find_file( string f, object id ) {
 	//werror("requested: %s?%O\n", f, id->query);
 	NOCACHE();
@@ -116,7 +123,7 @@ mixed find_file( string f, object id ) {
 		MMP.Uniform uniform = server->get_temporary();
 		session = get_new_session();
 
-		object temp = PSYC.Proxy(server, uniform, session);
+		object temp = PSYC.Proxy(server, uniform, session, end_proxy);
 		server->register_entity(uniform, temp);
 
 		string response = sprintf("_id %s_uniform %s", Serialization.Atom("_string", session->client_id)->render(), Serialization.Atom("_string", (string)uniform)->render());
