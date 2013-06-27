@@ -1,8 +1,8 @@
 inherit Yakity.User;
 object roxen_conf;
 
-void create(object server, object uniform, mixed user, function logout, object roxen_conf) {
-    ::create(server, uniform, user, logout);
+void create(object server, object uniform, mixed user, function logout, function login, object roxen_conf) {
+    ::create(server, uniform, user, logout, login);
     this_program::roxen_conf = roxen_conf;
 }
 
