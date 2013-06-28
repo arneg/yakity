@@ -62,7 +62,7 @@ void add_user(MMP.Uniform u, object o) {
 void delete_user(MMP.Uniform u) {
     object o = m_delete(users, u);
 
-    get_channel(uniform)->remove_route(u, o);
+    remove_from_all(u, o);
 
     if (!o) return;
     PSYC.Message m = PSYC.Message("_notice_logout", 0, ([ "_user" : u ]));
