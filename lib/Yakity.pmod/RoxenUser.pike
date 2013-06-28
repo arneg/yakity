@@ -11,9 +11,6 @@ int _request_link(MMP.Packet p, PSYC.Message m, function callback) {
     object user = roxen_conf->find_user(u);
     string pw = m["_password"];
 
-
-    werror("%O -> %O -> %O\n", u, pw, user);
-
     if (!user || !user->password_authenticate(pw)) {
 	sendreplymsg(p, "_failure_link", "User or password are invalid.");
     } else if (sizeof(clients)) {
