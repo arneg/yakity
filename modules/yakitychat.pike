@@ -21,11 +21,13 @@ void stop() {
 	foreach (rooms;;int|object room) {
 		if (objectp(room)) room->stop();
 	}
+	rooms = ([]);
 	foreach (users;MMP.Uniform u;object o) {
-		m_delete(users, u);
-		server->unregister_entity(u);
+		if (server)
+		    server->unregister_entity(u);
 		o->logout();
 	}
+	users = ([]);
 	if (server) {
 	    server->shutdown();
 	    server = 0;
@@ -33,11 +35,9 @@ void stop() {
 }
 
 string status() {
-	return sprintf("<br>sessions: <br><pre>%O</pre>", sessions)
-			+ sprintf("<br> uniforms: <br><pre>%O\n<pre>", server->uniform_cache) 
-			+ sprintf("<br> users: <br><pre>%O\n<pre>", users) 
-			+ sprintf("<br> rooms: <br><pre>%O</pre>", rooms) 
-			+ sprintf("<br> entities: <br><pre>%O</pre>", server->entities);
+    string us = Parser.encode_html_entities(sprintf("%O", users));
+    string ro = Parser.encode_html_entities(sprintf("%O", rooms));
+    return sprintf("<br> rooms: <br><pre>%s</pre>", ro) + sprintf("<br> users: <br><pre>%s</pre>", us);
 }
 
 void create() {
