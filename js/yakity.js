@@ -413,10 +413,13 @@ Yakity.ChatWindow = Yakity.Base.extend({
     _ : function(p, m) {
 	var node = this.renderMessage(p, m);
 	if (node) {
+	    var messages = this.getMessagesNode();
+	    var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
 	    this.trigger("new_message", this, p, node);
 	    this.mset.set(p, this.mlist.length);
 	    this.mlist.push(p);
-	    this.messages.appendChild(node);
+	    messages.appendChild(node);
+	    if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
 	}
     },
     getMessages : function() {

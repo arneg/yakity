@@ -116,11 +116,7 @@ var AccChat = Yakity.Chat.extend({
 			/* Chat didn't want to open the window. */
 			return psyc.STOP;
 		} else {
-			var messages = win.getMessagesNode();
-			var scrolldown = (messages.scrollTop == (messages.scrollHeight - messages.offsetHeight));
-			var ret = this.base(p, m);
-			if (scrolldown) messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
-			return ret;
+			return this.base(p, m);
 		}
 	},
 	enterRoom : function(uniform, history) {
